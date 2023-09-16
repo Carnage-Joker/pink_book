@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block content %}
+    
+   <!--add buttons to edit Profile and personlise the page theme-->
+   <a href="{% url 'journal:update_profile_view' %}" class="btn btn-primary">Edit Profile</a>
+    <a href="{% url 'journal:customize_theme_view' %}" class="btn btn-primary">Theme</a>
+<div class="profile-page">
+    {% if user.profile_picture %}
+    <div class="profile-picture">
+        <img src="{{ user.profile_picture.url }}" alt="Profile Picture">
+    </div>
+{% else %}
+    <div class="profile-picture">
+        <!-- Default image when no profile picture is set -->
+        <img src="{% static 'default-profile-pic.jpg' %}" alt="Profile Picture">
+    </div>
+{% endif %}
+
+    
+    
+    <div class="profile-details">
+        <p class="sissy-name">This diary belongs to...{{ user.sissy_name }},</p>
+        <p class="sissy-type"> {{user.sissy_name}} is a {{ user.get_sissy_type_display }}</p>
+        <p class="pronouns">and uses these pronouns: {{ user.pronouns }}</p>
+        <p class="bio">{{ user.bio }}</p>
+        <p class="dob">DOB: {{ user.date_of_birth }}</p>
+        <p class="chastity-status">Chastity? {{ user.get_chastity_status_display }}</p>
+        <p class="owned-status">Owned? {{ user.get_owned_status_display }}</p>
+        <p class="location">can be found in {{ user.location }}</p>
+    </div>
+    <!-- Achievement badges will be displayed here -->
+    <a href="{% url 'journal:dashboard_view' %}" class="dashboard-link">Dashboard</a>
+    <a href="{% url 'journal:update_profile_view' %}" class="edit-profile-link">Edit Profile</a>
+</div>
+{% endblock content %}
