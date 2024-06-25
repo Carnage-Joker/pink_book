@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Categories{% endblock %}
+{% block content %}
+<div class="container diary-spread">
+    <!-- Left Page - Category List -->
+    <div class="left-page">
+        <h1>Categories</h1>
+        <ul>
+            {% for category in categories %}
+            <li><a href="{% url 'journal:post_list' category.id %}">{{ category.name }}</a></li>
+            {% endfor %}
+        </ul>
+    </div>
+
+    <!-- Right Page - Placeholder or Additional Info -->
+    <div class="right-page">
+        <h2>Explore Categories</h2>
+        <p>Discover various topics and join the conversations in your favorite categories.</p>
+        <p>Click on any category to see the posts and join the discussion.</p>
+    </div>
+
+    <!-- Book Binding in the Center -->
+    <div class="binding"></div>
+</div>
+{% endblock %}

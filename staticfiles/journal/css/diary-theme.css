@@ -1,0 +1,478 @@
+/* General styles for diary texture */
+body {
+    font-family: 'Brush Script MT', cursive;
+    margin: 0;
+    padding: 0;
+    background-color: #f8e0f3;
+    /* Subtle pink background to complement the diary */
+    color: #4a154b;
+    /* Deep plum text color for readability and elegance */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-block-size: 100vh;
+    overflow: hidden;
+}
+
+/* Container for the entire spread */
+.container {
+    max-inline-size: 80%;
+    background-color: rgba(255, 255, 255, 0.95);
+    /* Slight transparency for the diary effect */
+    border-radius: 15px;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+    display: flex;
+    flex-direction: column;
+    position: relative;
+    padding: 20px;
+    overflow: hidden;
+}
+
+/* Specific page layouts */
+/* General styles for the container and cover page */
+body {
+    font-family: 'Brush Script MT', cursive;
+    margin: 0;
+    padding: 0;
+    background-color: #f8e0f3;
+    color: #4a154b;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-block-size: 100vh;
+    overflow: hidden;
+}
+
+.container {
+    max-inline-size: 80%;
+    background-color: rgba(255, 255, 255, 0.95);
+    border-radius: 15px;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+    padding: 20px;
+    position: relative;
+    overflow: hidden;
+}
+
+/* Front Cover Styling */
+/* General styles for diary texture */
+body {
+    font-family: 'Brush Script MT', cursive;
+    margin: 0;
+    padding: 0;
+    background-color: #f8e0f3;
+    color: #4a154b;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    overflow: hidden;
+}
+
+.container {
+    max-width: 80%;
+    height: auto;
+    background-color: rgba(255, 255, 255, 0.95);
+    border-radius: 15px;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+    display: flex;
+    flex-direction: row;
+    position: relative;
+    padding: 20px;
+    overflow: hidden;
+}
+
+/* Diary Spread */
+.diary-spread {
+    display: flex;
+    flex-direction: row;
+    width: 100%;
+    background: url('../media/DiaryTexture.png');
+    /* Use a subtle texture image for the background */
+    background-size: cover;
+    gap: 0;
+    /* No gap between the pages */
+    position: relative;
+}
+
+/* Left and Right Pages */
+.left-page,
+.right-page {
+    flex: 1;
+    padding: 30px;
+    background-color: #ffe6f2;
+    border: 1px solid #f2c1da;
+    box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.1);
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    text-align: center;
+}
+
+.left-page {
+    border-right: 2px solid #d1a3c7;
+    /* Slight border to differentiate pages */
+}
+
+.right-page {
+    border-left: 2px solid #d1a3c7;
+}
+
+/* Book Binding */
+.binding {
+    width: 10px;
+    background-color: #d1a3c7;
+    /* Color of the binding */
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+}
+
+/* Typography adjustments */
+h1,
+h2,
+h3 {
+    margin: 10px 0;
+    text-align: center;
+}
+
+.welcome-title,
+.cover-title {
+    font-family: 'Great Vibes', cursive;
+    font-size: 2.5em;
+    color: #e103c7;
+    text-shadow: 2px 2px 4px #888888;
+}
+
+.cover-subtitle,
+.login-title {
+    font-family: 'Dancing Script', cursive;
+    font-size: 1.5em;
+    color: #740782;
+    text-shadow: 1px 1px 3px #444444;
+}
+
+.welcome-description {
+    font-family: 'Dancing Script', cursive;
+    font-size: 1.2em;
+    color: #4a154b;
+    margin-bottom: 30px;
+}
+
+.features {
+    display: flex;
+    justify-content: space-around;
+    margin-bottom: 30px;
+}
+
+.feature {
+    flex: 1;
+    margin: 0 10px;
+    padding: 20px;
+    background-color: rgba(255, 255, 255, 0.9);
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    text-align: center;
+}
+
+.feature h2 {
+    font-family: 'Dancing Script', cursive;
+    font-size: 1.8em;
+    color: #e103c7;
+    margin-bottom: 10px;
+}
+
+.feature p {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-size: 1em;
+    color: #4a154b;
+}
+
+.call-to-action {
+    margin-top: 30px;
+}
+
+.call-to-action h2 {
+    font-family: 'Dancing Script', cursive;
+    font-size: 1.8em;
+    color: #740782;
+    margin-bottom: 15px;
+}
+
+.btn-register,
+.btn-pink {
+    background-color: #FF88B1;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    font-size: larger;
+    text-decoration: none;
+    transition: background-color 0.3s;
+}
+
+.btn-register:hover,
+.btn-pink:hover {
+    background-color: #E76F89;
+}
+
+.register-link {
+    text-align: center;
+    margin-top: 15px;
+    font-family: 'Dancing Script', cursive;
+}
+
+.form-group {
+    margin-bottom: 15px;
+}
+
+.form-control {
+    width: 100%;
+    padding: 10px;
+    margin-top: 5px;
+    border: 2px solid #e103c7;
+    border-radius: 5px;
+    font-family: 'Brush Script MT', cursive;
+    font-size: larger;
+    background-color: #fff8fb;
+    box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.2);
+}
+
+.form-errors {
+    list-style-type: none;
+    padding: 0;
+    color: red;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-size: smaller;
+}
+
+/* Adjustments for smaller screens */
+@media only screen and (max-width: 768px) {
+    .container {
+        max-width: 95%;
+    }
+
+    .diary-spread {
+        flex-direction: column;
+    }
+
+    .left-page,
+    .right-page {
+        margin: 5px 0;
+    }
+
+    nav a {
+        font-size: 16px;
+        padding: 5px 10px;
+        transform: rotate(-7deg);
+    }
+
+    .binding {
+        display: none;
+        /* Hide binding on smaller screens */
+    }
+}
+.back-cover-page {
+    background-image: url('../media/BackCover.png');
+    background-size: cover;
+    background-position: center;
+    inline-size: 50%;
+    block-size: auto;
+    margin: auto;
+}
+
+.inside-cover-page,
+.inside-back-cover-page {
+    background-image: url('../media/InsideCover.png');
+    background-size: cover;
+    background-position: center;
+    inline-size: 100%;
+    block-size: auto;
+    margin: auto;
+    padding: 20px;
+}
+
+/* Styling for the opened diary spread */
+.diary-spread {
+    display: flex;
+    flex-direction: row;
+    inline-size: 100%;
+    block-size: auto;
+    background: url('../media/DiaryTexture.png');
+    /* Use a subtle texture image for the background */
+    background-size: cover;
+    padding: 20px;
+    gap: 10px;
+}
+
+.left-page,
+.right-page {
+    flex: 1;
+    padding: 20px;
+    background-color: #ffe6f2;
+    background-clip: padding-box;
+    border: 1px solid #f2c1da;
+    border-radius: 10px;
+    overflow-y: auto;
+    box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+.left-page {
+    margin-inline-end: 10px;
+}
+
+.right-page {
+    margin-inline-start: 10px;
+}
+
+/* Navigation styles to look like angled post-it notes */
+nav {
+    position: absolute;
+    inset-block-start: -10px;
+    /* Slightly above the container to overlap */
+    inset-inline-start: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    justify-content: center;
+    gap: 20px;
+    z-index: 1;
+}
+
+nav a {
+    display: block;
+    background-color: #fbafda;
+    color: #740782;
+    padding: 10px 20px;
+    font-size: 20px;
+    font-family: 'Dancing Script', cursive;
+    box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.3);
+    text-decoration: none;
+    transform: rotate(-10deg);
+    transition: transform 0.3s;
+    border-radius: 10px;
+    position: relative;
+    z-index: 2;
+}
+
+nav a:hover {
+    transform: rotate(-5deg);
+}
+
+/* Dashboard and Content Pages Layout */
+.dashboard-container,
+.content-container {
+    display: flex;
+    flex-direction: row;
+    inline-size: 100%;
+    padding: 20px;
+}
+
+.dashboard-column,
+.content-column {
+    flex: 1;
+    padding: 20px;
+    background-color: rgba(255, 255, 255, 0.9);
+    border: 1px solid #e103c7;
+    border-radius: 10px;
+    margin: 10px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    text-align: center;
+    overflow-y: auto;
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.dashboard-column:hover,
+.content-column:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+}
+
+/* Typography adjustments */
+h1,
+h2,
+h3 {
+    margin: 10px 0;
+    text-align: center;
+}
+
+h1 {
+    font-family: 'Great Vibes', cursive;
+    font-size: 2.5em;
+    color: #e103c7;
+    text-shadow: 2px 2px 4px #888888;
+}
+
+h2 {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-size: 2em;
+    color: aquamarine;
+    text-shadow: 2px 2px 4px #666666;
+}
+
+h3 {
+    font-family: 'Dancing Script', cursive;
+    font-size: 1.5em;
+    color: #740782;
+    text-shadow: 1px 1px 3px #444444;
+}
+
+/* Form and button styles */
+form {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+input,
+textarea {
+    inline-size: 80%;
+    padding: 10px;
+    margin: 10px 0;
+    border: 2px solid #e103c7;
+    border-radius: 5px;
+    font-family: 'Brush Script MT', cursive;
+    font-size: large;
+    background-color: #fff8fb;
+    box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.2);
+}
+
+button {
+    background-color: #FF88B1;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    font-size: larger;
+    transition: background-color 0.3s;
+}
+
+button:hover {
+    background-color: #E76F89;
+}
+
+/* Adjustments for smaller screens */
+@media only screen and (max-inline-size: 768px) {
+    .container {
+        max-inline-size: 95%;
+    }
+
+    .diary-spread {
+        flex-direction: column;
+    }
+
+    .left-page,
+    .right-page {
+        margin: 5px 0;
+    }
+
+    nav a {
+        font-size: 16px;
+        padding: 5px 10px;
+        transform: rotate(-7deg);
+    }
+}

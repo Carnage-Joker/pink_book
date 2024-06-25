@@ -1,0 +1,19 @@
+<!-- templates/virtual_try_on/favorite_outfits_list.html -->
+{% extends "base.html" %}
+
+{% block content %}
+<div class="favorites-list">
+    <h1>My Favorite Outfits</h1>
+    <ul>
+        {% for favorite in favorites %}
+            <li>
+                <a href="{% url 'premium_outfit_detail' favorite.outfit.pk %}">
+                    <img src="{{ favorite.outfit.get_image_url }}" alt="{{ favorite.outfit.name }}">
+                    <h2>{{ favorite.outfit.name }}</h2>
+                    <span>${{ favorite.outfit.price }}</span>
+                </a>
+            </li>
+        {% endfor %}
+    </ul>
+</div>
+{% endblock %}

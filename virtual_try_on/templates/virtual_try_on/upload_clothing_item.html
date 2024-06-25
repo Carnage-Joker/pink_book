@@ -1,0 +1,19 @@
+<!-- virtual_try_on/templates/virtual_try_on/upload_clothing_item.html -->
+{% extends "virtual_try_on/base.html" %}
+{% load static %}
+
+{% block title %}Upload Clothing Item{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1>Upload Clothing Item</h1>
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        <div class="form-group">
+            <label for="file">Choose a file:</label>
+            <input type="file" id="file" name="file" accept="image/*">
+        </div>
+        <button type="submit" class="submit-button">Upload</button>
+    </form>
+</div>
+{% endblock %}

@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Resources{% endblock %}
+{% block content %}
+<div class="container diary-spread">
+    <!-- Left Page - Resources List -->
+    <div class="left-page">
+        <h1>Resources Page</h1>
+        <ul>
+            {% for resource in resources %}
+            <li>
+                <a href="{{ resource.link }}" target="_blank">{{ resource.title }}</a> - {{ resource.description }}
+            </li>
+            {% endfor %}
+        </ul>
+    </div>
+
+    <!-- Right Page - Placeholder or Additional Info -->
+    <div class="right-page">
+        <h2>Helpful Resources</h2>
+        <p>Explore the links to find useful tools, guides, and information that can help you on your journey.</p>
+        <p>Whether you're looking for support, learning new skills, or just exploring, we've got something for you!</p>
+    </div>
+
+    <!-- Book Binding in the Center -->
+    <div class="binding"></div>
+</div>
+{% endblock %}

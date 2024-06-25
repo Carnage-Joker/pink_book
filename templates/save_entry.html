@@ -1,0 +1,10 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <h1>Save Entry</h1>
+    <form method="POST">
+        {% csrf_token %}
+        <!-- Add your form fields here -->
+        <button type="submit">Save</button>
+    </form>
+{% endblock %}

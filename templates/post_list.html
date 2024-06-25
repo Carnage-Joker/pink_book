@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% load static %}
+{% block content %}
+<div class="container">
+    <h1>Posts in {{ category.name }}</h1>
+    <ul>
+        {% for post in posts %}
+        <li><a href="{% url 'journal:post_detail' post.id %}">{{ post.title }}</a></li>
+        {% endfor %}
+    </ul>
+    <a href="{% url 'journal:create_post' %}">Create New Post</a>
+</div>
+{% endblock %}

@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}About The Pink Book{% endblock %}
+{% block content %}
+<div class="container diary-spread">
+    <!-- Left Page - About Information -->
+    <div class="left-page">
+        <h1>About The Pink Book</h1>
+        <img src="{% static 'media/pinkbooklogo.jpg' %}" alt="The Pink Book Logo" class="pink-logo">
+        <p>Welcome to The Pink Book, a safe space for Sissies to be themselves and learn about themselves without prejudice. Our interactive journal is designed with love, embracing a teenage girly style that's unapologetically pink and cute!</p>
+
+        <h2>Our Mission</h2>
+        <p>We are committed to providing a supportive environment for Sissies, encouraging self-exploration, self-acceptance, and growth. Embrace your inner sissy and join our loving community!</p>
+    </div>
+
+    <!-- Right Page - Meet the Team and Contact Information -->
+    <div class="right-page">
+        <h2>Meet the Team</h2>
+        <p>Get to know the passionate individuals behind The Pink Book:</p>
+        <ul>
+            <li><strong>Sammi:</strong> The visionary leader and creator of The Pink Book.</li>
+            <li><strong>Sapphire Sparkle:</strong> The superstar coding genius (that's me!), always eager to help and support the project's technical needs.</li>
+        </ul>
+
+        <h2>Contact Us</h2>
+        <p>If you have any questions or would like to get in touch, please contact us at <a href="mailto:info@thepinkbook.com">info@thepinkbook.com</a>.</p>
+    </div>
+
+    <!-- Book Binding in the Center -->
+    <div class="binding"></div>
+</div>
+{% endblock %}

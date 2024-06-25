@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Join Today{% endblock %}
+
+{% block content %}
+<div class="container diary-spread">
+    <!-- Left Page - Registration Form -->
+    <div class="left-page">
+        <fieldset class="form-group">
+            <legend class="border-bottom mb-4">Join Today</legend>
+            <form method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                {{ form.as_p }}
+                <button type="submit" class="btn btn-register">Submit</button>
+            </form>
+        </fieldset>
+    </div>
+
+    <!-- Right Page - Additional Information or Welcome Message -->
+    <div class="right-page">
+        <h2>Welcome to Your Sissy Journal</h2>
+        <p>By joining our community, you will have a personal space to explore, express, and embrace your sissy self. Our features include:</p>
+        <ul>
+            <li>Personalized journal prompts to inspire your writing.</li>
+            <li>A habit tracker to help you stay on top of your goals.</li>
+            <li>A loving community to share your journey with.</li>
+        </ul>
+        <p>Sign up now and start your journey with us!</p>
+    </div>
+
+    <!-- Book Binding in the Center -->
+    <div class="binding"></div>
+</div>
+{% endblock %}

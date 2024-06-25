@@ -1,0 +1,28 @@
+<!-- new_entry.html -->
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}New Entry{% endblock %}
+{% block content %}
+<div class="container diary-spread">
+    <!-- Left Page - New Entry Form -->
+    <div class="left-page">
+        <h2>Write a New Entry</h2>
+        <form method="post">
+            {% csrf_token %}
+            {{ form.as_p }}
+            <!-- Include the generated prompt in a hidden input so it's submitted with the form -->
+            <input type="hidden" name="prompt_text" value="{{ generated_prompt }}">
+            <button type="submit" class="btn btn-register">Save Entry</button>
+        </form>
+    </div>
+
+    <!-- Right Page - Prompt and Insight -->
+    <div class="right-page">
+        <h2>Journal Prompt</h2>
+        <div id="generatedText">{{ generated_prompt }}</div> <!-- Display the generated prompt -->
+    </div>
+
+    <!-- Book Binding in the Center -->
+    <div class="binding"></div>
+</div>
+{% endblock %}

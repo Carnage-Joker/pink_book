@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Glam Goals{% endblock %}
+{% block content %}
+<div class="container diary-spread">
+    <!-- Left Page - Sissy Goals List -->
+    <div class="left-page">
+        <h1 style="color: hotpink;">Glam Goals</h1>
+        <ul>
+            {% for habit in habits %}
+            <li style="color: hotpink;">
+                <div class="progress-container">
+                    <div class="progress-bar" style="width: {{ habit.progress }}%; background-color: hotpink;"></div>
+                    <button onclick="updateProgress({{ habit.id }})" class="btn btn-register">Update Progress</button>
+                </div>
+                {{ habit.name }}
+            </li>
+            {% endfor %}
+        </ul>
+    </div>
+
+    <!-- Right Page - Placeholder or Additional Info -->
+    <div class="right-page">
+        <h2>Achieve Your Goals</h2>
+        <p>Stay committed to your goals and track your progress regularly.</p>
+        <p>Each step forward is a step towards a better you!</p>
+    </div>
+
+    <!-- Book Binding in the Center -->
+    <div class="binding"></div>
+</div>
+{% endblock %}

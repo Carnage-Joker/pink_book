@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Forum Home{% endblock %}
+{% block content %}
+<div class="container diary-spread">
+    <!-- Left Page - Forum Categories -->
+    <div class="left-page">
+        <h1>Forum Home</h1>
+        <ul>
+            {% for category in categories %}
+            <li><a href="{% url 'journal:category_detail' category.id %}">{{ category.title }}</a></li>
+            {% endfor %}
+        </ul>
+    </div>
+
+    <!-- Right Page - Placeholder or Additional Info -->
+    <div class="right-page">
+        <h2>Join the Discussion</h2>
+        <p>Engage with our community by exploring and contributing to various topics.</p>
+        {% if user.is_authenticated %}
+        <a href="{% url 'journal:create_post' category.id %}" class="btn btn-register">Create Post</a>
+        {% else %}
+        <a href="{% url 'journal:login' %}" class="btn btn-register">Log in to create a post</a>
+        {% endif %}
+    </div>
+
+    <!-- Book Binding in the Center -->
+    <div class="binding"></div>
+</div>
+{% endblock %}

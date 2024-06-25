@@ -1,0 +1,18 @@
+{% extends "ffbase.html" %}
+{% load static %}
+{% block content %}
+<div class="background">
+<div class="forum-body">
+<h1>{{ post.title }}</h1>
+<p>{{ post.content }}</p>
+<h2>Comments</h2>
+<ul>
+    {% for comment in comments %}
+    <li>{{ comment.content }} - {{ comment.author }}</li>
+    {% endfor %}
+</ul>
+<a href="{% url 'journal:create_comment' post.id %}">Add Comment</a>
+</div>
+</div>
+{% endblock %}
+

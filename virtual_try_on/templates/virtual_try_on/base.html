@@ -1,0 +1,26 @@
+<!-- virtual_try_on/templates/virtual_try_on/base.html -->
+<!DOCTYPE html>
+<html lang="en">
+{% load static %}
+<head>
+    <meta charset="UTF-8">
+    <title>{% block title %}Virtual Try-On{% endblock %}</title>
+    <link rel="stylesheet" href="{% static 'virtual_try_on/styles.css' %}">
+</head>
+<body>
+    <nav>
+        <ul>
+        
+           
+         
+         
+           
+      
+            <li><a href="{% url 'journal:dashboard' %}">Dashboard</a></li>
+        </ul>
+    </nav>
+    <main>
+        {% block content %}{% endblock %}
+    </main>
+</body>
+</html>

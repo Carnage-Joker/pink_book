@@ -1,0 +1,19 @@
+<!-- virtual_try_on/templates/virtual_try_on/premium_outfits.html -->
+{% extends "virtual_try_on/base.html" %}
+{% load static %}
+
+{% block title %}Premium Outfits{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1>Premium Outfits</h1>
+    <div class="premium-outfit-gallery">
+        {% for outfit in outfits %}
+            <div class="premium-outfit" onclick="purchaseOutfit('{{ outfit.id }}')">
+                <img src="{{ outfit.image.url }}" alt="{{ outfit.name }}">
+                <p>{{ outfit.name }}</p>
+            </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

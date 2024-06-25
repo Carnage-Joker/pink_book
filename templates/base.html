@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+{% load static %}
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Sissy Journal{% endblock %}</title>
+    <link rel="stylesheet" href="{% static 'journal/css/diary-theme.css' %}">
+    {% block head %}{% endblock %}
+</head>
+<body>
+    
+    <!-- Navigation Tabs (Post-it Notes) -->
+    <nav class="post-it-notes">
+        <a href="{% url 'journal:welcome' %}">Home</a>
+        <a href="{% url 'journal:register' %}">Register</a>
+        <a href="{% url 'journal:dashboard' %}">Dashboard</a>
+        <a href="{% url 'journal:categories' %}">Forum</a>
+        <a href="{% url 'journal:logout' %}">Logout</a>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="content">
+        {% block content %}
+        {% endblock %}
+    </div>
+    <div class="rightcolumn">
+        <a href="{% url 'journal:about' %}">About Us</a>
+
+    </div>
+    <!-- Scripts -->
+    <script src="{% static 'journal/scripts/scripts.js' %}"></script>
+    {% block scripts %}{% endblock %}
+</body>
+</html>

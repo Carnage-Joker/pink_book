@@ -1,0 +1,357 @@
+/* General styles for diary texture */
+body {
+    font-family: 'Brush Script MT', cursive;
+    margin: 0;
+    padding: 0;
+    background-color: #f8e0f3;
+    color: #4a154b;
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    min-block-size: 100vh;
+    overflow: auto;
+    font-size: 40px;
+}
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 
+                                                #generatedText {
+    font-size: 1.2em;
+    color: #4a4a4a;
+    margin: 10px 0;
+    padding: 10px;
+    border: 1px solid #ddd;
+    background-color: #f9f9f9;
+}
+
+/* Container and padding adjustments for the book layout */
+.container {
+    max-inline-size: 90%;
+    min-inline-size: 75%;
+    min-block-size: 80vh;
+    block-size: auto;
+    background-color: rgba(255, 255, 255, 0.95);
+    border-radius: 15px;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+    display: flex;
+    flex-direction: row;
+    position: relative;
+    padding: 20px;
+    padding-block-start: 80px;
+    overflow: hidden;
+    margin-block-end: 20px;
+    font-size: 30px;
+    margin-block-start: 120px;
+}
+
+/* Diary Spread */
+.diary-spread {
+    display: flex;
+    flex-direction: row;
+    inline-size: 100%;
+    block-size: 100%;
+    background: url('../media/DiaryTexture.png');
+    background-size: cover;
+    gap: 0;
+    position: relative;
+    margin-block-start: 50px;
+}
+
+/* Left and Right Pages */
+.left-page,
+.right-page {
+    flex: 1;
+    padding: 40px;
+    background-color: #ffe6f2;
+    border: 1px solid #f2c1da;
+    box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.1);
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    text-align: center;
+    min-block-size: 100%;
+    font-size: 30px;
+}
+
+.left-page {
+    border-inline-end: 2px solid #d1a3c7;
+}
+
+.right-page {
+    border-inline-start: 2px solid #d1a3c7;
+}
+
+/* Book Binding */
+.binding {
+    inline-size: 20px;
+    background-color: #d1a3c7;
+    position: absolute;
+    inset-block-start: 0;
+    inset-block-end: 0;
+    inset-inline-start: 50%;
+    transform: translateX(-50%);
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+}
+
+/* Post-it Note Navigation */
+nav.post-it-notes {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 10px;
+    margin-inline-end: 40px;
+    position: absolute;
+    inset-block-start: 5%;
+    inset-inline-end: 20px;
+    inline-size: auto;
+    z-index: 10;
+}
+
+nav.post-it-notes.middle {
+    justify-content: center;
+    position: absolute;
+    inset-block-start: 40px;
+    inset-inline-start: 65%;
+    transform: translateX(-50%);
+    z-index: 10;
+    display: flex;
+    gap: 10px;
+}
+
+nav.post-it-notes.back-cover {
+    justify-content: center;
+    margin: 0;
+    position: absolute;
+    inset-block-start: 40px;
+    inset-inline-start: 65%;
+    transform: translateX(-50%) rotate(10deg);
+    z-index: 10;
+}
+
+nav.post-it-notes a {
+    display: block;
+    background-color: #fbafda;
+    color: #740782;
+    padding: 10px 15px;
+    font-size: 1em;
+    font-family: 'Dancing Script', cursive;
+    box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.3);
+    text-decoration: none;
+    transform: rotate(-10deg);
+    transition: transform 0.3s;
+    border-radius: 10px;
+}
+
+nav.post-it-notes a:hover {
+    transform: rotate(-5deg);
+}
+
+/* Pink Padlock Background for Login Section */
+.logreg-section {
+    background-color: rgba(255, 255, 255, 0.85);
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+    position: absolute;
+    inset-block-start: 50%;
+    inset-inline-end: 10%;
+    transform: translateY(-50%);
+    inline-size: 300px;
+    z-index: 20;
+    text-align: center;
+}
+
+.logreg-section .logreg-form {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.logreg-section button,
+.logreg-section a.btn-secondary {
+    inline-size: 100%;
+    margin-block-start: 10px;
+}
+
+.logreg-section a.btn-secondary {
+    background-color: #fbafda;
+    color: #740782;
+    padding: 10px 15px;
+    text-decoration: none;
+    border-radius: 10px;
+    box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.3);
+}
+
+.logreg-section a.btn-secondary:hover {
+    background-color: #E76F89;
+    color: white;
+}
+
+/* Welcome Page - Closed Diary Cover */
+.cover-page {
+    background: url('../media/FrontCover.png') no-repeat center center;
+    inline-size: 80%;
+    
+    inset-block-start: 50px;
+    block-size: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    text-align: center;
+}
+
+.cover-page .lock-container {
+    position: relative;
+    inline-size: 200px;
+    block-size: auto;
+}
+
+.cover-page .lock {
+    position: absolute;
+    inset-inline-end: -40px;
+    inset-block-start: 50%;
+    transform: translateY(-50%);
+    inline-size: 100px;
+    block-size: auto;
+    z-index: 10;
+}
+
+.cover-page h1.welcome-title {
+    font-family: 'Great Vibes', cursive;
+    font-size: 2em;
+    color: #e103c7;
+    text-shadow: 2px 2px 4px #888888;
+    margin: 0;
+}
+
+.cover-page p.welcome-description {
+    font-family: 'Dancing Script', cursive;
+    font-size: 1.5em;
+    color: #740782;
+    text-shadow: 1px 1px 3px #444444;
+    margin-block-start: 20px;
+}
+
+.cover-page .btn-register {
+    background-color: #FF88B1;
+    color: white;
+    padding: 15px 30px;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    font-size: 1.5em;
+    text-decoration: none;
+    transition: background-color 0.3s;
+    margin-block-start: 30px;
+}
+
+.cover-page .btn-register:hover {
+    background-color: #E76F89;
+}
+
+/* Specific page styles */
+.form-group,
+.forum-header,
+.forum-body,
+.welcome-page-details,
+.todo-list,
+.habit-list,
+.recent-entries,
+.recent-entries-details,
+.recent-entries-tilt,
+.dash-details-left,
+.dash-details-right,
+.profile-details,
+.diary-page-details-left,
+.diary-page-details-right,
+.prompt,
+.dayinsp,
+.entry-detail-page-left,
+.entry-detail-page-right,
+.logreg-section-details {
+    margin: 20px auto;
+    padding: 20px;
+    background-color: rgba(255, 255, 255, 0.8);
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+    border-radius: 10px;
+}
+
+button {
+    background-color: #FF88B1;
+    color: white;
+    padding: 10px 15px;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+button:hover {
+    background-color: #E76F89;
+}
+
+a {
+    color: #FF69B4;
+    text-decoration: none;
+    transition: color 0.3s;
+}
+
+a:hover {
+    color: #FF1493;
+}
+
+@media only screen and (max-inline-size: 768px) {
+    .container {
+        max-inline-size: 95%;
+        block-size: auto;
+    }
+
+    .diary-spread {
+        flex-direction: column;
+    }
+
+    .left-page,
+    .right-page {
+        margin: 5px 0;
+    }
+
+    nav.post-it-notes a {
+        font-size: 18px;
+        padding: 5px 10px;
+        transform: rotate(-7deg);
+    }
+
+    .binding {
+        display: none;
+    }
+}
+/* Example styling for sections */
+#upload-mode,
+#try-on-mode {
+    margin: 20px;
+    padding: 10px;
+    font-size: 1.2em;
+    border-radius: 5px;
+    background-color: #f0f0f0;
+}
+
+.premium-outfit {
+    border: 2px solid #ddd;
+    padding: 10px;
+    margin: 10px;
+    cursor: pointer;
+    background-color: #fff;
+}
+
+.avatar-customization {
+    padding: 20px;
+    border: 2px dashed #ccc;
+    margin-block-start: 20px;
+}
+
+#try-on-result {
+    margin-top: 20px;
+    max-width: 100%;
+    border: 2px solid #ddd;
+}

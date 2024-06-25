@@ -1,0 +1,43 @@
+<!-- templates/virtual_try_on/premium_outfit_detail.html -->
+{% extends "base.html" %}
+
+{% block content %}
+<div class="outfit-detail">
+    <h1>{{ outfit.name }}</h1>
+    <img src="{{ outfit.get_image_url }}" alt="{{ outfit.name }}">
+    <p>{{ outfit.description }}</p>
+    <span>${{ outfit.price }}</span>
+    <button id="toggle-favorite" data-outfit-id="{{ outfit.pk }}">
+        {% if user.is_authenticated %}
+            {% if outfit in user.favorite_outfits.all %}
+                Remove from Favorites
+            {% else %}
+                Add to Favorites
+            {% endif %}
+        {% else %}
+            Login to save as Favorite
+        {% endif %}
+    </button>
+</div>
+
+<script>
+document.getElementById('toggle-favorite').addEventListener('click', function() {
+    var outfitId = this.getAttribute('data-outfit-id');
+    fetch("{% url 'toggle_favorite_outfit' outfit.pk %}", {
+        method: 'POST',
+        headers: {
+            'X-CSRFToken': '{{ csrf_token }}'
+        },
+        body: JSON.stringify({ outfit_id: outfitId })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.action === 'added') {
+            this.textContent = 'Remove from Favorites';
+        } else if (data.action === 'removed') {
+            this.textContent = 'Add to Favorites';
+        }
+    });
+});
+</script>
+{% endblock %}

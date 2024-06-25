@@ -1,0 +1,114 @@
+/* General Styles */
+body {
+    font-family: 'Comic Sans MS', cursive, sans-serif;
+    background-color: #FFC0CB; /* Pink background */
+    color: #FF69B4; /* Hot Pink text */
+}
+
+h1, h2 {
+    font-family: 'Chalkduster', fantasy;
+    color: #FF1493; /* Deep Pink */
+}
+
+/* Links */
+a {
+    color: #FFB6C1; /* Light Pink */
+    text-decoration: none;
+    font-weight: bold;
+}
+
+a:hover {
+    text-decoration: underline;
+    color: #FF69B4; /* Hot Pink */
+}
+
+/* Lists */
+ul {
+    list-style-type: none;
+    padding: 0;
+}
+
+li {
+    background-color: #FFB6C1; /* Light Pink */
+    margin: 10px;
+    padding: 10px;
+    border-radius: 10px;
+}
+
+/* Buttons */
+button {
+    background-color: #FF69B4; /* Hot Pink */
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+}
+
+button:hover {
+    background-color: #FF1493; /* Deep Pink */
+}
+
+/* Forms */
+form {
+    background-color: #FFF0F5; /* Lavender Blush */
+    padding: 20px;
+    border-radius: 15px;
+}
+
+/* Comments */
+.comment-author {
+    font-weight: bold;
+    color: #FF1493; /* Deep Pink */
+}
+
+/* Category Styles */
+.category-card {
+    background-color: #FFB6C1; /* Light Pink */
+    border-radius: 15px;
+    padding: 20px;
+    margin: 10px;
+    text-align: center;
+}
+
+/* Post Styles */
+.post-card {
+    background-color: #FFD1DC; /* Even Lighter Pink */
+    border-radius: 10px;
+    padding: 15px;
+    margin: 8px;
+}
+
+/* Comment Styles */
+.comment-card {
+    background-color: #FFF0F5; /* Lavender Blush */
+    border-radius: 5px;
+    padding: 10px;
+    margin: 5px;
+}
+
+.background {
+    inline-size: 2000px;
+    block-size: 1500px;
+    accent-color: #e84fdb;
+    background-image: url('media/Lines.png');
+    background-size: 2000px 1500px;
+    background-repeat: no-repeat;
+    position: absolute;
+    inset-block-start: 30px;
+    inset-inline-start: 30px;
+}
+.forum-body {
+    inline-size: 1500px;
+    block-size: 1500px;
+    position: absolute;
+    inset-block-start: 180px;
+    inset-inline-start: 150px;
+    box-shadow: 0 0 10px  rgba(0, 0, 0, 0.5);
+    background-image: url('media/Lines.png');
+    font-family: 'Great Vibe', cursive;
+    font-size: 24px;
+    font-kerning: auto;
+    font-weight: 400;
+    color: #740782;
+}

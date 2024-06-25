@@ -1,0 +1,101 @@
+{% extends "virtual_try_on/base.html" %}
+{% load static %}
+
+{% block title %}Customize Your Avatar{% endblock %}
+
+{% block content %}
+<div class="customization-container">
+    <h1>Customize Your Avatar</h1>
+
+    <div class="avatar-section">
+        <div class="avatar-display" id="avatar-display">
+            <img id="avatar-body" class="body" src="{% static 'virtual_try_on/avatars/body/light/hourglass.png' %}" alt="Avatar Body">
+            <img id="avatar-hair" class="hair" src="{% static 'virtual_try_on/avatars/hair/long_straight_blonde.png' %}" alt="Avatar Hair">
+        </div>
+    </div>
+
+    <div class="feature-panels">
+        <div class="panel feature-option" data-type="hair" data-value="long_straight_black">
+            <img src="{% static 'virtual_try_on/avatars/hair/long_straight_black.png' %}" alt="Long Straight Black">
+            <span>Long Straight Black</span>
+        </div>
+        <div class="panel feature-option" data-type="hair" data-value="short_curly_blonde">
+            <img src="{% static 'virtual_try_on/avatars/hair/short_curly_blonde.png' %}" alt="Short Curly Blonde">
+            <span>Short Curly Blonde</span>
+        </div>
+    </div>
+
+    <form method="post" id="avatar-form" class="form-section">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit" class="btn">Save Avatar</button>
+    </form>
+
+    <div class="bottom-controls">
+        <button type="button" onclick="resetAvatar()">Reset</button>
+        <button type="button" onclick="submitAvatar()">Submit</button>
+    </div>
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const panels = document.querySelectorAll('.panel');
+        const avatarDisplay = document.getElementById('avatar-display');
+
+        const getCookie = (name) => {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        };
+
+        const csrftoken = getCookie('csrftoken');
+
+        panels.forEach(panel => {
+            panel.addEventListener('click', function () {
+                const featureType = this.getAttribute('data-type');
+                const featureValue = this.getAttribute('data-value');
+
+                fetch("{% url 'virtual_try_on:update_avatar_feature' %}", {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': csrftoken,
+                        'Content-Type': 'application/json',
+                        'X-Requested-With': 'XMLHttpRequest' // Ensure this header is set
+                    },
+                    body: JSON.stringify({ feature_type: featureType, feature_value: featureValue })
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error('Network response was not ok');
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.success) {
+                        // Update avatar display based on selected feature
+                        let imgElement = avatarDisplay.querySelector(`.${featureType}`);
+                        imgElement.src = `/static/virtual_try_on/avatars/${featureType}/${featureValue}.png`;
+
+                        // Adjust size if it's hair
+                        if (featureType === 'hair') {
+                            imgElement.style.width = '80%';
+                            imgElement.style.top = '0';
+                            imgElement.style.left = '10%';
+                        }
+                    }
+                })
+                .catch(error => console.error('There was a problem with the fetch operation:', error));
+            });
+        });
+    });
+</script>
+{% endblock %}

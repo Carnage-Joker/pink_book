@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Journal Entries{% endblock %}
+{% block content %}
+<div class="container diary-spread">
+    <!-- Left Page - Journal Entries List -->
+    <div class="left-page">
+        <h1>Your Journal Entries</h1>
+        <ul>
+            {% for entry in recent_entries %}
+            <li>
+                <a href="{% url 'journal:entry_detail' entry.pk %}">{{ entry.title }}</a>
+                <small>Created on {{ entry.timestamp|date:"d M Y" }}</small>
+            </li>
+            {% empty %}
+            <li>No entries found.</li>
+            {% endfor %}
+        </ul>
+        <a href="{% url 'journal:new_entry' %}" class="btn btn-register">Create New Entry</a>
+    </div>
+
+    <!-- Right Page - Placeholder Content or Additional Information -->
+    <div class="right-page">
+        <h2>Explore More</h2>
+        <p>Discover more features or add new entries to your journal. This is your personal space to document your journey.</p>
+    </div>
+
+    <!-- Book Binding in the Center -->
+    <div class="binding"></div>
+</div>
+{% endblock %}

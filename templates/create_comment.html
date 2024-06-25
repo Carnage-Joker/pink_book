@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Add Comment{% endblock %}
+{% block content %}
+<div class="container diary-spread">
+    <!-- Left Page - Add Comment Form -->
+    <div class="left-page">
+        <h1>Add Comment to {{ post.title }}</h1>
+        <form method="post">
+            {% csrf_token %}
+            {{ form.as_p }}
+            <button type="submit" class="btn btn-register">Submit</button>
+        </form>
+    </div>
+
+    <!-- Right Page - Placeholder or Additional Info -->
+    <div class="right-page">
+        <h2>Share Your Thoughts</h2>
+        <p>Join the conversation by adding your comments and engaging with other community members.</p>
+        <p>Be respectful and supportive in your interactions.</p>
+    </div>
+
+    <!-- Book Binding in the Center -->
+    <div class="binding"></div>
+</div>
+{% endblock %}
