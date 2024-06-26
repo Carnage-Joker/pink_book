@@ -33,6 +33,7 @@ class PremiumOutfitForm(forms.ModelForm):
 
 # Form for adding a new favorite
 
+
 class FavoriteForm(forms.ModelForm):
     class Meta:
         model = Favorites

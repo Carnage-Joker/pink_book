@@ -10,19 +10,47 @@
     <div class="avatar-section">
         <div class="avatar-display" id="avatar-display">
             <img id="avatar-body" class="body" src="{% static 'virtual_try_on/avatars/body/light/hourglass.png' %}" alt="Avatar Body">
-            <img id="avatar-hair" class="hair" src="{% static 'virtual_try_on/avatars/hair/long_straight_blonde.png' %}" alt="Avatar Hair">
+            <img id="avatar-hair" class="hair" src="{% static 'virtual_try_on/avatars/hair/long_straight/blonde.png' %}" alt="Avatar Hair">
         </div>
     </div>
 
-    <div class="feature-panels">
-        <div class="panel feature-option" data-type="hair" data-value="long_straight_black">
-            <img src="{% static 'virtual_try_on/avatars/hair/long_straight_black.png' %}" alt="Long Straight Black">
-            <span>Long Straight Black</span>
-        </div>
-        <div class="panel feature-option" data-type="hair" data-value="short_curly_blonde">
-            <img src="{% static 'virtual_try_on/avatars/hair/short_curly_blonde.png' %}" alt="Short Curly Blonde">
-            <span>Short Curly Blonde</span>
-        </div>
+    <div class="dropdowns">
+        <label for="skin-tone">Skin Tone:</label>
+        <select id="skin-tone" class="feature-dropdown" data-type="body_skin_tone">
+            <option value="light">Light</option>
+            <option value="brown">Brown</option>
+            <option value="dark">Dark</option>
+        </select>
+
+        <label for="body-type">Body Type:</label>
+        <select id="body-type" class="feature-dropdown" data-type="body_body_type">
+            <option value="hourglass">Hourglass</option>
+            <option value="slim">Slim</option>
+            <option value="straight">Straight</option>
+            <option value="thick">Thick</option>
+        </select>
+
+        <label for="hair-type">Hair Type:</label>
+        <select id="hair-type" class="feature-dropdown" data-type="hair_hair_type">
+            <option value="long_straight">Long Straight</option>
+            <option value="short_curly">Short Curly</option>
+        </select>
+
+        <label for="hair-color">Hair Color:</label>
+        <select id="hair-color" class="feature-dropdown" data-type="hair_hair_color">
+            <option value="blonde">Blonde</option>
+            <option value="brunette">Brunette</option>
+            <option value="black">Black</option>
+            <option value="red">Red</option>
+            <option value="pink">Pink</option>
+        </select>
+
+        <label for="outfits">Outfits:</label>
+        <select id="outfits" class="feature-dropdown" data-type="outfit">
+            <option value="casual">Casual</option>
+            <option value="formal">Formal</option>
+            <option value="sporty">Sporty</option>
+        </select>
     </div>
 
     <form method="post" id="avatar-form" class="form-section">
@@ -37,65 +65,5 @@
     </div>
 </div>
 
-<script>
-    document.addEventListener("DOMContentLoaded", function () {
-        const panels = document.querySelectorAll('.panel');
-        const avatarDisplay = document.getElementById('avatar-display');
-
-        const getCookie = (name) => {
-            let cookieValue = null;
-            if (document.cookie && document.cookie !== '') {
-                const cookies = document.cookie.split(';');
-                for (let i = 0; i < cookies.length; i++) {
-                    const cookie = cookies[i].trim();
-                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                        break;
-                    }
-                }
-            }
-            return cookieValue;
-        };
-
-        const csrftoken = getCookie('csrftoken');
-
-        panels.forEach(panel => {
-            panel.addEventListener('click', function () {
-                const featureType = this.getAttribute('data-type');
-                const featureValue = this.getAttribute('data-value');
-
-                fetch("{% url 'virtual_try_on:update_avatar_feature' %}", {
-                    method: 'POST',
-                    headers: {
-                        'X-CSRFToken': csrftoken,
-                        'Content-Type': 'application/json',
-                        'X-Requested-With': 'XMLHttpRequest' // Ensure this header is set
-                    },
-                    body: JSON.stringify({ feature_type: featureType, feature_value: featureValue })
-                })
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error('Network response was not ok');
-                    }
-                    return response.json();
-                })
-                .then(data => {
-                    if (data.success) {
-                        // Update avatar display based on selected feature
-                        let imgElement = avatarDisplay.querySelector(`.${featureType}`);
-                        imgElement.src = `/static/virtual_try_on/avatars/${featureType}/${featureValue}.png`;
-
-                        // Adjust size if it's hair
-                        if (featureType === 'hair') {
-                            imgElement.style.width = '80%';
-                            imgElement.style.top = '0';
-                            imgElement.style.left = '10%';
-                        }
-                    }
-                })
-                .catch(error => console.error('There was a problem with the fetch operation:', error));
-            });
-        });
-    });
-</script>
+<script src="{% static 'virtual_try_on/scripts.js' %}"></script>
 {% endblock %}

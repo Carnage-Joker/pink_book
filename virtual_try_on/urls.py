@@ -1,6 +1,7 @@
 # virtual_try_on/urls.py
 from django.urls import path
 from . import views
+from .views import update_avatar_feature
 
 app_name = 'virtual_try_on'  # Define the namespace for this app
 
@@ -13,5 +14,7 @@ urlpatterns = [
          name='toggle_favorite_outfit'),
     path('favorites/', views.favorite_outfits_list, name='favorite_outfits_list'),
     path('my-avatar/', views.my_avatar, name='my_avatar'),
-]
+    path('update_avatar_feature/', update_avatar_feature,
+         name='update_avatar_feature'),
 
+]
