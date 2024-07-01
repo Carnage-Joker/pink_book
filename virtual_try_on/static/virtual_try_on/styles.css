@@ -8,45 +8,10 @@ body {
 }
 
 /* Main container for the page */
-.container {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    padding: 20px;
-}
-
-/* Top navigation menu */
-nav ul {
-    list-style: none;
-    display: flex;
-    justify-content: center;
-    padding: 0;
-    margin: 0;
-    background-color: #f8bbd0;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-}
-
-nav ul li {
-    margin: 0 15px;
-}
-
-nav ul li a {
-    text-decoration: none;
-    color: #333;
-    padding: 10px 20px;
-    border-radius: 20px;
-    transition: background-color 0.3s ease;
-}
-
-nav ul li a:hover {
-    background-color: #f48fb1;
-}
-
-/* Customization container */
 .customization-container {
     display: flex;
-    flex-direction: column;
-    align-items: center;
+    flex-direction: row;
+    justify-content: space-around;
     text-align: center;
     margin-block-start: 20px;
     background-color: #fff;
@@ -59,74 +24,113 @@ nav ul li a:hover {
 
 /* Avatar section centered in the middle */
 .avatar-section {
-    display: flex;
-    justify-content: center;
-    align-items: center;
     position: relative;
     margin: 20px;
+    inline-size: 800px;
+    block-size: 1000px;
+}
+
+/* Display avatar images stacked on top of each other */
+.avatar-display {
+    position: relative;
     inline-size: 300px;
     block-size: 600px;
     border: 1px solid #ddd;
     border-radius: 20px;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
     background-color: #ffebee;
+    margin: 20px;
 }
 
-/* Display avatar images stacked on top of each other */
-.avatar-display {
+.avatar-display img {
+    position: absolute;
+    object-fit: contain;
+}
+
+.avatar-display img.body {
+    z-index: 1;
+    width: 100%;
+    /* Ensure full width */
+    height: auto;
+    /* Maintain aspect ratio */
+}
+
+.avatar-display img.hair {
+    width: 100%;
+    height: auto;
+    top: 0;
+    left: 0;
+    z-index: 2;
+    transform: translate(41%, 0);
+    /* Adjust as needed to position correctly */
+}
+.avatar-display img.stage {
+    inline-size: 50%;
+    block-size: auto;
+    inset-block-end: 1%;
+    inset-inline-end: 1%;
+    z-index: 0;
+}
+
+.podium {
     position: relative;
     inline-size: 100%;
     block-size: 100%;
 }
 
-.avatar-display img {
+.banner {
     position: absolute;
+    inset-block-end: -40px;
     inline-size: 100%;
-    block-size: auto;
-    object-fit: contain;
+    text-align: center;
+    background-color: #f8bbd0;
+    padding: 10px;
+    border-radius: 10px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }
 
-/* Specifically adjust the hair images */
-.avatar-display img.hair {
-    inline-size: 80%;
-    inset-block-start: 0;
-    inset-inline-start: 10%;
+.banner h2 {
+    font-family: 'Comic Sans MS', 'Comic Sans', cursive;
+    margin: 0;
 }
 
-/* Feature panels surrounding the avatar */
-.feature-panels {
+/* Feature options styling */
+.feature-options {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-around;
+    margin-block-start: 20px;
+    inline-size: 200px;
+}
+
+.feature-options.left-options,
+.feature-options.right-options {
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: flex-start;
+}
+
+.feature-options.left-options {
+    margin-inline-end: 20px;
+}
+
+.feature-options.right-options {
+    margin-inline-start: 20px;
+}
+
+.feature-options select {
+    margin: 10px 0;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    width: 100%;
+    box-sizing: border-box;
+    font-family: 'Comic Sans MS', 'Comic Sans', cursive;
+}
+
+.bottom-controls {
     display: flex;
     justify-content: center;
-    gap: 20px;
-    flex-wrap: wrap;
-    max-inline-size: 1000px;
-    margin-block-start: 20px;
-}
-
-.panel {
-    background-color: #fce4ec;
-    padding: 10px;
-    border-radius: 20px;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-    text-align: center;
-    cursor: pointer;
-    transition: transform 0.3s ease, background-color 0.3s ease;
-    inline-size: 120px;
-}
-
-.panel:hover {
-    transform: scale(1.05);
-    background-color: #f8bbd0;
-}
-
-.panel img {
-    inline-size: 100%;
-    block-size: auto;
-    object-fit: contain;
-}
-
-/* Bottom control buttons */
-.bottom-controls {
     margin-block-start: 20px;
 }
 
@@ -144,61 +148,4 @@ nav ul li a:hover {
 
 .bottom-controls button:hover {
     background-color: #d81b60;
-}
-
-/* Form styling */
-.form-section {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    margin-block-start: 20px;
-}
-
-.btn {
-    margin-block-start: 10px;
-    padding: 10px 20px;
-    background-color: #ff4081;
-    color: #fff;
-    border: none;
-    border-radius: 20px;
-    cursor: pointer;
-    transition: background-color 0.3s ease;
-}
-
-.btn:hover {
-    background-color: #f50057;
-}
-
-/* Headings */
-h1 {
-    font-size: 2.5em;
-    color: #e91e63;
-}
-\#upload-mode,
-#try-on-mode {
-    margin: 20px;
-    padding: 10px;
-    font-size: 1.2em;
-    border-radius: 5px;
-    background-color: #f0f0f0;
-}
-
-.premium-outfit {
-    border: 2px solid #ddd;
-    padding: 10px;
-    margin: 10px;
-    cursor: pointer;
-    background-color: #fff;
-}
-
-.avatar-customization {
-    padding: 20px;
-    border: 2px dashed #ccc;
-    margin-block-start: 20px;
-}
-
-#try-on-result {
-    margin-top: 20px;
-    max-width: 100%;
-    border: 2px solid #ddd;
 }

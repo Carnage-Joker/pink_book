@@ -12,15 +12,6 @@ body {
     overflow: auto;
     font-size: 40px;
 }
-                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 
-                                                #generatedText {
-    font-size: 1.2em;
-    color: #4a4a4a;
-    margin: 10px 0;
-    padding: 10px;
-    border: 1px solid #ddd;
-    background-color: #f9f9f9;
-}
 
 /* Container and padding adjustments for the book layout */
 .container {
@@ -92,6 +83,59 @@ body {
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
 }
 
+/* Buttons */
+.btn {
+    background-color: #FF88B1;
+    color: white;
+    padding: 10px 15px;
+    border: none;
+    border-radius: 10px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    text-decoration: none;
+    display: inline-block;
+    margin: 5px 0;
+    font-size: 1em;
+}
+
+.btn:hover {
+    background-color: #E76F89;
+}
+
+.btn-register {
+    background-color: #FF69B4;
+    color: white;
+}
+
+.btn-register:hover {
+    background-color: #FF1493;
+}
+
+/* Progress Bar */
+.progress-container {
+    display: flex;
+    align-items: center;
+    margin-bottom: 10px;
+}
+
+.progress-bar {
+    width: 100%;
+    height: 20px;
+    background-color: #ffe6f2;
+    border-radius: 10px;
+    overflow: hidden;
+    position: relative;
+}
+
+.progress-bar::after {
+    content: "";
+    display: block;
+    height: 100%;
+    background-color: hotpink;
+    width: var(--progress, 0%);
+    transition: width 0.3s;
+}
+
 /* Post-it Note Navigation */
 nav.post-it-notes {
     display: flex;
@@ -103,27 +147,6 @@ nav.post-it-notes {
     inset-block-start: 5%;
     inset-inline-end: 20px;
     inline-size: auto;
-    z-index: 10;
-}
-
-nav.post-it-notes.middle {
-    justify-content: center;
-    position: absolute;
-    inset-block-start: 40px;
-    inset-inline-start: 65%;
-    transform: translateX(-50%);
-    z-index: 10;
-    display: flex;
-    gap: 10px;
-}
-
-nav.post-it-notes.back-cover {
-    justify-content: center;
-    margin: 0;
-    position: absolute;
-    inset-block-start: 40px;
-    inset-inline-start: 65%;
-    transform: translateX(-50%) rotate(10deg);
     z-index: 10;
 }
 
@@ -160,37 +183,10 @@ nav.post-it-notes a:hover {
     text-align: center;
 }
 
-.logreg-section .logreg-form {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-}
-
-.logreg-section button,
-.logreg-section a.btn-secondary {
-    inline-size: 100%;
-    margin-block-start: 10px;
-}
-
-.logreg-section a.btn-secondary {
-    background-color: #fbafda;
-    color: #740782;
-    padding: 10px 15px;
-    text-decoration: none;
-    border-radius: 10px;
-    box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.3);
-}
-
-.logreg-section a.btn-secondary:hover {
-    background-color: #E76F89;
-    color: white;
-}
-
-/* Welcome Page - Closed Diary Cover */
+/* Cover Page */
 .cover-page {
     background: url('../media/FrontCover.png') no-repeat center center;
     inline-size: 80%;
-    
     inset-block-start: 50px;
     block-size: 100vh;
     display: flex;
@@ -199,22 +195,6 @@ nav.post-it-notes a:hover {
     justify-content: center;
     position: relative;
     text-align: center;
-}
-
-.cover-page .lock-container {
-    position: relative;
-    inline-size: 200px;
-    block-size: auto;
-}
-
-.cover-page .lock {
-    position: absolute;
-    inset-inline-end: -40px;
-    inset-block-start: 50%;
-    transform: translateY(-50%);
-    inline-size: 100px;
-    block-size: auto;
-    z-index: 10;
 }
 
 .cover-page h1.welcome-title {
@@ -233,74 +213,7 @@ nav.post-it-notes a:hover {
     margin-block-start: 20px;
 }
 
-.cover-page .btn-register {
-    background-color: #FF88B1;
-    color: white;
-    padding: 15px 30px;
-    border: none;
-    border-radius: 10px;
-    cursor: pointer;
-    font-size: 1.5em;
-    text-decoration: none;
-    transition: background-color 0.3s;
-    margin-block-start: 30px;
-}
-
-.cover-page .btn-register:hover {
-    background-color: #E76F89;
-}
-
-/* Specific page styles */
-.form-group,
-.forum-header,
-.forum-body,
-.welcome-page-details,
-.todo-list,
-.habit-list,
-.recent-entries,
-.recent-entries-details,
-.recent-entries-tilt,
-.dash-details-left,
-.dash-details-right,
-.profile-details,
-.diary-page-details-left,
-.diary-page-details-right,
-.prompt,
-.dayinsp,
-.entry-detail-page-left,
-.entry-detail-page-right,
-.logreg-section-details {
-    margin: 20px auto;
-    padding: 20px;
-    background-color: rgba(255, 255, 255, 0.8);
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
-    border-radius: 10px;
-}
-
-button {
-    background-color: #FF88B1;
-    color: white;
-    padding: 10px 15px;
-    border: none;
-    border-radius: 10px;
-    cursor: pointer;
-    transition: background-color 0.3s;
-}
-
-button:hover {
-    background-color: #E76F89;
-}
-
-a {
-    color: #FF69B4;
-    text-decoration: none;
-    transition: color 0.3s;
-}
-
-a:hover {
-    color: #FF1493;
-}
-
+/* Responsiveness */
 @media only screen and (max-inline-size: 768px) {
     .container {
         max-inline-size: 95%;
@@ -326,4 +239,37 @@ a:hover {
         display: none;
     }
 }
-/* Example styling for sections */
+
+/* Other styles */
+.generated-text {
+    font-size: 1.2em;
+    color: #4a4a4a;
+    margin: 10px 0;
+    padding: 10px;
+    border: 1px solid #ddd;
+    background-color: #f9f9f9;
+}
+
+/* Profile Picture */
+.profile-picture img {
+    border-radius: 50%;
+    border: 3px solid hotpink;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+}
+
+/* Try On Button */
+.try-on-button {
+    background-color: #FF88B1;
+    color: white;
+    padding: 10px 20px;
+    border-radius: 20px;
+    font-size: 1.2em;
+    text-decoration: none;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+    transition: background-color 0.3s, box-shadow 0.3s;
+}
+
+.try-on-button:hover {
+    background-color: #E76F89;
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
+}

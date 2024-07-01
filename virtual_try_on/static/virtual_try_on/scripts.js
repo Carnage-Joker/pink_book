@@ -1,8 +1,99 @@
 document.addEventListener("DOMContentLoaded", function () {
-    const dropdowns = document.querySelectorAll('.feature-dropdown');
-    const avatarDisplay = document.getElementById('avatar-display');
+    // Avatar Customization Functions
 
-    const getCookie = (name) => {
+    // Update body type
+    window.updateBodyType = function (bodyType) {
+        document.getElementById('body-type').value = bodyType;
+        updateAvatar();
+    };
+
+    // Reset avatar to default state
+    window.resetAvatar = function () {
+        document.getElementById('body-type').value = 'hourglass';
+        document.getElementById('skin-tone').value = 'light';
+        document.getElementById('hair-type').value = 'long_straight';
+        document.getElementById('hair-color').value = 'blonde';
+        resetAvatarClothing();
+        updateAvatar();
+    };
+
+    // Randomize avatar features
+    window.randomizeAvatar = function () {
+        const bodyTypes = ['hourglass', 'slim', 'straight', 'thick'];
+        const skinTones = ['light', 'brown', 'dark'];
+        const hairStyles = ['long_straight', 'long_curly', 'short_straight', 'short_curly', 'bob'];
+        const hairColors = ['black', 'brown', 'blonde', 'red', 'pink'];
+
+        const randomBodyType = bodyTypes[Math.floor(Math.random() * bodyTypes.length)];
+        const randomSkinTone = skinTones[Math.floor(Math.random() * skinTones.length)];
+        const randomHairStyle = hairStyles[Math.floor(Math.random() * hairStyles.length)];
+        const randomHairColor = hairColors[Math.floor(Math.random() * hairColors.length)];
+
+        document.getElementById('body-type').value = randomBodyType;
+        document.getElementById('skin-tone').value = randomSkinTone;
+        document.getElementById('hair-type').value = randomHairStyle;
+        document.getElementById('hair-color').value = randomHairColor;
+
+        updateAvatar();
+    };
+
+    // Update avatar display
+    window.updateAvatar = function () {
+        const bodyType = document.getElementById('body-type').value;
+        const skinTone = document.getElementById('skin-tone').value;
+        const hairType = document.getElementById('hair-type').value;
+        const hairColor = document.getElementById('hair-color').value;
+
+        document.getElementById('avatar-body').src = `/static/virtual_try_on/avatars/body/${skinTone}/${bodyType}.png`;
+        document.getElementById('avatar-hair').src = `/static/virtual_try_on/avatars/hair/${hairType}/${hairColor}.png`;
+    };
+
+    // Save avatar customization and redirect to dress-up game
+    window.saveAvatar = function () {
+        const bodyType = document.getElementById('body-type').value;
+        const skinTone = document.getElementById('skin-tone').value;
+        const hairType = document.getElementById('hair-type').value;
+        const hairColor = document.getElementById('hair-color').value;
+
+        updateAvatarFeature('body', `${skinTone}/${bodyType}`);
+        updateAvatarFeature('hair', `${hairType}/${hairColor}`);
+
+        alert('Avatar customization saved!');
+
+        // Redirect to dress up game
+        window.location.href = "/virtual_try_on/dress_up_game/";
+    };
+
+    // Helper function to update avatar features on the server
+    function updateAvatarFeature(featureType, featureValue) {
+        const csrftoken = getCookie('csrftoken');
+
+        fetch("/update_avatar_feature/", {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': csrftoken,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ feature_type: featureType, feature_value: featureValue })
+        })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`Network response was not ok, status: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (!data.success) {
+                    console.error('Data success was false:', data);
+                }
+            })
+            .catch(error => {
+                console.error('There was a problem with the fetch operation:', error);
+            });
+    }
+
+    // Helper function to get CSRF token from cookies
+    function getCookie(name) {
         let cookieValue = null;
         if (document.cookie && document.cookie !== '') {
             const cookies = document.cookie.split(';');
@@ -15,72 +106,107 @@ document.addEventListener("DOMContentLoaded", function () {
             }
         }
         return cookieValue;
-    };
+    }
 
-    const csrftoken = getCookie('csrftoken');
+    // Dress Up Game Functions
 
-    dropdowns.forEach(dropdown => {
-        dropdown.addEventListener('change', function () {
-            const featureType = this.getAttribute('data-type');
-            const featureValue = this.value;
-
-            console.log(`Changing feature: ${featureType}, Value: ${featureValue}`);
-
-            fetch("/update_avatar_feature/", {
-                method: 'POST',
-                headers: {
-                    'X-CSRFToken': csrftoken,
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ feature_type: featureType, feature_value: featureValue })
+    // Enable draggable elements
+    interact('.draggable').draggable({
+        inertia: true,
+        modifiers: [
+            interact.modifiers.restrictRect({
+                restriction: 'parent',
+                endOnly: true
             })
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error(`Network response was not ok, status: ${response.status}`);
-                    }
-                    return response.json();
-                })
-                .then(data => {
-                    if (data.success) {
-                        let imgElement;
-                        if (featureType === 'body_skin_tone' || featureType === 'body_body_type') {
-                            const skinTone = document.getElementById('skin-tone').value;
-                            const bodyType = document.getElementById('body-type').value;
-                            imgElement = avatarDisplay.querySelector('.body');
-                            imgElement.src = `/static/virtual_try_on/avatars/body/${skinTone}/${bodyType}.png`;
-                            console.log(`Updated body image to: /static/virtual_try_on/avatars/body/${skinTone}/${bodyType}.png`);
-                        } else if (featureType === 'hair_hair_type' || featureType === 'hair_hair_color') {
-                            const hairType = document.getElementById('hair-type').value;
-                            const hairColor = document.getElementById('hair-color').value;
-                            imgElement = avatarDisplay.querySelector('.hair');
-                            imgElement.src = `/static/virtual_try_on/avatars/hair/${hairType}/${hairColor}.png`;
-                            console.log(`Updated hair image to: /static/virtual_try_on/avatars/hair/${hairType}/${hairColor}.png`);
-                        }
-                    } else {
-                        console.error('Data success was false:', data);
-                    }
-                })
-                .catch(error => {
-                    console.error('There was a problem with the fetch operation:', error);
-                });
-        });
+        ],
+        autoScroll: true,
+        onmove: dragMoveListener,
+        onend: function (event) {
+            // Reset the element's position after dragging ends
+            event.target.style.transform = 'translate(0px, 0px)';
+            event.target.setAttribute('data-x', 0);
+            event.target.setAttribute('data-y', 0);
+        }
     });
 
-    // Define the resetAvatar function
-    window.resetAvatar = function () {
-        dropdowns.forEach(dropdown => {
-            dropdown.value = dropdown.options[0].value; // Reset to the first option
-        });
-        // Optionally, reset the avatar display to default state
-        avatarDisplay.querySelectorAll('img').forEach(img => {
-            img.src = ''; // Set default image sources
-        });
-        console.log('Avatar reset to default state');
+    // Enable dropzone on avatar display
+    interact('#avatar-display').dropzone({
+        accept: '.draggable',
+        overlap: 0.75,
+        ondrop: function (event) {
+            const draggableElement = event.relatedTarget;
+            const category = draggableElement.getAttribute('data-category');
+            const src = draggableElement.getAttribute('data-src');
+
+            updateAvatarClothing(category, src);
+        }
+    });
+
+    // Helper function to handle dragging movement
+    function dragMoveListener(event) {
+        const target = event.target;
+        const x = (parseFloat(target.getAttribute('data-x')) || 0) + event.dx;
+        const y = (parseFloat(target.getAttribute('data-y')) || 0) + event.dy;
+
+        target.style.transform = `translate(${x}px, ${y}px)`;
+        target.setAttribute('data-x', x);
+        target.setAttribute('data-y', y);
+    }
+
+    // Update avatar clothing display
+    function updateAvatarClothing(category, src) {
+        const imgElement = document.getElementById(`avatar-${category}`);
+        imgElement.src = src;
+    }
+
+    // Reset avatar clothing to default state
+    function resetAvatarClothing() {
+        document.getElementById('avatar-top').src = '';
+        document.getElementById('avatar-bottom').src = '';
+        document.getElementById('avatar-shoes').src = '';
+        document.getElementById('avatar-accessory').src = '';
+    }
+
+    // Save avatar clothing customization
+    window.saveAvatar = function () {
+        const top = document.getElementById('avatar-top').src;
+        const bottom = document.getElementById('avatar-bottom').src;
+        const shoes = document.getElementById('avatar-shoes').src;
+        const accessory = document.getElementById('avatar-accessory').src;
+
+        saveClothing('top', top);
+        saveClothing('bottom', bottom);
+        saveClothing('shoes', shoes);
+        saveClothing('accessory', accessory);
+
+        alert('Avatar customization saved!');
     };
 
-    // Define the submitAvatar function
-    window.submitAvatar = function () {
-        // Perform actions needed to submit the avatar customization
-        alert('Avatar customization submitted!');
-    };
+    // Helper function to save clothing to the server
+    function saveClothing(category, src) {
+        const csrftoken = getCookie('csrftoken');
+
+        fetch("/update_avatar_clothing/", {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': csrftoken,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ category: category, src: src })
+        })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`Network response was not ok, status: ${response.status}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (!data.success) {
+                    console.error('Data success was false:', data);
+                }
+            })
+            .catch(error => {
+                console.error('There was a problem with the fetch operation:', error);
+            });
+    }
 });

@@ -9,8 +9,8 @@ from .views import (ContactView, DashboardView, ForumPostDetailView,
                     ProfileSettingsView, ProfileCustomizeView, RegisterView,
                     ResourceCategoryView, ResourceListView, ToDoCreateView,
                     ToDoDetailView, ToDoListView, ToDoUpdateView, AboutView,
-                    complete_todo, fail_todo, PasswordResetDoneView, 
-                    PasswordResetView)
+                    complete_task_view, generate_task_view, fail_task_view,
+                    PasswordResetDoneView, PasswordResetView, complete_todo_view)
 
 
 urlpatterns = [
@@ -51,8 +51,10 @@ urlpatterns = [
     path('todos/new/', ToDoCreateView.as_view(), name='create_todo'),
     path('todos/<int:pk>/edit/', ToDoUpdateView.as_view(), name='todo_update'),
     path('todo/<int:pk>/', ToDoDetailView.as_view(), name='todo_detail'),
-    path('todos/<int:pk>/complete/', complete_todo, name='complete_todo'),
-    path('todos/<int:pk>/fail/', fail_todo, name='fail_todo'),
+    path('generate-task/', generate_task_view, name='generate-task'),
+    path('complete-task/', complete_task_view, name='complete-task'),
+    path('fail-task/', fail_task_view, name='fail-task'),
+    path('complete-todo/', complete_todo_view, name='complete-todo'),
 
 
     # Resources

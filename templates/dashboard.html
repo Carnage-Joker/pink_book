@@ -22,7 +22,7 @@
 
         <h3>Recent Entries</h3>
         <ul>
-            {% for entry in entries %}
+            {% for entry in recent_entries %}
             <li>
                 <a href="{% url 'journal:entry_detail' entry.pk %}">{{ entry.title }}</a>
                 <small>Created on {{ entry.timestamp|date:"d M Y" }}</small>
@@ -36,32 +36,37 @@
     <!-- Right Page - Chores and Goals -->
     <div class="right-page">
         <h3>{{ user.sissy_name }}'s Chores Chart</h3>
-        <ul>
+        <ul id="todo-list">
             {% for todo in todos %}
-            <li>
-                {{ todo.task }}
+            <li id="todo-{{ todo.pk }}">
+                <input type="checkbox" class="todo-checkbox" data-id="{{ todo.pk }}">
+                <span class="todo-text">{{ todo.task }}</span>
                 <a href="{% url 'journal:todo_update' todo.pk %}" class="btn btn-register">Edit</a>
                 <a href="{% url 'journal:todo_detail' todo.pk %}" class="btn btn-register">Details</a>
             </li>
-            <p><a href="{% url 'journal:create_todo' %}" class="btn btn-register">Add New Chore</a></p>
             {% empty %}
-            <p>Lazy Sissy. Add a new chore now!</p>
-            <p><a href="{% url 'journal:create_todo' %}" class="btn btn-register">Add New Chore</a></p>
+            <p><button id="generate-task">Generate Task</button></p>
+            <div id="task-result"></div>
+            <button id="complete-task">Complete Task</button>
+            <div id="points-display">Points: 0</div>
+            <button id="fail-task">Fail Task</button>
             {% endfor %}
+            <p><a href="{% url 'journal:create_todo' %}" class="btn btn-register">Add New Chore</a></p>
         </ul>
 
         <h1 style="color: hotpink;">Glam Goals</h1>
         <ul>
             {% for habit in habits %}
-            <li style="color: hotpink;">
+            <li id="habit-{{ habit.id }}" style="color: hotpink;">
                 <div class="progress-container">
                     <div class="progress-bar" style="width: {{ habit.progress }}%; background-color: hotpink;"></div>
-                    <button onclick="updateProgress({{ habit.id }})" class="btn btn-register">Update Progress</button>
+                    <button class="update-progress-button btn btn-register" data-id="{{ habit.id }}">Update Progress</button>
                 </div>
                 {{ habit.name }}
             </li>
             {% endfor %}
         </ul>
+        <ul>
             <li><strong>Girly Gauge:</strong>
                 {% if avg_subjectivity > 0.51 %} Oh, so girly, Gurl!
                 {% elif avg_subjectivity == 0.5 %} You're girling up, honey!
@@ -91,16 +96,12 @@
         {% if not entries_with_insights %}
         <p>No insights yet, darling. Why not write a new journal entry?</p>
         {% endif %}
-        <!-- Example: Adding the button in base.html or a specific page template -->
-  <!-- dashboard.html or relevant template -->
-    <div class="try-on-button-container">
-        <a href="{% url 'virtual_try_on:avatar_customization' %}" class="try-on-button">Try On Clothes! 💖</a>
-    </div>
-
-
+        <div class="try-on-button-container">
+            <a href="{% url 'virtual_try_on:avatar_customization' %}" class="try-on-button">Try On Clothes! 💖</a>
+        </div>
     </div>
 
     <!-- Book Binding in the Center -->
     <div class="binding"></div>
 </div>
- {% endblock %}
+{% endblock %}

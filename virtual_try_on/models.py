@@ -1,6 +1,5 @@
 # virtual_try_on/models.py
-from django.core.exceptions import ObjectDoesNotExist
-from django.contrib.auth import get_user_model
+from .utils import get_default_user
 import datetime
 from django.db import models
 from decimal import Decimal
@@ -21,7 +20,7 @@ class Pose(models.Model):
     image = models.ImageField(upload_to='poses/')
 
     def __str__(self):
-        return self.get_name_display()
+        return self.name
 
 
 class Environment(models.Model):
@@ -35,8 +34,9 @@ class Environment(models.Model):
 class PremiumOutfit(models.Model):
     name = models.CharField(max_length=255)
     image = models.ImageField(upload_to='premium_outfits/')
-    description = models.TextField(blank=True, null=True)
-    price = models.DecimalField(max_digits=4, decimal_places=2, default=Decimal('0.00'))
+    description = models.TextField(blank=True, default='none')
+    price = models.DecimalField(max_digits=4, decimal_places=2,
+                                default=Decimal('0.00'))
 
     def __str__(self):
         return f"{self.name} - ${self.price:.2f}"
@@ -56,6 +56,7 @@ class PremiumOutfit(models.Model):
         verbose_name_plural = "Premium Outfits"
 
 
+# Other model definitions...
 BODY_TYPE_CHOICES = [
     ('hourglass', 'Hourglass'),
     ('thick', 'Thick'),
@@ -83,16 +84,6 @@ HAIR_COLOR_CHOICES = [
 ]
 
 
-def get_default_user():
-    user = get_user_model()
-    try:
-        # Return the primary key of the first user in the database
-        return user.objects.first().pk
-    except (AttributeError, ObjectDoesNotExist):
-        # Handle the case where no user exists
-        return user.objects.create().pk
-
-
 class Avatar(models.Model):
     user = models.ForeignKey(
         CustomUser, on_delete=models.CASCADE, default=get_default_user)
@@ -100,15 +91,21 @@ class Avatar(models.Model):
         choices=BODY_TYPE_CHOICES, max_length=20, default='hourglass')
     skin_tone = models.CharField(
         max_length=20, choices=SKIN_TONE_CHOICES, default='light')
-    hair_style = models.CharField(
+    hair_type = models.CharField(
         choices=HAIR_STYLE_CHOICES, max_length=50, default='long_straight')
     hair_color = models.CharField(
         choices=HAIR_COLOR_CHOICES, max_length=20, default='black')
-    outfit = models.CharField(max_length=100)
-    accessories = models.TextField(blank=True, null=True)
+    outfit = models.CharField(max_length=100, blank=True, default='')
+    accessories = models.TextField(blank=True, default='none')
 
     def __str__(self):
-        return f"{self.user.sissy_name}'s Avatar"
+        return f"{self.user}'s Avatar"
+
+    def get_body_image_path(self):
+        return f'virtual_try_on/avatars/body/{self.skin_tone}/{self.body_type}.png'
+
+    def get_hair_image_path(self):
+        return f'virtual_try_on/avatars/hair/{self.hair_type}/{self.hair_color}.png'
 
 
 class Feature(models.Model):
@@ -128,3 +125,22 @@ class Favorites(models.Model):
 
     def __str__(self):
         return f"Favorite outfit {self.outfit.name} for {self.user.sissy_name}"
+
+
+class ClothingItem(models.Model):
+    CATEGORY_CHOICES = [
+        ('top', 'Top'),
+        ('bottom', 'Bottom'),
+        ('shoes', 'Shoes'),
+        ('accessory', 'Accessory'),
+    ]
+
+    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
+    name = models.CharField(max_length=255)
+    image = models.ImageField(upload_to='clothes/')
+    category = models.CharField(max_length=50, choices=CATEGORY_CHOICES)
+    # To track if the user owns the item
+    owned = models.BooleanField(default=False)
+
+    def __str__(self):
+        return self.name

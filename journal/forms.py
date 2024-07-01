@@ -77,7 +77,19 @@ class ReportForm(forms.ModelForm):
 class ToDoForm(forms.ModelForm):
     class Meta:
         model = ToDo
-        fields = ['task', 'description', 'reward', 'penalty', 'due_date']
+        fields = [
+            "task",
+            "description",
+            "due_date",
+            "completed",
+            "priority",
+            "category"
+        ]
+        widgets = {
+            'due_date': forms.DateInput(attrs={'type': 'date'}),
+            # Hide completed field if it shouldn't be user-editable
+            'completed': forms.HiddenInput(),
+        }
 
 
 class CustomUserLoginForm(AuthenticationForm):

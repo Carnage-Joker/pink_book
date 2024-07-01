@@ -16,6 +16,14 @@ from django.utils.translation import gettext_lazy as _
 from .utils.ai_utils import get_sentiment
 
 
+def default_due_date():
+    return datetime.now().date() + timedelta(days=1)
+
+
+def current_timestamp():
+    return datetime.now()
+
+
 def profile_pic_upload_path(instance, filename):
     ext = filename.split('.')[-1]
     filename = f"{uuid4()}.{ext}"
@@ -134,6 +142,18 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
         Permission,
         related_name='customuser_permissions',
     )
+    points = models.IntegerField(default=0)
+    # Using JSONField to store locked content
+    locked_content = models.JSONField(default=dict)
+
+    def lock_content(self, content_name):
+        self.locked_content[content_name] = True
+        self.save()
+
+    def deduct_points(self, points):
+        # Ensure points don't go below 0
+        self.points = max(0, self.points - points)
+        self.save()
 
     def __str__(self):
         return self.sissy_name
@@ -143,35 +163,19 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
 
 
 # Habit Trackers Models
-CATEGORY_CHOICES = [
-    # For makeup, clothing, and other aesthetic targets.
-    ('fashion_goals', 'Fashion Goals'),
-    ('behavioral_goals', 'Behavioral Goals'),
-    # For activities like walking in heels, voice training, etc.
-    ('sissification_tasks', 'Sissification Tasks'),
-    ('performance_tasks', 'Performance Tasks'),
-
-    # For those engaged in chastity play.
-    ('chastity_goals', 'Chastity Goals'),
-    # For activities like skincare, bubble baths, and self-pampering to keep a sissy feeling fab.
-    ('self_care', 'Self care'),
-    # Tasks to show gratitude and appreciation toward the user's Domme, like sending her gifts or notes.
-    ('Domme_Appreciation', 'Domme Appreciation'),
-    # Special tasks assigned by the user's Domme, if applicable.
-    ('Orders', 'Orders'),
-]
+# Assuming the models are in journal/models.py
 
 REWARD_CHOICES = [
     ('sticker', 'Digital Sticker'),
     ('unlock_content', 'Unlock New Content'),
     # ... more rewards
-    
 ]
 
 PENALTY_CHOICES = [
     ('reminder', 'Reminder Message'),
     ('lock_content', 'Lock Content'),
-    
+    ('50_lines', 'Write 50 lines'),
+    ('corner_time', '15 minutes Corner Time'),
     # ... more penalties
 ]
 
@@ -187,74 +191,57 @@ class Habit(models.Model):
     penalty = models.CharField(
         max_length=50, choices=PENALTY_CHOICES, null=True, blank=True)
     timestamp = models.DateTimeField(default=datetime.now())
-    REMINDER_FREQUENCY_CHOICES = [
+    reminder_frequency = models.CharField(max_length=10, choices=[
         ('daily', 'Daily'),
         ('weekly', 'Weekly'),
         ('monthly', 'Monthly'),
         ('yearly', 'Yearly'),
-        ('none', 'None'),
-    ]
-    reminder_frequency = models.CharField(
-        max_length=10, choices=REMINDER_FREQUENCY_CHOICES, default='daily')
-    CATEGORY_CHOICES = [
+        ('none', 'None')
+    ], default='daily')
+    category = models.CharField(max_length=50, choices=[
         ('fashion_goals', 'Fashion Goals'),
         ('behavioral_goals', 'Behavioral Goals'),
         ('sissification_tasks', 'Sissification Tasks'),
         ('performance_tasks', 'Performance Tasks'),
         ('chastity_goals', 'Chastity Goals'),
         ('self_care', 'Self care'),
-        ('Domme_Appreciation', 'Domme Appreciation'),
-        ('Orders', 'Orders'),
-    ]
-    category = models.CharField(
-        max_length=50, choices=CATEGORY_CHOICES, default='sissification_tasks')
+        ('domme_appreciation', 'Domme Appreciation'),
+        ('orders', 'Orders')
+    ], default='sissification_tasks')
     progress = models.IntegerField(default=0)
 
     def save(self, *args, **kwargs):
         if not self.end_date:
             self.end_date = self.start_date + relativedelta(months=1)
-        super(Habit, self).save(*args, **kwargs)
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return self.name
-
-    def get_absolute_url(self):
-        return reverse('journal:habit_detail', kwargs={'pk': self.pk})
-
-
-# TODO
-REWARD_CHOICES = [
-    ('sticker', 'Digital Sticker'),
-    ('unlock_content', 'Unlock New Content'),
-    # ... more rewards
-]
-
-PENALTY_CHOICES = [
-    ('reminder', 'Reminder Message'),
-    ('lock_content', 'Lock Content'),
-    # ... more penalties
-    ('50 lines', 'Write 50 lines'),
-    ('Corner Time', '15 minutes Corner Time'),
-
-]
 
 
 class ToDo(models.Model):
     user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
     task = models.CharField(max_length=255)
     description = models.TextField(blank=True, null=True)
+    priority = models.IntegerField(default=1)
+    category = models.CharField(max_length=50, choices=[
+        ('Domme', 'Domme Task'),
+        ('Sissy', 'Sissy Task'),
+        ('Punishment', 'Punishment Task'),
+        ('work', 'Work/Study Task'),
+        ('self_care', 'Self Care Task'),
+        ('chore', 'Chore Task'),
+        ('personal', 'Personal Task')], default='personal')
     reward = models.CharField(
         max_length=50, choices=REWARD_CHOICES, null=True, blank=True)
     penalty = models.CharField(
         max_length=50, choices=PENALTY_CHOICES, null=True, blank=True)
-    due_date = models.DateField(
-        default=datetime.now().date() + timedelta(days=1), null=True)
+    due_date = models.DateField(default=default_due_date, null=True)
     completed = models.BooleanField(default=False)
-    timestamp = models.DateTimeField(default=datetime.now())
+    timestamp = models.DateTimeField(default=current_timestamp)
     processed = models.BooleanField(default=False)
     failed = models.BooleanField(default=False)
     penalty_issued = models.BooleanField(default=False)
-    # New field to track if a reward has been issued
     reward_issued = models.BooleanField(default=False)
 
     def get_absolute_url(self):
@@ -352,9 +339,12 @@ class Moderator(models.Model):
 # JournalEntry Model
 
 
-
 class JournalEntry(models.Model):
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, related_name='journal_entries', on_delete=models.CASCADE)
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL, 
+        related_name='journal_entries', 
+        on_delete=models.CASCADE
+    )
     title = models.CharField(max_length=200)
     content = models.TextField()
     # Field to store the generated prompt
@@ -371,7 +361,6 @@ class JournalEntry(models.Model):
     subjectivity = models.FloatField(null=True, blank=True)
     sentiment = models.CharField(max_length=20, blank=True, null=True)
 
-
     @staticmethod
     def get_last_5_entries(user):
         return JournalEntry.objects.filter(user=user).order_by('-id')[:5]
@@ -383,7 +372,8 @@ class JournalEntry(models.Model):
             return "neutral"
 
         sentiment_scores = {'positive': 1, 'neutral': 0, 'negative': -1}
-        total_score = sum(sentiment_scores[entry.sentiment] for entry in entries)
+        total_score = sum(
+            sentiment_scores[entry.sentiment] for entry in entries)
         average_score = total_score / len(entries)
 
         if average_score > 0:
@@ -412,7 +402,8 @@ class JournalEntry(models.Model):
         return total_subjectivity / len(entries)
 
     def save(self, *args, **kwargs):
-        self.sentiment, self.polarity, self.subjectivity = get_sentiment(self.content)
+        self.sentiment, self.polarity, self.subjectivity = get_sentiment(
+            self.content)
         super().save(*args, **kwargs)
 
     def get_absolute_url(self):

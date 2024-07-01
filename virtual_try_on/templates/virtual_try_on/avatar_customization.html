@@ -5,63 +5,67 @@
 
 {% block content %}
 <div class="customization-container">
-    <h1>Customize Your Avatar</h1>
+    <div class="title-banner">
+        <h1>Customize Your Avatar</h1>
+    </div>
 
     <div class="avatar-section">
         <div class="avatar-display" id="avatar-display">
-            <img id="avatar-body" class="body" src="{% static 'virtual_try_on/avatars/body/light/hourglass.png' %}" alt="Avatar Body">
-            <img id="avatar-hair" class="hair" src="{% static 'virtual_try_on/avatars/hair/long_straight/blonde.png' %}" alt="Avatar Hair">
+            <div class="podium">
+                <img id="avatar-body" class="body" src="{% static 'virtual_try_on/avatars/body/light/hourglass.png' %}" alt="Avatar Body">
+                <img id="avatar-hair" class="hair" src="{% static 'virtual_try_on/avatars/hair/long_straight/blonde.png' %}" alt="Avatar Hair">
+                <img id="avatar-stage" class="stage" src="{% static 'virtual_try_on/stage.png' %}" alt="Avatar Stage">
+                <div class="banner">
+                    <h2>{{ user.username }}</h2>
+                </div>
+            </div>
         </div>
     </div>
 
-    <div class="dropdowns">
-        <label for="skin-tone">Skin Tone:</label>
-        <select id="skin-tone" class="feature-dropdown" data-type="body_skin_tone">
-            <option value="light">Light</option>
-            <option value="brown">Brown</option>
-            <option value="dark">Dark</option>
-        </select>
-
-        <label for="body-type">Body Type:</label>
-        <select id="body-type" class="feature-dropdown" data-type="body_body_type">
-            <option value="hourglass">Hourglass</option>
-            <option value="slim">Slim</option>
-            <option value="straight">Straight</option>
-            <option value="thick">Thick</option>
-        </select>
-
-        <label for="hair-type">Hair Type:</label>
-        <select id="hair-type" class="feature-dropdown" data-type="hair_hair_type">
-            <option value="long_straight">Long Straight</option>
-            <option value="short_curly">Short Curly</option>
-        </select>
-
-        <label for="hair-color">Hair Color:</label>
-        <select id="hair-color" class="feature-dropdown" data-type="hair_hair_color">
-            <option value="blonde">Blonde</option>
-            <option value="brunette">Brunette</option>
-            <option value="black">Black</option>
-            <option value="red">Red</option>
-            <option value="pink">Pink</option>
-        </select>
-
-        <label for="outfits">Outfits:</label>
-        <select id="outfits" class="feature-dropdown" data-type="outfit">
-            <option value="casual">Casual</option>
-            <option value="formal">Formal</option>
-            <option value="sporty">Sporty</option>
-        </select>
+    <div class="feature-options">
+        <div>
+            <label for="body-type">Body Type:</label>
+            <select id="body-type" onchange="updateAvatar()">
+                <option value="hourglass">Hourglass</option>
+                <option value="slim">Slim</option>
+                <option value="straight">Straight</option>
+                <option value="thick">Thick</option>
+            </select>
+        </div>
+        <div>
+            <label for="skin-tone">Skin Tone:</label>
+            <select id="skin-tone" onchange="updateAvatar()">
+                <option value="light">Light</option>
+                <option value="brown">Brown</option>
+                <option value="dark">Dark</option>
+            </select>
+        </div>
+        <div>
+            <label for="hair-type">Hair Type:</label>
+            <select id="hair-type" onchange="updateAvatar()">
+                <option value="long_straight">Long Straight</option>
+                <option value="long_curly">Long Curly</option>
+                <option value="short_straight">Short Straight</option>
+                <option value="short_curly">Short Curly</option>
+                <option value="bob">Bob</option>
+            </select>
+        </div>
+        <div>
+            <label for="hair-color">Hair Color:</label>
+            <select id="hair-color" onchange="updateAvatar()">
+                <option value="black">Black</option>
+                <option value="brown">Brown</option>
+                <option value="blonde">Blonde</option>
+                <option value="red">Red</option>
+                <option value="pink">Pink</option>
+            </select>
+        </div>
     </div>
-
-    <form method="post" id="avatar-form" class="form-section">
-        {% csrf_token %}
-        {{ form.as_p }}
-        <button type="submit" class="btn">Save Avatar</button>
-    </form>
 
     <div class="bottom-controls">
         <button type="button" onclick="resetAvatar()">Reset</button>
-        <button type="button" onclick="submitAvatar()">Submit</button>
+        <button type="button" onclick="saveAvatar()">Save</button>
+        <button type="button" onclick="randomizeAvatar()">Randomize</button>
     </div>
 </div>
 
