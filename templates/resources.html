@@ -1,18 +1,18 @@
 {% extends 'base.html' %}
+{% load custom_filters %}
 {% load static %}
 {% block title %}Resources{% endblock %}
 {% block content %}
 <div class="container diary-spread">
     <!-- Left Page - Resources List -->
     <div class="left-page">
-        <h1>Resources Page</h1>
-        <ul>
-            {% for resource in resources %}
-            <li>
-                <a href="{{ resource.link }}" target="_blank">{{ resource.title }}</a> - {{ resource.description }}
-            </li>
-            {% endfor %}
-        </ul>
+        <h2>Resources</h2>
+<p>Welcome to the ultimate sissy resource hub! Girl, we've got you covered! 💖 sissies succed with a strong sense of community</p>
+<ul class="resource-list">
+    {% for category in object_list %}
+    <li><a href="{% url 'journal:resource_category_detail' category.pk %}">{{ category.name }}</a></li>
+    {% endfor %}
+</ul>
     </div>
 
     <!-- Right Page - Placeholder or Additional Info -->

@@ -1,10 +1,23 @@
-{% extends "base.html" %}
-{%load static%}
+{% extends 'base.html' %}
+{% load custom_filters %}
+{% load static %}
+
+{% block title %}{{ object.title }}{% endblock %}
+
 {% block content %}
-<h1>{{ reasource.title }}</h1>
-<p>{{ reasource.content }}</p>
-{% for reasource in reasources %}
-    <p>{{ reasource.author }}: {{ reasource.content }}</p>
-{% endfor %}
-<a href="{% url 'journal:create_comment' post.id %}">Add Comment</a>
+<h2>{{ object.title }}</h2>
+<p>{{ object.description }}</p>
+<a href="{{ object.link }}" target="_blank" class="resource-link">Visit Link</a>
+
+{% if object.allow_comments %}
+<h3>Comments</h3>
+<ul class="resource-comments">
+    {% for comment in object.resourcecomment_set.all %}
+    <li>
+        <p>{{ comment.content }}</p>
+        <small>by {{ comment.author.username }} on {{ comment.timestamp }}</small>
+    </li>
+    {% endfor %}
+</ul>
+{% endif %}
 {% endblock %}

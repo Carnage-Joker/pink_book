@@ -13,7 +13,7 @@
     <!-- Navigation Tabs (Post-it Notes) -->
     <nav class="post-it-notes">
         <a href="{% url 'journal:welcome' %}">Home</a>
-        <a href="{% url 'journal:register' %}">Register</a>
+        <a href="{% url 'journal:resource_list' %}">Resources</a>
         <a href="{% url 'journal:dashboard' %}">Dashboard</a>
         <a href="{% url 'journal:categories' %}">Forum</a>
         <a href="{% url 'journal:logout' %}">Logout</a>
@@ -32,4 +32,9 @@
     <script src="{% static 'journal/scripts/scripts.js' %}"></script>
     {% block scripts %}{% endblock %}
 </body>
+  <footer>
+        <p>&copy; 2024 Sissy Diary</p>
+    </footer>
+    <div id="toast-container"></div>
+    <script src="{% static 'js/scripts.js' %}"></script>
 </html>

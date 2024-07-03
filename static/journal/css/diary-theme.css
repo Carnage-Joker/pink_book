@@ -1,5 +1,5 @@
 /* General styles for diary texture */
-body {
+.body {
     font-family: 'Brush Script MT', cursive;
     margin: 0;
     padding: 0;
@@ -115,12 +115,12 @@ body {
 .progress-container {
     display: flex;
     align-items: center;
-    margin-bottom: 10px;
+    margin-block-end: 10px;
 }
 
 .progress-bar {
-    width: 100%;
-    height: 20px;
+    inline-size: 100%;
+    block-size: 20px;
     background-color: #ffe6f2;
     border-radius: 10px;
     overflow: hidden;
@@ -130,9 +130,9 @@ body {
 .progress-bar::after {
     content: "";
     display: block;
-    height: 100%;
+    block-size: 100%;
     background-color: hotpink;
-    width: var(--progress, 0%);
+    inline-size: var(--progress, 0%);
     transition: width 0.3s;
 }
 
@@ -171,6 +171,8 @@ nav.post-it-notes a:hover {
 /* Pink Padlock Background for Login Section */
 .logreg-section {
     background-color: rgba(255, 255, 255, 0.85);
+    background:url('../media/pink_heart_lock.png') no-repeat center center;
+    background-size: cover;
     padding: 20px;
     border-radius: 10px;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
@@ -186,7 +188,7 @@ nav.post-it-notes a:hover {
 /* Cover Page */
 .cover-page {
     background: url('../media/FrontCover.png') no-repeat center center;
-    inline-size: 80%;
+    inline-size: 70%;
     inset-block-start: 50px;
     block-size: 100vh;
     display: flex;
@@ -200,6 +202,7 @@ nav.post-it-notes a:hover {
 .cover-page h1.welcome-title {
     font-family: 'Great Vibes', cursive;
     font-size: 2em;
+    inset-block-start: 25%;
     color: #e103c7;
     text-shadow: 2px 2px 4px #888888;
     margin: 0;
@@ -273,3 +276,122 @@ nav.post-it-notes a:hover {
     background-color: #E76F89;
     box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
 }
+
+body {
+    font-family: 'Comic Sans MS', cursive, sans-serif;
+    background-color: #ffe6f2;
+    color: #4d004d;
+}
+
+header {
+    background-color: #ff99cc;
+    padding: 10px;
+    text-align: center;
+    border-block-end: 2px solid #cc6699;
+}
+
+header h1 {
+    margin: 0;
+    font-size: 2.5em;
+    color: #fff;
+}
+
+nav a {
+    color: #fff;
+    text-decoration: none;
+    margin: 0 10px;
+}
+
+nav a:hover {
+    text-decoration: underline;
+}
+
+main {
+    padding: 20px;
+}
+
+h2 {
+    color: #cc6699;
+}
+
+ul {
+    list-style-type: none;
+    padding: 0;
+}
+
+ul li {
+    margin: 10px 0;
+    padding: 10px;
+    background-color: #fff;
+    border: 1px solid #cc6699;
+    border-radius: 10px;
+    transition: transform 0.3s;
+}
+
+ul li:hover {
+    transform: scale(1.05);
+}
+
+ul li a {
+    color: #4d004d;
+    font-weight: bold;
+    text-decoration: none;
+}
+
+ul li a:hover {
+    color: #cc6699;
+}
+
+.resource-link {
+    display: inline-block;
+    margin-block-start: 10px;
+    padding: 8px 15px;
+    background-color: #ff66b2;
+    color: #fff;
+    border-radius: 5px;
+    text-decoration: none;
+}
+
+.resource-link:hover {
+    background-color: #e55c99;
+}
+
+footer {
+    background-color: #ff99cc;
+    padding: 10px;
+    text-align: center;
+    border-block-start: 2px solid #cc6699;
+    position: fixed;
+    inline-size: 100%;
+    inset-block-end: 0;
+    inset-inline-start: 0;
+}
+
+#toast-container {
+    position: fixed;
+    inset-block-start: 10px;
+    inset-inline-end: 10px;
+    z-index: 1000;
+}
+
+.toast {
+    padding: 10px;
+    margin-block-end: 5px;
+    border-radius: 5px;
+    color: #fff;
+}
+
+.toast-info {
+    background-color: #33ccff;
+}
+
+.toast-success {
+    background-color: #66cc66;
+}
+
+.toast-error {
+    background-color: #ff6666;
+
+    .toast-warning {
+        background-color: #ffcc00;
+    }

@@ -1,3 +1,4 @@
+from django.contrib.auth import get_user_model
 import os
 from datetime import date, datetime, timedelta
 from uuid import uuid4
@@ -146,13 +147,36 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
     # Using JSONField to store locked content
     locked_content = models.JSONField(default=dict)
 
-    def lock_content(self, content_name):
-        self.locked_content[content_name] = True
+
+    points = models.IntegerField(default=0)
+    badges = models.JSONField(default=dict)
+    level = models.IntegerField(default=1)
+
+    def award_points(self, points):
+        self.points += points
+        self.check_level_up()
         self.save()
 
     def deduct_points(self, points):
-        # Ensure points don't go below 0
         self.points = max(0, self.points - points)
+        self.save()
+
+    def add_badge(self, badge_name):
+        badges = self.badges
+        if badge_name not in badges:
+            badges[badge_name] = datetime.now().strftime('%Y-%m-%d')
+            self.badges = badges
+            self.save()
+
+    def check_level_up(self):
+        # Example logic for leveling up
+        required_points = self.level * 100  # Adjust as needed
+        if self.points >= required_points:
+            self.level += 1
+            self.add_badge(f'Level {self.level} Achieved')
+
+    def lock_content(self, content_name):
+        self.locked_content[content_name] = True
         self.save()
 
     def __str__(self):

@@ -7,16 +7,19 @@ class CommentInline(admin.StackedInline):
     model = Comment
     extra = 1
 
+
 @admin.register(CustomUser)
 class CustomUserAdmin(admin.ModelAdmin):
     list_display = ('email', 'sissy_name', 'is_staff')
     search_fields = ('email', 'sissy_name')
     list_filter = ('is_staff',)
 
+
 @admin.register(JournalEntry)
 class JournalEntryAdmin(admin.ModelAdmin):
     list_display = ('title', 'user', 'timestamp')  # Updated fields
     inlines = [CommentInline,]
+
 
 @admin.register(Comment)
 class CommentAdmin(admin.ModelAdmin):
@@ -28,6 +31,7 @@ class CommentAdmin(admin.ModelAdmin):
     def remove_comment(self, queryset):
         queryset.delete(active=True)
     remove_comment.short_description = "delete selected comments"
+
 
 @admin.register(RelatedModel)
 class RelatedModelAdmin(admin.ModelAdmin):

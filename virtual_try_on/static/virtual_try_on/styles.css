@@ -47,6 +47,57 @@ body {
     object-fit: contain;
 }
 
+/* Default styles for clothing items */
+.avatar-clothing {
+    position: absolute;
+    width: 100%;
+    height: auto;
+}
+
+/* Styles for hourglass body type */
+.hourglass .avatar-top {
+    inset-inline: 10%;
+    width: 80%;
+}
+
+.hourglass .avatar-bottom {
+    inset-inline: 15%;
+    width: 70%;
+}
+
+/* Styles for straight body type */
+.straight .avatar-top {
+    inset-inline: 12%;
+    width: 76%;
+}
+
+.straight .avatar-bottom {
+    inset-inline: 18%;
+    width: 64%;
+}
+
+/* Styles for slim body type */
+.slim .avatar-top {
+    inset-inline: 14%;
+    width: 72%;
+}
+
+.slim .avatar-bottom {
+    inset-inline: 20%;
+    width: 60%;
+}
+
+/* Styles for thick body type */
+.thick .avatar-top {
+    inset-inline: 8%;
+    width: 84%;
+}
+
+.thick .avatar-bottom {
+    inset-inline: 10%;
+    width: 80%;
+}
+
 .avatar-display img.body {
     z-index: 1;
     width: 100%;
@@ -64,6 +115,7 @@ body {
     transform: translate(41%, 0);
     /* Adjust as needed to position correctly */
 }
+
 .avatar-display img.stage {
     inline-size: 50%;
     block-size: auto;

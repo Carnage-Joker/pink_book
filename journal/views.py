@@ -1,4 +1,3 @@
-import requests
 from django.views.decorators.csrf import csrf_exempt
 import logging
 from django.contrib import messages
@@ -323,7 +322,7 @@ class DashboardView(LoginRequiredMixin, TemplateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         user = self.request.user
-
+        
         recent_entries = JournalEntry.objects.filter(
             user=user).order_by('-timestamp')[:3]
         entries = JournalEntry.objects.filter(user=user).order_by('-timestamp')
@@ -444,18 +443,17 @@ class ResourceListView(ListView):
 
 class ResourceCategoryView(DetailView):
     model = ResourceCategory
-    template_name = "resource_detail.html"
+    template_name = "resource_category_detail.html"
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context["journal:categories"] = ResourceCategory.objects.all()
+        context["journal_categories"] = ResourceCategory.objects.all()
         return context
 
 
 class ResourceDetailView(DetailView):
     model = Resource
     template_name = "resource_detail.html"
-
 
 # Misc Views
 

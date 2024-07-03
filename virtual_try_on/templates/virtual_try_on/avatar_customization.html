@@ -25,7 +25,7 @@
     <div class="feature-options">
         <div>
             <label for="body-type">Body Type:</label>
-            <select id="body-type" onchange="updateAvatar()">
+            <select id="body-type" onchange="updateAvatarfeature()">
                 <option value="hourglass">Hourglass</option>
                 <option value="slim">Slim</option>
                 <option value="straight">Straight</option>
@@ -34,7 +34,7 @@
         </div>
         <div>
             <label for="skin-tone">Skin Tone:</label>
-            <select id="skin-tone" onchange="updateAvatar()">
+            <select id="skin-tone" onchange="updateAvatarfeature()">
                 <option value="light">Light</option>
                 <option value="brown">Brown</option>
                 <option value="dark">Dark</option>
@@ -42,7 +42,7 @@
         </div>
         <div>
             <label for="hair-type">Hair Type:</label>
-            <select id="hair-type" onchange="updateAvatar()">
+            <select id="hair-type" onchange="updateAvatarfeature()">
                 <option value="long_straight">Long Straight</option>
                 <option value="long_curly">Long Curly</option>
                 <option value="short_straight">Short Straight</option>
@@ -52,7 +52,7 @@
         </div>
         <div>
             <label for="hair-color">Hair Color:</label>
-            <select id="hair-color" onchange="updateAvatar()">
+            <select id="hair-color" onchange="updateAvatarfeature()">
                 <option value="black">Black</option>
                 <option value="brown">Brown</option>
                 <option value="blonde">Blonde</option>
@@ -62,9 +62,9 @@
         </div>
     </div>
 
-    <div class="bottom-controls">
+    <div class="bottom-controls">                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   
         <button type="button" onclick="resetAvatar()">Reset</button>
-        <button type="button" onclick="saveAvatar()">Save</button>
+        <button type="button" onclick="updateAvatarfeature()">Save</button>
         <button type="button" onclick="randomizeAvatar()">Randomize</button>
     </div>
 </div>

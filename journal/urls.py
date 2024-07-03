@@ -7,7 +7,7 @@ from .views import (ContactView, DashboardView, ForumPostDetailView,
                     JournalEntryDeleteView, JournalEntryListView, LoginView,
                     LogoutView, ProfileUpdateView, ProfileView,
                     ProfileSettingsView, ProfileCustomizeView, RegisterView,
-                    ResourceCategoryView, ResourceListView, ToDoCreateView,
+                    ResourceCategoryView, ResourceListView, ResourceDetailView, ToDoCreateView,
                     ToDoDetailView, ToDoListView, ToDoUpdateView, AboutView,
                     complete_task_view, generate_task_view, fail_task_view,
                     PasswordResetDoneView, PasswordResetView, complete_todo_view)
@@ -58,8 +58,15 @@ urlpatterns = [
 
 
     # Resources
-    path('resources/', ResourceListView.as_view(), name='resources'),
-    path('resources/new/', ResourceCategoryView.as_view(), name='category_detail'),
+    
+
+    path('resources/', ResourceListView.as_view(), name='resource_list'),
+    path('resources/<int:pk>/', ResourceCategoryView.as_view(),
+         name='resource_category_detail'),
+    path('resource/<int:pk>/', ResourceDetailView.as_view(),
+         name='resource_detail'),
+    
+
 
     # Contact
     path('contact/', ContactView.as_view(), name='contact'),

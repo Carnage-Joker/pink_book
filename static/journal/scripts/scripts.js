@@ -218,3 +218,28 @@ document.addEventListener("DOMContentLoaded", function () {
     `;
     document.head.appendChild(style);
 });
+function showToast(message, type = 'info') {
+    const toastContainer = document.getElementById('toast-container');
+    if (!toastContainer) {
+        console.error('Toast container not found!');
+        return;
+    }
+
+    const toast = document.createElement('div');
+    toast.classList.add('toast', `toast-${type}`);
+    toast.textContent = message;
+
+    toastContainer.appendChild(toast);
+
+    setTimeout(() => {
+        toastContainer.removeChild(toast);
+    }, 3000);
+}
+
+document.addEventListener('DOMContentLoaded', function () {
+    document.querySelectorAll('a').forEach(function (link) {
+        link.addEventListener('click', function () {
+            showToast('Navigating to ' + link.textContent, 'info');
+        });
+    });
+});
