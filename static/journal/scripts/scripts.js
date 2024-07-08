@@ -9,23 +9,23 @@ document.addEventListener("DOMContentLoaded", function () {
                 return response.json();
             })
             .then(data => {
-                if (data.prompt) {
-                    document.getElementById('generatedText').innerText = data.prompt;
-                } else {
-                    document.getElementById('generatedText').innerText = "Error generating prompt.";
+                const generatedText = document.getElementById('generatedText');
+                if (generatedText) {
+                    generatedText.innerText = data.prompt ? data.prompt : "Error generating prompt.";
                 }
             })
             .catch(error => {
                 console.error('Error generating prompt:', error);
-                document.getElementById('generatedText').innerText = "Failed to fetch prompt. Please try again later.";
+                const generatedText = document.getElementById('generatedText');
+                if (generatedText) {
+                    generatedText.innerText = "Failed to fetch prompt. Please try again later.";
+                }
             });
     }
 
-    document.getElementById('generatePrompt').addEventListener('click', generatePrompt);
-
     // Function to fetch and display the insight
     function generateInsight() {
-        const content = document.getElementById('entryContent').value;
+        const content = document.getElementById('entryContent') ? document.getElementById('entryContent').value : '';
 
         fetch('/generate-insight/', {
             method: 'POST',
@@ -45,85 +45,97 @@ document.addEventListener("DOMContentLoaded", function () {
                 return response.json();
             })
             .then(data => {
-                if (data.insight) {
-                    document.getElementById('insightOutput').innerText = data.insight;
-                    document.getElementById('id_insight').value = data.insight;
-                } else {
-                    document.getElementById('insightOutput').innerText = "Error generating insight.";
+                const insightOutput = document.getElementById('insightOutput');
+                if (insightOutput) {
+                    insightOutput.innerText = data.insight ? data.insight : "Error generating insight.";
+                    if (data.insight) {
+                        const insightInput = document.getElementById('id_insight');
+                        if (insightInput) {
+                            insightInput.value = data.insight;
+                        }
+                    }
                 }
             })
             .catch(error => {
                 console.error('Error generating insight:', error);
-                document.getElementById('insightOutput').innerText = "Failed to fetch insight. Please try again later.";
+                const insightOutput = document.getElementById('insightOutput');
+                if (insightOutput) {
+                    insightOutput.innerText = "Failed to fetch insight. Please try again later.";
+                }
             });
     }
 
-    document.getElementById('getInsight').addEventListener('click', generateInsight);
+    // Attach event listeners
+    const generatePromptButton = document.getElementById('generatePrompt');
+    if (generatePromptButton) {
+        generatePromptButton.addEventListener('click', generatePrompt);
+    }
 
-    // Function to fetch and display the task
-    document.getElementById('generate-task').addEventListener('click', function () {
-        fetch('/journal/generate-task/')
-            .then(response => response.json())
-            .then(data => {
-                document.getElementById('task-result').innerHTML = data.task;
-                showToast("New task generated! 💖", 'success');
-            })
-            .catch(error => console.error('Error generating task:', error));
-    });
+    const getInsightButton = document.getElementById('getInsight');
+    if (getInsightButton) {
+        getInsightButton.addEventListener('click', generateInsight);
+    }
 
-    // Function to complete the task and update points
-    document.getElementById('complete-task').addEventListener('click', function () {
-        fetch('/journal/complete-task/', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': getCookie('csrftoken')
-            }
-        })
-            .then(response => response.json())
-            .then(data => {
-                showToast(data.message, 'success');
-                document.getElementById('points-display').innerText = `Points: ${data.points}`;
-            })
-            .catch(error => console.error('Error completing task:', error));
-    });
+    const generateTaskButton = document.getElementById('generate-task');
+    if (generateTaskButton) {
+        generateTaskButton.addEventListener('click', function () {
+            fetch('/journal/generate-task/')
+                .then(response => response.json())
+                .then(data => {taskResult
+                    const  = document.getElementById('task-result');
+                    if (taskResultul) {
+                        taskRest.innerHTML = data.task;
+                    }
+                    showToast("New task generated! 💖", 'success');
+                })
+                .catch(error => console.error('Error generating task:', error));
+        });
+    }
 
-    // Function to handle failed task
-    document.getElementById('fail-task').addEventListener('click', function () {
-        fetch('/journal/fail-task/', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded',
-                'X-CSRFToken': getCookie('csrftoken')
-            },
-            body: new URLSearchParams({
-                penaltyType: 'LOCK_CONTENT', // or 'DEDUCT_POINTS'
-                pointsToDeduct: 10, // if applicable
-                contentName: 'Premium Article' // if applicable
-            })
-        })
-            .then(response => response.json())
-            .then(data => {
-                console.log(data);
-                showToast(data.message, 'error');
-            })
-            .catch(error => console.error('Error handling failed task:', error));
-    });
-
-    // Function to get CSRF token
-    function getCookie(name) {
-        let cookieValue = null;
-        if (document.cookie && document.cookie !== '') {
-            const cookies = document.cookie.split(';');
-            for (let i = 0; i < cookies.length; i++) {
-                const cookie = cookies[i].trim();
-                if (cookie.substring(0, name.length + 1) === (name + '=')) {
-                    cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
-                    break;
+    const completeTaskButton = document.getElementById('complete-task');
+    if (completeTaskButton) {
+        completeTaskButton.addEventListener('click', function () {
+            fetch('/journal/complete-task/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': getCookie('csrftoken')
                 }
-            }
-        }
-        return cookieValue;
+            })
+                .then(response => response.json())
+                .then(data => {
+                    showToast(data.message, 'success');
+                    const pointsDisplay = document.getElementById('points-display');
+                    if (pointsDisplay) {
+                        pointsDisplay.innerText = `Points: ${data.points}`;
+                    }
+                })
+                .catch(error => console.error('Error completing task:', error));
+        });
+    }
+
+    const failTaskButton = document.getElementById('fail-task');
+    if (failTaskButton) {
+        failTaskButton.addEventListener('click', function () {
+            fetch('/journal/fail-task/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-CSRFToken': getCookie('csrftoken')
+                },
+                body: new URLSearchParams({
+                    penaltyType: 'LOCK_CONTENT', // or 'DEDUCT_POINTS'
+                    pointsToDeduct: 10, // if applicable
+                    contentName: 'Premium Article' // if applicable
+                })
+            })
+                .then(response => response.json())
+                .then(data => {
+                    console.log(data);
+                    showToast(data.message, 'error');
+                })
+                .catch(error => console.error('Error handling failed task:', error));
+        });
     }
 
     // Function to show toast notifications
@@ -167,10 +179,12 @@ document.addEventListener("DOMContentLoaded", function () {
             .then(data => {
                 if (data.success) {
                     const todoItem = document.getElementById(`todo-${todoId}`);
-                    todoItem.classList.add('completed');
-                    setTimeout(() => {
-                        todoItem.style.display = 'none';
-                    }, 1000); // Adjust the delay as needed
+                    if (todoItem) {
+                        todoItem.classList.add('completed');
+                        setTimeout(() => {
+                            todoItem.style.display = 'none';
+                        }, 1000); // Adjust the delay as needed
+                    }
                 } else {
                     showToast(data.message, 'error');
                 }
@@ -192,8 +206,10 @@ document.addEventListener("DOMContentLoaded", function () {
             .then(data => {
                 if (data.success) {
                     const progressContainer = document.querySelector(`#habit-${habitId} .progress-container .progress-bar`);
-                    progressContainer.style.width = `${data.new_progress}%`;
-                    showToast('Progress updated!', 'success');
+                    if (progressContainer) {
+                        progressContainer.style.width = `${data.new_progress}%`;
+                        showToast('Progress updated!', 'success');
+                    }
                 } else {
                     showToast(data.message, 'error');
                 }
@@ -218,6 +234,8 @@ document.addEventListener("DOMContentLoaded", function () {
     `;
     document.head.appendChild(style);
 });
+
+// Function to show toast notifications
 function showToast(message, type = 'info') {
     const toastContainer = document.getElementById('toast-container');
     if (!toastContainer) {

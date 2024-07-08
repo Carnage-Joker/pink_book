@@ -1,39 +1,121 @@
-from django.views.decorators.csrf import csrf_exempt
 import logging
+
 from django.contrib import messages
-from django.contrib.auth import login
+from django.contrib.auth import get_user_model, login
 from django.contrib.auth import views as auth_views
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.auth.tokens import default_token_generator
+from django.contrib.auth.views import LoginView as AuthLoginView
+from django.contrib.sites.shortcuts import get_current_site
+from django.core.mail import send_mail
 from django.http import JsonResponse
+from django.shortcuts import get_object_or_404, redirect, render
+from django.template.loader import render_to_string
 from django.urls import reverse_lazy
+from django.utils.encoding import force_bytes, force_str
+from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
 from django.utils.timezone import now
-from django.views.generic import (CreateView, DeleteView, DetailView, ListView,
-                                  TemplateView, UpdateView)
-from .utils.utils import generate_task
+from django.views.decorators.csrf import csrf_exempt
+from django.views.generic import (CreateView, DeleteView, DetailView, FormView,
+                                  ListView, TemplateView, UpdateView)
 
-from .forms import (CustomUserCreationForm, CustomUserUpdateForm,
-                    JournalEntryForm, ProfileSettingsForm, ThemeForm, ToDoForm)
+from .forms import (CustomUserCreationForm, CustomUserLoginForm,
+                    CustomUserUpdateForm, JournalEntryForm,
+                    ProfileSettingsForm, ResendActivationForm, ThemeForm,
+                    ToDoForm)
 from .generate import generate_insight, generate_prompt
-from .models import (Comment, CustomUser, Habit, JournalEntry, Post, Quote,
+from .models import (ActivityLog, Answer, Billing, Comment, CustomUser, Guide,
+                     Habit, JournalEntry, Message, Post, Question, Quote,
                      Resource, ResourceCategory, Thread, ToDo)
 from .utils.ai_utils import (extract_keywords, get_average_sentiment,
                              get_average_word_count, get_current_streak,
                              get_most_common_emotions, get_most_common_tags,
                              get_peak_journaling_time)
+from .utils.utils import generate_task
+
+User = get_user_model()
+
+
+class ActivateAccountView(TemplateView):
+    template_name = "activate_account.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        uidb64 = self.kwargs.get('uidb64')
+        token = self.kwargs.get('token')
+
+        try:
+            uid = force_str(urlsafe_base64_decode(uidb64))
+            user = User.objects.get(pk=uid)
+        except (TypeError, ValueError, OverflowError, User.DoesNotExist):
+            user = None
+
+        if user is not None and default_token_generator.check_token(user, token):
+            user.is_active = True
+            user.save()
+            context['valid_link'] = True
+        else:
+            context['valid_link'] = False
+
+        return context
+
+
+
+class ResendActivationView(FormView):
+    template_name = "resend_activation.html"
+    form_class = ResendActivationForm
+    success_url = reverse_lazy('journal:resend_activation_done')
+
+    def form_valid(self, form):
+        email = form.cleaned_data.get('email')
+        try:
+            user = User.objects.get(email=email)
+            if not user.is_active:
+                current_site = get_current_site(self.request)
+                mail_subject = 'Activate your Sissy Diary account.'
+                message = render_to_string('activation_email.html', {
+                    'user': user,
+                    'domain': current_site.domain,
+                    'uid': urlsafe_base64_encode(force_bytes(user.pk)),
+                    'token': default_token_generator.make_token(user),
+                })
+                send_mail(mail_subject, message,
+                          'noreply@sissydiary.com', [user.email])
+                messages.success(
+                    self.request, 'A new activation link has been sent to your email.')
+            else:
+                messages.warning(
+                    self.request, 'This account is already active.')
+        except User.DoesNotExist:
+            messages.error(
+                self.request, 'No account found with this email address.')
+        return super().form_valid(form)
 
 
 class RegisterView(CreateView):
     form_class = CustomUserCreationForm
     template_name = 'register.html'
-    success_url = reverse_lazy('journal:profile_update')
+    success_url = reverse_lazy('journal:resend_activation')
 
     def form_valid(self, form):
-        user = form.save()
-        login(self.request, user)
-        messages.success(self.request, "Registration successful. Welcome!")
-        return super().form_valid(form)
+        response = super().form_valid(form)
+        user = form.save(commit=False)
+        user.is_active = False  # Deactivate account until it is confirmed
+        user.save()
+        self.send_activation_email(user)
+        return response
 
-# Authentication Views
+    def send_activation_email(self, user):
+        current_site = get_current_site(self.request)
+        mail_subject = 'Activate your Sissy Diary account.'
+        message = render_to_string('activation_email.html', {
+            'user': user,
+            'domain': current_site.domain,
+            'uid': urlsafe_base64_encode(force_bytes(user.pk)),
+            'token': default_token_generator.make_token(user),
+        })
+        send_mail(mail_subject, message, 'noreply@sissydiary.com', [user.email])
+
 
 
 class AboutView(TemplateView):
@@ -43,30 +125,24 @@ class AboutView(TemplateView):
 logger = logging.getLogger(__name__)
 
 
-class LoginView(auth_views.LoginView):
+class CustomLoginView(AuthLoginView):
     template_name = "welcome.html"
+    authentication_form = CustomUserLoginForm
+    success_url = reverse_lazy("journal:dashboard")
 
-    def form_valid(self, form, *args, **kwargs):
-        # Log the successful login
-        logger.info(
-            f"User {form.get_user().sissy_name} logged in successfully.")
+    def form_valid(self, form):
+        user = form.get_user()
+        logger.info(f"User {user.username} logged in successfully.")
         messages.success(self.request, "You have successfully logged in.")
-        """_summary_
-
-        Returns:
-            _type_: _description_
-        """
         return super().form_valid(form)
 
     def form_invalid(self, form):
-        # Log failed login attempt
-        logger.warning("Failed login attempt.")
+        logger.warning(f"Failed login attempt: {form.errors}")
         messages.error(
             self.request, "Login failed. Please check your sissy name and password.")
         return super().form_invalid(form)
 
     def get_success_url(self):
-        # Optionally, log the redirection after successful login
         logger.info("Redirecting to the dashboard after successful login.")
         return reverse_lazy('journal:dashboard')
 
@@ -83,13 +159,13 @@ class PasswordResetView(auth_views.PasswordResetView):
     success_url = reverse_lazy("journal:password_reset_done")
 
     def form_valid(self, form):
-        messages.success(self.request, "Password reset email sent successfully.")
-        return super().form_valid(form)  # Call the parent class method
+        messages.success(
+            self.request, "Password reset email sent successfully.")
+        return super().form_valid(form)
 
 
 class PasswordResetDoneView(auth_views.PasswordResetDoneView):
     template_name = "password_reset_done.html"
-
 
 
 @csrf_exempt
@@ -322,18 +398,15 @@ class DashboardView(LoginRequiredMixin, TemplateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         user = self.request.user
-        
         recent_entries = JournalEntry.objects.filter(
             user=user).order_by('-timestamp')[:3]
         entries = JournalEntry.objects.filter(user=user).order_by('-timestamp')
         todos = ToDo.objects.filter(user=user).order_by('-timestamp')[:5]
         habits = Habit.objects.filter(user=user).order_by('-timestamp')[:5]
-
         for todo in todos:
             if todo.due_date and now().date() > todo.due_date and not todo.completed:
                 todo.processed = True
                 todo.save()
-
         sentiment_data = get_average_sentiment(entries)
 
         context.update({
@@ -436,6 +509,16 @@ class JournalEntryDeleteView(LoginRequiredMixin, DeleteView):
 logger = logging.getLogger(__name__)
 
 
+def guide_list(request):
+    guides = Guide.objects.all()
+    return render(request, 'guides/guide_list.html', {'guides': guides})
+
+
+def guide_detail(request, pk):
+    guide = get_object_or_404(Guide, pk=pk)
+    return render(request, 'guides/guide_detail.html', {'guide': guide})
+
+
 class ResourceListView(ListView):
     model = ResourceCategory
     template_name = "resources.html"
@@ -455,7 +538,18 @@ class ResourceDetailView(DetailView):
     model = Resource
     template_name = "resource_detail.html"
 
-# Misc Views
+
+# views.py
+def qna_list(request):
+    questions = Question.objects.all()
+    return render(request, 'qna/qna_list.html', {'questions': questions})
+
+
+def qna_detail(request, pk):
+    question = get_object_or_404(Question, pk=pk)
+    answers = Answer.objects.filter(question=question)
+    return render(request, 'qna/qna_detail.html', {'question': question, 'answers': answers})
+
 
 class ContactView(TemplateView):
     template_name = "contact_form.html"
@@ -465,24 +559,17 @@ class ContactView(TemplateView):
 #    model = Notification
 #    template_name = "notifications.html"
 
-# class MessageListView(LoginRequiredMixin, ListView):
-#    model = Message
-#    template_name = "messages.html"
 
-# class ActivityLogListView(LoginRequiredMixin, ListView):
-#    model = ActivityLog
-#    template_name = "activity_log.html"
+class MessageListView(LoginRequiredMixin, ListView):
+    model = Message
+    template_name = "messages.html"
 
-# class BillingView(LoginRequiredMixin, ListView):
-#    model = Billing
-#    template_name = "billing.html"
 
-# def check_insights(request, pk):
-#    try:
-#        entry = JournalEntry.objects.get(pk=pk)
-#        if entry.insight:
-#           return JsonResponse({"insights_ready": True, "insights": entry.insight})
-#       else:
-#          return JsonResponse({"insights_ready": False})
-#   except JournalEntry.DoesNotExist:
-#       return JsonResponse({"error": "Entry not found"}, status=404)
+class ActivityLogListView(LoginRequiredMixin, ListView):
+    model = ActivityLog
+    template_name = "activity_log.html"
+
+
+class BillingView(LoginRequiredMixin, ListView):
+    model = Billing
+    template_name = "billing.html"

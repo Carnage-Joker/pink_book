@@ -1,4 +1,7 @@
 
+from .models import CustomUser
+from django.contrib.auth.forms import UserCreationForm
+from django.contrib.auth.forms import AuthenticationForm
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Column, Layout, Row, Submit
 from django import forms
@@ -29,6 +32,11 @@ class HabitForm(forms.ModelForm):
 
 
 class PostForm(forms.ModelForm):
+    category = forms.ChoiceField(
+        choices=[('personal', 'Personal'), ('kink', 'Kink'), ('lifestyle', 'Lifestyle'), ('other', 'Other')],
+        required=True
+    )
+    
     class Meta:
         model = Post
         fields = ['title', 'content', 'category']
@@ -93,51 +101,40 @@ class ToDoForm(forms.ModelForm):
 
 
 class CustomUserLoginForm(AuthenticationForm):
-    sissy_name = forms.CharField(
-        label="Sissy Name", widget=forms.TextInput(attrs={'autofocus': True}))
+    username = forms.CharField(
+        label="Sissy Name",
+        widget=forms.TextInput(
+            attrs={'autofocus': True, 'autocomplete': 'username'})
+    )
+    password = forms.CharField(
+        label="Password",
+        strip=False,
+        widget=forms.PasswordInput(attrs={'autocomplete': 'current-password'})
+    )
 
-    class Meta:
-        model = CustomUser
-        fields = ('sissy_name', 'password')
+    def __init__(self, request=None, *args, **kwargs):
+        super().__init__(request, *args, **kwargs)
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.fields['username'] = self.fields['sissy_name']
-        del self.fields['sissy_name']
-        self.helper = FormHelper(self)
-        self.helper.layout = Layout(
-            'username',
-            'password',
-            Submit('submit', 'Sign In'),
-        )
+
+class ResendActivationForm(forms.Form):
+    email = forms.EmailField(label='Email', max_length=254, widget=forms.EmailInput(
+        attrs={'class': 'form-control'}))
 
 
 class CustomUserCreationForm(UserCreationForm):
     class Meta:
         model = CustomUser
-        fields = ('email', 'sissy_name', 'password1', 'password2')
+        fields = ('sissy_name', 'email', 'password1', 'password2')
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.helper = FormHelper(self)
-        self.helper.layout = Layout(
-            'email',
-            'sissy_name',
-            Row(
-                Column('password1', css_class='form-group col-md-6 mb-0'),
-                Column('password2', css_class='form-group col-md-6 mb-0'),
-                css_class='form-row'
-            ),
-            Submit('submit', 'Sign Up'),
-        )
-
-    def save(self, commit=True):
-        user = super().save(commit=False)
-        user.email = self.cleaned_data['email']
-        user.sissy_name = self.cleaned_data['sissy_name']
-        if commit:
-            user.save()
-        return user
+        self.fields['sissy_name'].widget.attrs.update(
+            {'autocomplete': 'username'})
+        self.fields['email'].widget.attrs.update({'autocomplete': 'email'})
+        self.fields['password1'].widget.attrs.update(
+            {'autocomplete': 'new-password'})
+        self.fields['password2'].widget.attrs.update(
+            {'autocomplete': 'new-password'})
 
 
 class CustomUserUpdateForm(forms.ModelForm):
@@ -189,8 +186,7 @@ class JournalEntryForm(forms.ModelForm):
         fields = ['title', 'content', 'tags',
                   'image', 'video', 'audio', 'file',]
         widgets = {
-            'tags': forms.CheckboxSelectMultiple(),
-        }
+            'tags': forms.CheckboxSelectMultiple(), }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)

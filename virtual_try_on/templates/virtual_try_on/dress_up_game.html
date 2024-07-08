@@ -4,38 +4,40 @@
 {% block title %}Dress Up Game{% endblock %}
 
 {% block content %}
-<div class="customization-container">
-    <div class="title-banner">
-        <h1>Dress Up Your Avatar</h1>
-    </div>
+<div class="frame-container">
+    <div class="customization-container">
+        <div class="title-banner">
+            <h1>Dress Up Your Avatar</h1>
+        </div>
 
-    <div class="avatar-section">
-        <div class="avatar-display" id="avatar-display">
-            <div class="podium">
-                <img id="avatar-body" class="body" src="/static/virtual_try_on/avatars/body/light/hourglass.png" alt="Avatar Body">
-                <img id="avatar-hair" class="hair" src="{% static 'virtual_try_on/avatars/hair/long_straight/blonde.png' %}" alt="Avatar Hair">
-                <img id="avatar-top" class="avatar-clothing top" src="{% static 'virtual_try_on/garmets/tops/top11.png' %}" alt="Avatar Top">
-                <img id="avatar-bottom" class="avatar-clothing bottom" src="{% static 'virtual_try_on/garmets/skirts/skirt11.png' %}" alt="Avatar Bottom">
-                <img id="avatar-shoes" class="avatar-clothing shoes" src="{% static 'virtual_try_on/garmets/shoes/shoes11.png' %}" alt="Avatar Accessory">
-                <img id="avatar-stage" class="stage" src="{% static 'virtual_try_on/podium.png' %}" alt="Avatar Stage">
-                <div class="banner">
-                    <h2>{{ user.username }}</h2>
+        <div class="avatar-section">
+            <div class="avatar-display" id="avatar-display">
+                <div class="podium">
+                    <img id="avatar-body" class="body" src="{{ user.avatar_body }}" alt="Avatar Body">
+                    <img id="avatar-hair" class="hair" src="{{ user.avatar_hair }}" alt="Avatar Hair">
+                    <img id="avatar-top" class="avatar-clothing top" src="{{ user.avatar_top }}" alt="Avatar Top">
+                    <img id="avatar-bottom" class="avatar-clothing bottom" src="{{ user.avatar_bottom }}" alt="Avatar Bottom">
+                    <img id="avatar-shoes" class="avatar-clothing shoes" src="{{ user.avatar_shoes }}" alt="Avatar Shoes">
+                    <img id="avatar-stage" class="stage" src="{% static 'virtual_try_on/podium.png' %}" alt="Avatar Stage">
+                    <div class="banner">
+                        <h2>{{ user.username }}</h2>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
 
-    <div class="feature-options">
-        {% for item in clothing_items %}
-        <div class="draggable" data-category="{{ item.category }}" data-src="{{ item.image.url }}">
-            <img src="{{ item.image.url }}" alt="{{ item.name }}">
+        <div class="feature-options">
+            {% for item in clothing_items %}
+            <div class="draggable" data-category="{{ item.category }}" data-src="{{ item.image_url }}">
+                <img src="{{ item.image_url }}" alt="{{ item.category }}">
+            </div>
+            {% endfor %}
         </div>
-        {% endfor %}
-    </div>
 
-    <div class="bottom-controls">
-        <button type="button" onclick="resetAvatar()">Reset</button>
-        <button type="button" onclick="saveAvatar()">Save</button>
+        <div class="bottom-controls">
+            <button type="button" onclick="resetAvatar()">Reset</button>
+            <button type="button" onclick="saveAvatar()">Save</button>
+        </div>
     </div>
 </div>
 

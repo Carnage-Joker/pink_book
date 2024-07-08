@@ -1,4 +1,4 @@
-from django.contrib.auth import get_user_model
+
 import os
 from datetime import date, datetime, timedelta
 from uuid import uuid4
@@ -10,6 +10,7 @@ from django.contrib.auth.models import (AbstractBaseUser, BaseUserManager,
 from django.contrib.contenttypes.fields import (GenericForeignKey,
                                                 GenericRelation)
 from django.contrib.contenttypes.models import ContentType
+from django.core.mail import send_mail
 from django.db import models
 from django.urls import reverse
 from django.utils.translation import gettext_lazy as _
@@ -34,7 +35,7 @@ def profile_pic_upload_path(instance, filename):
 class CustomUserManager(BaseUserManager):
     def create_user(self, sissy_name, email, password=None, **extra_fields):
         if not email:
-            raise ValueError(_('The Email field must be set'))
+            raise ValueError('The Email field must be set')
         email = self.normalize_email(email)
         user = self.model(email=email, sissy_name=sissy_name, **extra_fields)
         user.set_password(password)
@@ -45,29 +46,17 @@ class CustomUserManager(BaseUserManager):
         extra_fields.setdefault('is_staff', True)
         extra_fields.setdefault('is_superuser', True)
 
-        if extra_fields.get('is_staff') is not True:
-            raise ValueError(_('Superuser must have is_staff=True.'))
-        if extra_fields.get('is_superuser') is not True:
-            raise ValueError(_('Superuser must have is_superuser=True.'))
-
         return self.create_user(sissy_name, email, password, **extra_fields)
 
 
 class CustomUser(AbstractBaseUser, PermissionsMixin):
     bio = models.CharField(_('bio'), max_length=500, blank=True, null=True)
     date_of_birth = models.DateField(_('date of birth'), blank=True, null=True)
-    sissy_name = models.CharField(
-        _('sissy name'),
-        max_length=255,
-        unique=True,
-    )
+    sissy_name = models.CharField(_('sissy name'), max_length=255, unique=True)
     location = models.CharField(
         _('location'), max_length=100, blank=True, null=True)
     profile_picture = models.ImageField(
-        _('profile picture'),
-        upload_to=profile_pic_upload_path,
-        default='default.jpg'
-    )
+        _('profile picture'), upload_to='profile_pics', default='default.jpg')
 
     PRONOUN_CHOICES = (
         ('he/him', _('he/him')),
@@ -76,12 +65,7 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
         ('other', _('other')),
     )
     pronouns = models.CharField(
-        _('pronouns'),
-        max_length=20,
-        choices=PRONOUN_CHOICES,
-        blank=True,
-        default=''
-    )
+        _('pronouns'), max_length=20, choices=PRONOUN_CHOICES, blank=True, default='')
 
     SISSY_TYPE_CHOICES = (
         ('sissy_maid', _('Maid')),
@@ -91,11 +75,7 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
         ('bratty_sissy', _('Brat')),
     )
     sissy_type = models.CharField(
-        _('sissy type'),
-        max_length=100,
-        choices=SISSY_TYPE_CHOICES,
-        blank=True
-    )
+        _('sissy type'), max_length=100, choices=SISSY_TYPE_CHOICES, blank=True)
 
     CHASTITY_CHOICES = (
         ('yes', _('I always wear a chastity device')),
@@ -103,29 +83,34 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
         ('partly', _('I sometimes wear a chastity device')),
     )
     chastity_status = models.CharField(
-        _('chastity status'),
-        max_length=100,
-        choices=CHASTITY_CHOICES,
-        blank=True
-    )
+        _('chastity status'), max_length=100, choices=CHASTITY_CHOICES, blank=True)
 
     OWNED_CHOICES = (
         ('yes', _('I have an owner')),
         ('no', _('I do not have an owner')),
     )
     owned_status = models.CharField(
-        _('owned status'),
-        max_length=100,
-        choices=OWNED_CHOICES,
-        blank=True
-    )
+        _('owned status'), max_length=100, choices=OWNED_CHOICES, blank=True)
 
     collective_insight = models.CharField(
         _('collective insight'), max_length=1000, null=True, blank=True)
     email = models.EmailField(_('email address'), unique=True)
     is_staff = models.BooleanField(_('staff status'), default=False)
 
+    avatar_body = models.CharField(
+        max_length=255, default="/static/virtual_try_on/avatars/body/light/hourglass.png")
+    avatar_hair = models.CharField(
+        max_length=255, default="/static/virtual_try_on/avatars/hair/long_straight/blonde.png")
+    avatar_top = models.CharField(
+        max_length=255, default="/static/virtual_try_on/garmets/tops/1.png")
+    avatar_bottom = models.CharField(
+        max_length=255, default="/static/virtual_try_on/garmets/skirts/1.png")
+    avatar_shoes = models.CharField(
+        max_length=255, default="/static/virtual_try_on/garmets/shoes/1.png")
+
     objects = CustomUserManager()
+    activate_account_token = models.CharField(max_length=255, blank=True)
+    is_active = models.BooleanField(default=False)
 
     USERNAME_FIELD = 'sissy_name'
     REQUIRED_FIELDS = ['email']
@@ -135,19 +120,10 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
         verbose_name_plural = _('users')
         db_table = 'custom_user'
 
-    groups = models.ManyToManyField(
-        Group,
-        related_name='customuser_groups',
-    )
+    groups = models.ManyToManyField(Group, related_name='customuser_groups')
     user_permissions = models.ManyToManyField(
-        Permission,
-        related_name='customuser_permissions',
-    )
-    points = models.IntegerField(default=0)
-    # Using JSONField to store locked content
+        Permission, related_name='customuser_permissions')
     locked_content = models.JSONField(default=dict)
-
-
     points = models.IntegerField(default=0)
     badges = models.JSONField(default=dict)
     level = models.IntegerField(default=1)
@@ -169,7 +145,6 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
             self.save()
 
     def check_level_up(self):
-        # Example logic for leveling up
         required_points = self.level * 100  # Adjust as needed
         if self.points >= required_points:
             self.level += 1
@@ -179,15 +154,18 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
         self.locked_content[content_name] = True
         self.save()
 
+    def email_user(self, subject, message, from_email=None, **kwargs):
+        send_mail(subject, message, from_email, [self.email], **kwargs)
+
     def __str__(self):
         return self.sissy_name
 
     def save(self, *args, **kwargs):
         super(CustomUser, self).save(*args, **kwargs)
 
-
 # Habit Trackers Models
 # Assuming the models are in journal/models.py
+
 
 REWARD_CHOICES = [
     ('sticker', 'Digital Sticker'),
@@ -275,6 +253,17 @@ class ToDo(models.Model):
         return self.task
 
 
+class Guide(models.Model):
+    title = models.CharField(max_length=200)
+    content = models.TextField()
+    author = models.CharField(max_length=100)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return self.title
+
+
 class Notification(models.Model):
     user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
     title = models.CharField(max_length=200)
@@ -286,18 +275,6 @@ class Notification(models.Model):
         return self.title
 
 
-class Message(models.Model):
-    sender = models.ForeignKey(
-        CustomUser, related_name='sent_messages', on_delete=models.CASCADE)
-    receiver = models.ForeignKey(
-        CustomUser, related_name='received_messages', on_delete=models.CASCADE)
-    content = models.TextField()
-    timestamp = models.DateTimeField(auto_now_add=True)
-
-    def __str__(self):
-        return f"Message from {self.sender.sissy_name} to {self.receiver.sissy_name}"
-
-
 class RelatedModel(models.Model):
     content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
     object_id = models.PositiveIntegerField()
@@ -305,25 +282,17 @@ class RelatedModel(models.Model):
     timestamp = models.DateTimeField(auto_now_add=True)
 
 
-class ActivityLog(models.Model):
+class Question(models.Model):
     user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
-    action = models.CharField(max_length=200)
-    timestamp = models.DateTimeField(auto_now_add=True)
-
-    def __str__(self):
-        return f"{self.user.sissy_name} - {self.action}"
+    question = models.TextField()
+    created_at = models.DateTimeField(auto_now_add=True)
 
 
-class Billing(models.Model):
-    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
-    subscription_type = models.CharField(max_length=50)
-    start_date = models.DateField()
-    end_date = models.DateField()
-    is_active = models.BooleanField(default=True)
-
-    def __str__(self):
-        return f"{self.user.sissy_name}'s {self.subscription_type} subscription"
-# Resource Models
+class Answer(models.Model):
+    question = models.OneToOneField(Question, on_delete=models.CASCADE)
+    answer = models.TextField()
+    professional = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
+    created_at = models.DateTimeField(auto_now_add=True)
 
 
 class Resource(models.Model):
@@ -365,8 +334,8 @@ class Moderator(models.Model):
 
 class JournalEntry(models.Model):
     user = models.ForeignKey(
-        settings.AUTH_USER_MODEL, 
-        related_name='journal_entries', 
+        settings.AUTH_USER_MODEL,
+        related_name='journal_entries',
         on_delete=models.CASCADE
     )
     title = models.CharField(max_length=200)
@@ -545,4 +514,35 @@ class Streak(models.Model):
 
     def __str__(self):
         return self.user.sissy_name
-# Tag Model
+
+
+class Billing(models.Model):
+    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
+    subscription_type = models.CharField(max_length=50)
+    start_date = models.DateField()
+    end_date = models.DateField()
+    is_active = models.BooleanField(default=True)
+
+    def __str__(self):
+        return f"{self.user.sissy_name}'s {self.subscription_type} subscription"
+
+
+class Message(models.Model):
+    sender = models.ForeignKey(
+        CustomUser, related_name='sent_messages', on_delete=models.CASCADE)
+    receiver = models.ForeignKey(
+        CustomUser, related_name='received_messages', on_delete=models.CASCADE)
+    content = models.TextField()
+    timestamp = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"Message from {self.sender.sissy_name} to {self.receiver.sissy_name}"
+
+
+class ActivityLog(models.Model):
+    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
+    action = models.CharField(max_length=200)
+    timestamp = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.user.sissy_name} - {self.action}"

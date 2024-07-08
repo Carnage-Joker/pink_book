@@ -4,78 +4,68 @@ document.addEventListener("DOMContentLoaded", function () {
     const hairTypeEl = document.getElementById('hair-type');
     const hairColorEl = document.getElementById('hair-color');
 
-    if (bodyTypeEl && skinToneEl && hairTypeEl && hairColorEl) {
-        // Avatar Customization Functions
-        window.updateBodyType = function (bodyType) {
-            bodyTypeEl.value = bodyType;
-            updateAvatar();
-        };
+    window.updateAvatar = function () {
+        const bodyType = bodyTypeEl.value;
+        const skinTone = skinToneEl.value;
+        const hairType = hairTypeEl.value;
+        const hairColor = hairColorEl.value;
 
-        window.resetAvatar = function () {
-            bodyTypeEl.value = 'hourglass';
-            skinToneEl.value = 'light';
-            hairTypeEl.value = 'long_straight';
-            hairColorEl.value = 'blonde';
-            resetAvatarClothing();
-            updateAvatar();
-        };
+        document.getElementById('avatar-body').src = `/static/virtual_try_on/avatars/body/${skinTone}/${bodyType}.png`;
+        document.getElementById('avatar-hair').src = `/static/virtual_try_on/avatars/hair/${hairType}/${hairColor}.png`;
 
-        window.randomizeAvatar = function () {
-            const bodyTypes = ['hourglass', 'slim', 'straight', 'thick'];
-            const skinTones = ['light', 'brown', 'dark'];
-            const hairStyles = ['long_straight', 'long_curly', 'short_straight', 'short_curly', 'bob'];
-            const hairColors = ['black', 'brown', 'blonde', 'red', 'pink'];
+        const avatarDisplay = document.getElementById('avatar-display');
+        avatarDisplay.classList.remove('hourglass', 'straight', 'thick', 'slim');
+        avatarDisplay.classList.add(bodyType);
+    };
 
-            const randomBodyType = bodyTypes[Math.floor(Math.random() * bodyTypes.length)];
-            const randomSkinTone = skinTones[Math.floor(Math.random() * skinTones.length)];
-            const randomHairStyle = hairStyles[Math.floor(Math.random() * hairStyles.length)];
-            const randomHairColor = hairColors[Math.floor(Math.random() * hairColors.length)];
+    window.resetAvatar = function () {
+        bodyTypeEl.value = 'hourglass';
+        skinToneEl.value = 'light';
+        hairTypeEl.value = 'long_straight';
+        hairColorEl.value = 'blonde';
+        updateAvatar();
+    };
 
-            bodyTypeEl.value = randomBodyType;
-            skinToneEl.value = randomSkinTone;
-            hairTypeEl.value = randomHairStyle;
-            hairColorEl.value = randomHairColor;
+    window.randomizeAvatar = function () {
+        const bodyTypes = ['hourglass', 'slim', 'straight', 'thick'];
+        const skinTones = ['light', 'brown', 'dark'];
+        const hairStyles = ['long_straight', 'long_curly', 'short_straight', 'short_curly', 'bob'];
+        const hairColors = ['black', 'brown', 'blonde', 'red', 'pink'];
 
-            updateAvatar();
-        };
+        const randomBodyType = bodyTypes[Math.floor(Math.random() * bodyTypes.length)];
+        const randomSkinTone = skinTones[Math.floor(Math.random() * skinTones.length)];
+        const randomHairStyle = hairStyles[Math.floor(Math.random() * hairStyles.length)];
+        const randomHairColor = hairColors[Math.floor(Math.random() * hairColors.length)];
 
-        window.updateAvatar = function () {
-            const bodyType = bodyTypeEl.value;
-            const skinTone = skinToneEl.value;
-            const hairType = hairTypeEl.value;
-            const hairColor = hairColorEl.value;
+        bodyTypeEl.value = randomBodyType;
+        skinToneEl.value = randomSkinTone;
+        hairTypeEl.value = randomHairStyle;
+        hairColorEl.value = randomHairColor;
 
-            document.getElementById('avatar-body').src = `/static/virtual_try_on/avatars/body/${skinTone}/${bodyType}.png`;
-            document.getElementById('avatar-hair').src = `/static/virtual_try_on/avatars/hair/${hairType}/${hairColor}.png`;
+        updateAvatar();
+    };
 
-            // Update clothing positions based on body type
-            const avatarDisplay = document.getElementById('avatar-display');
-            avatarDisplay.classList.remove('hourglass', 'straight', 'thick', 'slim'); // Remove any existing body type classes
-            avatarDisplay.classList.add(bodyType); // Add the current body type class
-        };
-    }
+    window.saveAvatar = function () {
+        const bodyType = bodyTypeEl.value;
+        const skinTone = skinToneEl.value;
+        const hairType = hairTypeEl.value;
+        const hairColor = hairColorEl.value;
 
-    function updateAvatarFeature(featureType, featureValue) {
-        const csrftoken = getCookie('csrftoken');
-
-        fetch("/update_avatar_feature/", {
+        fetch("/save_avatar/", {
             method: 'POST',
             headers: {
-                'X-CSRFToken': csrftoken,
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken')
             },
-            body: JSON.stringify({ feature_type: featureType, feature_value: featureValue })
-        })
-            .then(response => response.json())
-            .then(data => {
-                if (!data.success) {
-                    console.error('Error updating avatar feature:', data);
-                }
-            })
-            .catch(error => {
-                console.error('Fetch error:', error);
-            });
-    }
+            body: JSON.stringify({ body_type: bodyType, skin_tone: skinTone, hair_type: hairType, hair_color: hairColor })
+        }).then(response => {
+            if (response.ok) {
+                window.location.href = "/dress_up_game/";
+            } else {
+                alert('Failed to save avatar');
+            }
+        });
+    };
 
     function getCookie(name) {
         let cookieValue = null;
@@ -92,7 +82,124 @@ document.addEventListener("DOMContentLoaded", function () {
         return cookieValue;
     }
 
-    // Dress Up Game Functions
+    interact('.draggable').draggable({
+        inertia: true,
+        modifiers: [
+            interact.modifiers.restrictRect({
+                restriction: 'parent',
+                endOnly: true
+            })
+        ],
+        autoScroll: true,
+        onmove: dragMoveListener,
+        onend: function (event) {
+            event.target.style.transform = 'translate(0px, 0px)';
+            event.target.setAttribute('data-x', 0);
+            event.target.setAttribute('data-y', 0);
+        }
+    });
+
+    interact('#avatar-display').dropzone({
+        accept: '.draggable',
+        overlap: 0.75,
+        ondrop: function (event) {
+            const draggableElement = event.relatedTarget;
+            const category = draggableElement.getAttribute('data-category');
+            const src = draggableElement.getAttribute('data-src');
+
+            updateAvatarClothing(category, src);
+        }
+    });
+
+    function dragMoveListener(event) {
+        const target = event.target;
+        const x = (parseFloat(target.getAttribute('data-x')) || 0)### Complete `scripts.js`:
+
+        ```javascript
+document.addEventListener("DOMContentLoaded", function () {
+    const bodyTypeEl = document.getElementById('body-type');
+    const skinToneEl = document.getElementById('skin-tone');
+    const hairTypeEl = document.getElementById('hair-type');
+    const hairColorEl = document.getElementById('hair-color');
+
+    window.updateAvatar = function () {
+        const bodyType = bodyTypeEl.value;
+        const skinTone = skinToneEl.value;
+        const hairType = hairTypeEl.value;
+        const hairColor = hairColorEl.value;
+
+        document.getElementById('avatar-body').src = `/ static / virtual_try_on / avatars / body / ${ skinTone } /${bodyType}.png`;
+        document.getElementById('avatar-hair').src = `/static/virtual_try_on/avatars/hair/${hairType}/${hairColor}.png`;
+
+        const avatarDisplay = document.getElementById('avatar-display');
+        avatarDisplay.classList.remove('hourglass', 'straight', 'thick', 'slim');
+        avatarDisplay.classList.add(bodyType);
+    };
+
+    window.resetAvatar = function () {
+        bodyTypeEl.value = 'hourglass';
+        skinToneEl.value = 'light';
+        hairTypeEl.value = 'long_straight';
+        hairColorEl.value = 'blonde';
+        updateAvatar();
+    };
+
+    window.randomizeAvatar = function () {
+        const bodyTypes = ['hourglass', 'slim', 'straight', 'thick'];
+        const skinTones = ['light', 'brown', 'dark'];
+        const hairStyles = ['long_straight', 'long_curly', 'short_straight', 'short_curly', 'bob'];
+        const hairColors = ['black', 'brown', 'blonde', 'red', 'pink'];
+
+        const randomBodyType = bodyTypes[Math.floor(Math.random() * bodyTypes.length)];
+        const randomSkinTone = skinTones[Math.floor(Math.random() * skinTones.length)];
+        const randomHairStyle = hairStyles[Math.floor(Math.random() * hairStyles.length)];
+        const randomHairColor = hairColors[Math.floor(Math.random() * hairColors.length)];
+
+        bodyTypeEl.value = randomBodyType;
+        skinToneEl.value = randomSkinTone;
+        hairTypeEl.value = randomHairStyle;
+        hairColorEl.value = randomHairColor;
+
+        updateAvatar();
+    };
+
+    window.saveAvatar = function () {
+        const bodyType = bodyTypeEl.value;
+        const skinTone = skinToneEl.value;
+        const hairType = hairTypeEl.value;
+        const hairColor = hairColorEl.value;
+
+        fetch("/save_avatar/", {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+            body: JSON.stringify({ body_type: bodyType, skin_tone: skinTone, hair_type: hairType, hair_color: hairColor })
+        }).then(response => {
+            if (response.ok) {
+                window.location.href = "/dress_up_game/";
+            } else {
+                alert('Failed to save avatar');
+            }
+        });
+    };
+
+    function getCookie(name) {
+        let cookieValue = null;
+        if (document.cookie && document.cookie !== '') {
+            const cookies = document.cookie.split(';');
+            for (let cookie of cookies) {
+                cookie = cookie.trim();
+                if (cookie.startsWith(name + '=')) {
+                    cookieValue = decodeURIComponent(cookie.slice(name.length + 1));
+                    break;
+                }
+            }
+        }
+        return cookieValue;
+    }
+
     interact('.draggable').draggable({
         inertia: true,
         modifiers: [
@@ -137,23 +244,20 @@ document.addEventListener("DOMContentLoaded", function () {
         imgElement.src = src;
     }
 
-    function resetAvatarClothing() {
-        document.getElementById('avatar-top').src = '/static/virtual_try_on/clothing/tops/';
-        document.getElementById('avatar-bottom').src = '/static/virtual_try_on/clothing/bottoms/';
-        document.getElementById('avatar-shoes').src = '/static/virtual_try_on/clothing/shoes/';
-        document.getElementById('avatar-accessory').src = '/static/virtual_try_on/clothing/accessories/';
-    }
+    window.resetAvatarClothing = function () {
+        document.getElementById('avatar-top').src = '/static/virtual_try_on/garmets/tops/1.png';
+        document.getElementById('avatar-bottom').src = '/static/virtual_try_on/garmets/skirts/1.png';
+        document.getElementById('avatar-shoes').src = '/static/virtual_try_on/garmets/shoes/1.png';
+    };
 
-    window.saveAvatar = function () {
+    window.saveAvatarClothing = function () {
         const top = document.getElementById('avatar-top').src;
         const bottom = document.getElementById('avatar-bottom').src;
         const shoes = document.getElementById('avatar-shoes').src;
-        const accessory = document.getElementById('avatar-accessory').src;
 
         saveClothing('top', top);
         saveClothing('bottom', bottom);
         saveClothing('shoes', shoes);
-        saveClothing('accessory', accessory);
 
         alert('Avatar customization saved!');
     };
@@ -168,15 +272,17 @@ document.addEventListener("DOMContentLoaded", function () {
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify({ category: category, src: src })
-        })
-            .then(response => response.json())
-            .then(data => {
-                if (!data.success) {
-                    console.error('Error updating clothing:', data);
-                }
-            })
-            .catch(error => {
-                console.error('Fetch error:', error);
-            });
+        }).then(response => {
+            if (!response.ok) {
+                throw new Error(`Network response was not ok, status: ${response.status}`);
+            }
+            return response.json();
+        }).then(data => {
+            if (!data.success) {
+                console.error('Error updating clothing:', data);
+            }
+        }).catch(error => {
+            console.error('Fetch error:', error);
+        });
     }
 });

@@ -1,0 +1,10 @@
+<!-- qna_list.html -->
+{% extends 'base.html' %}
+{% block content %}
+<h1>Q&A</h1>
+<ul>
+    {% for question in questions %}
+    <li><a href="{% url 'qna_detail' question.pk %}">{{ question.question }}</a></li>
+    {% endfor %}
+</ul>
+{% endblock %}

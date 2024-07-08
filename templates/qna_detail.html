@@ -1,0 +1,9 @@
+{% extends 'base.html' %}
+{% block content %}
+<h1>{{ question.question }}</h1>
+<ul>
+    {% for answer in answers %}
+    <li>{{ answer.answer }} - {{ answer.professional.username }}</li>
+    {% endfor %}
+</ul>
+{% endblock %}

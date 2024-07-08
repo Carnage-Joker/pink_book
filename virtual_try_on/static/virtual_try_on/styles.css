@@ -7,195 +7,84 @@ body {
     padding: 0;
 }
 
-/* Main container for the page */
-.customization-container {
-    display: flex;
-    flex-direction: row;
-    justify-content: space-around;
-    text-align: center;
-    margin-block-start: 20px;
-    background-color: #fff;
-    padding: 20px;
-    border-radius: 20px;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-    max-inline-size: 1200px;
-    margin: auto;
-}
-
-/* Avatar section centered in the middle */
-.avatar-section {
-    position: relative;
-    margin: 20px;
-    inline-size: 800px;
-    block-size: 1000px;
-}
-
-/* Display avatar images stacked on top of each other */
-.avatar-display {
-    position: relative;
+.frame-container {
+    position: absolute;
+    inset-block-end: 10px;
+    inset-inline-end: 10px;
     inline-size: 300px;
     block-size: 600px;
+    background-color: rgba(255, 255, 255, 0.9);
+    border-radius: 10px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+.customization-container {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+    text-align: center;
+    block-size: 100%;
+    box-sizing: border-box;
+}
+
+.title-banner {
+    text-align: center;
+    margin-block-end: 10px;
+}
+
+.avatar-section {
+    position: relative;
+    flex-grow: 1;
+}
+
+.avatar-display {
+    position: relative;
+    inline-size: 100%;
+    block-size: auto;
     border: 1px solid #ddd;
     border-radius: 20px;
     box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
     background-color: #ffebee;
-    margin: 20px;
+    padding: 10px;``
+    box-sizing: border-box;
 }
 
 .avatar-display img {
     position: absolute;
     object-fit: contain;
-}
-
-/* Default styles for clothing items */
-.avatar-clothing {
-    position: absolute;
-    width: 100%;
-    height: auto;
-}
-
-/* Styles for hourglass body type */
-.hourglass .avatar-top {
-    inset-inline: 10%;
-    width: 80%;
-}
-
-.hourglass .avatar-bottom {
-    inset-inline: 15%;
-    width: 70%;
-}
-
-/* Styles for straight body type */
-.straight .avatar-top {
-    inset-inline: 12%;
-    width: 76%;
-}
-
-.straight .avatar-bottom {
-    inset-inline: 18%;
-    width: 64%;
-}
-
-/* Styles for slim body type */
-.slim .avatar-top {
-    inset-inline: 14%;
-    width: 72%;
-}
-
-.slim .avatar-bottom {
-    inset-inline: 20%;
-    width: 60%;
-}
-
-/* Styles for thick body type */
-.thick .avatar-top {
-    inset-inline: 8%;
-    width: 84%;
-}
-
-.thick .avatar-bottom {
-    inset-inline: 10%;
-    width: 80%;
-}
-
-.avatar-display img.body {
-    z-index: 1;
-    width: 100%;
-    /* Ensure full width */
-    height: auto;
-    /* Maintain aspect ratio */
-}
-
-.avatar-display img.hair {
-    width: 100%;
-    height: auto;
-    top: 0;
-    left: 0;
-    z-index: 2;
-    transform: translate(41%, 0);
-    /* Adjust as needed to position correctly */
-}
-
-.avatar-display img.stage {
     inline-size: 50%;
     block-size: auto;
-    inset-block-end: 1%;
-    inset-inline-end: 1%;
-    z-index: 0;
 }
 
-.podium {
-    position: relative;
-    inline-size: 100%;
-    block-size: 100%;
-}
-
-.banner {
-    position: absolute;
-    inset-block-end: -40px;
-    inline-size: 100%;
-    text-align: center;
-    background-color: #f8bbd0;
-    padding: 10px;
-    border-radius: 10px;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-}
-
-.banner h2 {
-    font-family: 'Comic Sans MS', 'Comic Sans', cursive;
-    margin: 0;
-}
-
-/* Feature options styling */
 .feature-options {
     display: flex;
     flex-wrap: wrap;
-    justify-content: space-around;
-    margin-block-start: 20px;
-    inline-size: 200px;
+    justify-content: center;
+    margin-block-start: 10px;
 }
 
-.feature-options.left-options,
-.feature-options.right-options {
-    flex-direction: column;
-    justify-content: flex-start;
-    align-items: flex-start;
-}
-
-.feature-options.left-options {
-    margin-inline-end: 20px;
-}
-
-.feature-options.right-options {
-    margin-inline-start: 20px;
-}
-
-.feature-options select {
-    margin: 10px 0;
-    padding: 10px;
-    border: 1px solid #ddd;
-    border-radius: 10px;
-    width: 100%;
-    box-sizing: border-box;
-    font-family: 'Comic Sans MS', 'Comic Sans', cursive;
+.feature-options .draggable {
+    margin: 5px;
+    cursor: pointer;
 }
 
 .bottom-controls {
     display: flex;
-    justify-content: center;
-    margin-block-start: 20px;
+    justify-content: space-around;
+    margin-block-start: 10px;
 }
 
 .bottom-controls button {
-    padding: 10px 20px;
-    margin: 0 10px;
+    padding: 5px 10px;
     border: none;
     background-color: #e91e63;
     color: #fff;
     border-radius: 20px;
     cursor: pointer;
     transition: background-color 0.3s ease;
-    font-size: 16px;
+    font-size: 14px;
 }
 
 .bottom-controls button:hover {

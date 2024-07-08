@@ -48,6 +48,12 @@ INSTALLED_APPS = [
     'virtual_try_on',
     'corsheaders',
     # 'csp',  # Disabled for now
+    'channels',
+    ]
+
+ASGI_APPLICATION = 'Pink_Book.asgi.application'
+AUTHENTICATION_BACKENDS = [
+    'django.contrib.auth.backends.ModelBackend',
 ]
 
 # Middleware framework
@@ -63,7 +69,9 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 CORS_ALLOWED_ORIGINS = [
-    "http://localhost:3000",  # Add your frontend URL
+    "http://localhost:3000",  
+    # Add your frontend URL
+    "http://localhost:8000",
     "http://127.0.0.1:3000",
 ]
 ROOT_URLCONF = 'Pink_Book.urls'
@@ -95,6 +103,15 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+# settings.py
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'  # Example for Gmail
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = 'phill.jones2112@gmail.com'
+EMAIL_HOST_PASSWORD = 'Ai100%mG4ever'
+
+
 # Internationalization settings
 LANGUAGE_CODE = 'en-us'
 TIME_ZONE = 'UTC'
@@ -104,10 +121,10 @@ MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
 # Authentication settings
+
 AUTH_USER_MODEL = 'journal.CustomUser'
-AUTH_PROFILE = 'journal:UserProfile'
 LOGIN_URL = 'journal:welcome'
-LOGIN_REDIRECT_URL = 'journal:dashboard'
+
 LOGOUT_REDIRECT_URL = 'journal:login'
 
 # Define a constant for the literal "'self'"

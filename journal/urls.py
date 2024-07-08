@@ -1,26 +1,35 @@
 from django.urls import path
-
 from .views import (ContactView, DashboardView, ForumPostDetailView,
                     ForumThreadListView, HabitCreateView, HabitListView,
                     HabitUpdateView, HabitDetailView, JournalEntryDetailView,
                     JournalEntryCreateView, JournalEntryUpdateView,
-                    JournalEntryDeleteView, JournalEntryListView, LoginView,
+                    JournalEntryDeleteView, JournalEntryListView,
                     LogoutView, ProfileUpdateView, ProfileView,
                     ProfileSettingsView, ProfileCustomizeView, RegisterView,
-                    ResourceCategoryView, ResourceListView, ResourceDetailView, ToDoCreateView,
+                    ResourceCategoryView, ResourceListView, ResourceDetailView,
+                    ToDoCreateView,
                     ToDoDetailView, ToDoListView, ToDoUpdateView, AboutView,
                     complete_task_view, generate_task_view, fail_task_view,
-                    PasswordResetDoneView, PasswordResetView, complete_todo_view)
+                    PasswordResetDoneView, PasswordResetView,
+                    complete_todo_view,
+                    guide_list, guide_detail, ActivityLogListView, BillingView,
+                    qna_list, qna_detail, ActivateAccountView, MessageListView,
+                    CustomLoginView, ResendActivationView)
 
 
 urlpatterns = [
     # Authentication
-    path('', LoginView.as_view(), name='welcome'),
+    path('', CustomLoginView.as_view(), name='welcome'),
     path('register/', RegisterView.as_view(), name='register'),
     path('logout/', LogoutView.as_view(), name='logout'),
     path('password_reset/', PasswordResetView.as_view(), name='password_reset'),
     path('password_reset/done/', PasswordResetDoneView.as_view(), name='password_reset_done'),
     path('about/', AboutView.as_view(), name='about'),
+    path('activate/<uidb64>/<token>/',
+         ActivateAccountView.as_view(), name='activate'),
+    path('resend-activation/', ResendActivationView.as_view(),
+         name='resend_activation'),
+
     # Dashboard
     path('dashboard/', DashboardView.as_view(), name='dashboard'),
     path('profile/', ProfileView.as_view(), name='profile'),
@@ -43,6 +52,9 @@ urlpatterns = [
     path('habits/', HabitListView.as_view(), name='habit_list'),
     path('habits/create/', HabitCreateView.as_view(), name='habit_create'),
     path('habits/<int:pk>/', HabitDetailView.as_view(), name='habit_detail'),
+    path('activity/', ActivityLogListView.as_view(), name='activity_log'),
+    path('billing/', BillingView.as_view(), name='billing'),
+    path('inbox/', MessageListView.as_view(), name='message_list'),
 
     path('habits/<int:pk>/update/', HabitUpdateView.as_view(), name='habit_update'),
 
@@ -59,7 +71,8 @@ urlpatterns = [
 
     # Resources
     
-
+    path('guides/', guide_list, name='guide_list'),
+    path('guides/<int:pk>/', guide_detail, name='guide_detail'),
     path('resources/', ResourceListView.as_view(), name='resource_list'),
     path('resources/<int:pk>/', ResourceCategoryView.as_view(),
          name='resource_category_detail'),
@@ -70,11 +83,9 @@ urlpatterns = [
 
     # Contact
     path('contact/', ContactView.as_view(), name='contact'),
-
+    path('qna/', qna_list, name='qna_list'),
+    path('qna/<int:pk>/', qna_detail, name='qna_detail'),
+]
     # Other features (commented out for now)
     # path('notifications/', NotificationListView.as_view(), name='notification_list'),
-    # path('messages/', MessageListView.as_view(), name='message_list'),
-    # path('activity/', ActivityLogListView.as_view(), name='activity_log'),
-    # path('billing/', BillingView.as_view(), name='billing'),
-    # path('activate/<uidb64>/<token>/', ActivateAccountView.as_view(), name='activate'),
-]
+  

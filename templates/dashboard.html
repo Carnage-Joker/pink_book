@@ -49,27 +49,28 @@
             <div id="task-result"></div>
             <button id="complete-task">Complete Task</button>
             <div id="points-display">Points: 0</div>
-            <button id="fail-task">Fail Task</button>
-            {% endfor %}
-            <p><a href="{% url 'journal:create_todo' %}" class="btn btn-register">Add New Chore</a></p>
-        </ul>
+html
+        <button id="fail-task">Fail Task</button>
+        {% endfor %}
+        <p><a href="{% url 'journal:create_todo' %}" class="btn btn-register">Add New Chore</a></p>
+    </ul>
 
-        <h1 style="color: hotpink;">Glam Goals</h1>
-        <ul>
-            {% for habit in habits %}
-            <li id="habit-{{ habit.id }}" style="color: hotpink;">
-                <div class="progress-container">
-                    <div class="progress-bar" style="width: {{ habit.progress }}%; background-color: hotpink;"></div>
-                    <button class="update-progress-button btn btn-register" data-id="{{ habit.id }}">Update Progress</button>
-                </div>
-                {{ habit.name }}
-            </li>
-            {% endfor %}
-        </ul>
-        <ul>
-            <li><strong>Girly Gauge:</strong>
-                {% if avg_subjectivity > 0.51 %} Oh, so girly, Gurl!
-                {% elif avg_subjectivity == 0.5 %} You're girling up, honey!
+    <h1 style="color: hotpink;">Glam Goals</h1>
+    <ul>
+        {% for habit in habits %}
+        <li id="habit-{{ habit.id }}" style="color: hotpink;">
+            <div class="progress-container">
+                <div class="progress-bar" style="inline-size: {{ habit.progress }}%; background-color: hotpink;"></div>
+                <button class="update-progress-button btn btn-register" data-id="{{ habit.id }}">Update Progress</button>
+            </div>
+            {{ habit.name }}
+        </li>
+        {% endfor %}
+    </ul>
+    <ul>
+        <li><strong>Girly Gauge:</strong>
+            {% if avg_subjectivity > 0.51 %} Oh, so girly, Gurl!
+            {% elif avg_subjectivity == 0.5 %} You're girling up, honey!
                 {% elif avg_subjectivity < 0.49 %} Boy alert, write with your heart not your head.
                 {% endif %}
             </li>

@@ -1,56 +1,40 @@
 from django.views.decorators.csrf import csrf_exempt
 from django.shortcuts import render, get_object_or_404, redirect
-from django.urls import reverse
 from django.http import JsonResponse
 from django.contrib.auth.decorators import login_required
 import json
 from .models import Avatar, PremiumOutfit, Pose, Environment, Feature, Favorites, ClothingItem
 from .forms import AvatarForm
-
-# View to list all premium outfits
-
-
-@login_required
-def dress_up_game(request):
-    avatar = get_object_or_404(Avatar, user=request.user)
-    clothing_items = ClothingItem.objects.filter(user=request.user, owned=True)
-
-    context = {
-        'avatar': avatar,
-        'clothing_items': clothing_items,
-        'body_image_path': avatar.get_body_image_path(),
-        'hair_image_path': avatar.get_hair_image_path(),
-    }
-    return render(request, 'virtual_try_on/dress_up_game.html', context)
+from journal.models import CustomUser
 
 
 @csrf_exempt
-@login_required
-def update_avatar_clothing(request):
+def save_avatar(request):
     if request.method == 'POST':
-        try:
-            data = json.loads(request.body)
-            category = data.get('category')
-            src = data.get('src')
+        user = request.user
+        data = json.loads(request.body)
+        user.avatar_body = f"/static/virtual_try_on/avatars/body/{
+            data['skin_tone']}/{data['body_type']}.png"
+        user.avatar_hair = f"/static/virtual_try_on/avatars/hair/{
+            data['hair_type']}/{data['hair_color']}.png"
+        user.avatar_top = "/static/virtual_try_on/garmets/tops/1.png"  # default values
+        user.avatar_bottom = "/static/virtual_try_on/garmets/skirts/1.png"
+        user.avatar_shoes = "/static/virtual_try_on/garmets/shoes/1.png"
+        user.save()
+        return JsonResponse({'success': True})
+    return JsonResponse({'success': False}, status=400)
 
-            avatar = Avatar.objects.get(user=request.user)
 
-            if category == 'top':
-                avatar.top = src
-            elif category == 'bottom':
-                avatar.bottom = src
-            elif category == 'shoes':
-                avatar.shoes = src
-            elif category == 'accessory':
-                avatar.accessory = src
-
-            avatar.save()
-            return JsonResponse({'success': True})
-        except json.JSONDecodeError as e:
-            return JsonResponse({'success': False, 'error': str(e)}, status=400)
-        except Avatar.DoesNotExist:
-            return JsonResponse({'success': False, 'error': 'Avatar not found'}, status=404)
-    return JsonResponse({'success': False, 'error': 'Invalid request method'}, status=400)
+def dress_up_game(request):
+    user = request.user
+    clothing_items = [
+        {"category": "top", "image_url": "/static/virtual_try_on/garmets/tops/1.png"},
+        {"category": "dress", "image_url": "/static/virtual_try_on/garmets/dresses/1.png"},
+        {"category": "bottom", "image_url": "/static/virtual_try_on/garmets/skirts/1.png"},
+        {"category": "shoes", "image_url": "/static/virtual_try_on/garmets/shoes/1.png"},
+        # Add more items as needed
+    ]
+    return render(request, 'virtual_try_on/dress_up_game.html', {'user': user, 'clothing_items': clothing_items})
 
 
 def premium_outfit_list(request):

@@ -1,0 +1,14 @@
+{% extends 'base.html' %}
+
+{% block title %}Resend Activation - Sissy Diary{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h2>Resend Activation Email</h2>
+    <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit" class="btn btn-register">Resend Activation Email</button>
+    </form>
+</div>
+{% endblock %}
