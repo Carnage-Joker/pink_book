@@ -1,10 +1,16 @@
-# virtual_try_on/models.py
-from .utils import get_default_user
+from django.contrib.auth import get_user_model
 import datetime
-from django.db import models
 from decimal import Decimal
+
+from django.contrib.auth.models import User
+from django.db import models
+
 # Ensure this is your actual user model import
 from journal.models import CustomUser
+
+from .utils import get_default_user
+
+ # virtual_try_on/models.py
 
 
 class Pose(models.Model):
@@ -84,28 +90,78 @@ HAIR_COLOR_CHOICES = [
 ]
 
 
-class Avatar(models.Model):
-    user = models.ForeignKey(
-        CustomUser, on_delete=models.CASCADE, default=get_default_user)
-    body_type = models.CharField(
-        choices=BODY_TYPE_CHOICES, max_length=20, default='hourglass')
-    skin_tone = models.CharField(
-        max_length=20, choices=SKIN_TONE_CHOICES, default='light')
-    hair_type = models.CharField(
-        choices=HAIR_STYLE_CHOICES, max_length=50, default='long_straight')
-    hair_color = models.CharField(
-        choices=HAIR_COLOR_CHOICES, max_length=20, default='black')
-    outfit = models.CharField(max_length=100, blank=True, default='')
-    accessories = models.TextField(blank=True, default='none')
+# virtual_try_on/models.py
 
-    def __str__(self):
-        return f"{self.user}'s Avatar"
+
+class ClothingItem(models.Model):
+    CATEGORY_CHOICES = [
+        ('top', 'Top'),
+        ('skirt', 'Skirt'),
+        ('dress', 'Dress'),
+        ('shoes', 'Shoes')
+    ]
+    name = models.CharField(max_length=100)
+    category = models.CharField(max_length=10, choices=CATEGORY_CHOICES)
+    image_url = models.CharField(max_length=255)
+    is_premium = models.BooleanField(default=False)
+
+
+class ClothingItem(models.Model):
+    CATEGORY_CHOICES = [
+        ('top', 'Top'),
+        ('skirt', 'Skirt'),
+        ('dress', 'Dress'),
+        ('shoes', 'Shoes')
+    ]
+    name = models.CharField(max_length=100)
+    category = models.CharField(max_length=10, choices=CATEGORY_CHOICES)
+    image_url = models.CharField(max_length=255)
+    is_premium = models.BooleanField(default=False)
+
+
+class Avatar(models.Model):
+    user = models.OneToOneField(get_user_model(), on_delete=models.CASCADE)
+    body_type = models.CharField(max_length=255)
+    skin_tone = models.CharField(max_length=255)
+    hair_type = models.CharField(max_length=255)
+    hair_color = models.CharField(max_length=255)
+    top = models.ForeignKey(ClothingItem, related_name='avatar_top',
+                            on_delete=models.SET_NULL, null=True, blank=True)
+    skirt = models.ForeignKey(ClothingItem, related_name='avatar_skirt',
+                              on_delete=models.SET_NULL, null=True, blank=True)
+    dress = models.ForeignKey(ClothingItem, related_name='avatar_dress',
+                              on_delete=models.SET_NULL, null=True, blank=True)
+    shoes = models.ForeignKey(ClothingItem, related_name='avatar_shoes',
+                              on_delete=models.SET_NULL, null=True, blank=True)
 
     def get_body_image_path(self):
-        return f'virtual_try_on/avatars/body/{self.skin_tone}/{self.body_type}.png'
+        return f"/static/virtual_try_on/avatars/body/{self.skin_tone}/{self.body_type}.png"
 
     def get_hair_image_path(self):
-        return f'virtual_try_on/avatars/hair/{self.hair_type}/{self.hair_color}.png'
+        return f"/static/virtual_try_on/avatars/hair/{self.hair_type}/{self.hair_color}.png"
+
+    def get_top_image_path(self):
+        return self.top.image_url if self.top else "/static/virtual_try_on/garmets/tops/1.png"
+
+    def get_skirt_image_path(self):
+        return self.skirt.image_url if self.skirt else "/static/virtual_try_on/garmets/skirts/1.png"
+
+    def get_dress_image_path(self):
+        return self.dress.image_url if self.dress else "/static/virtual_try_on/garmets/dresses/1.png"
+
+    def get_shoes_image_path(self):
+        return self.shoes.image_url if self.shoes else "/static/virtual_try_on/garmets/shoes/1.png"
+
+def initialize_user_avatar(user):
+    avatar, created = Avatar.objects.get_or_create(user=user)
+    if created:
+        # Assign default clothing items
+        default_items = ClothingItem.objects.filter(is_premium=False)
+        avatar.top = default_items.filter(category='top').first()
+        avatar.skirt = default_items.filter(category='skirt').first()
+        avatar.dress = default_items.filter(category='dress').first()
+        avatar.shoes = default_items.filter(category='shoes').first()
+        avatar.save()
 
 
 class Feature(models.Model):
@@ -125,22 +181,4 @@ class Favorites(models.Model):
 
     def __str__(self):
         return f"Favorite outfit {self.outfit.name} for {self.user.sissy_name}"
-
-
-class ClothingItem(models.Model):
-    CATEGORY_CHOICES = [
-        ('top', 'Top'),
-        ('bottom', 'Bottom'),
-        ('shoes', 'Shoes'),
-        ('accessory', 'Accessory'),
-    ]
-
-    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
-    name = models.CharField(max_length=255)
-    image = models.ImageField(upload_to='clothes/')
-    category = models.CharField(max_length=50, choices=CATEGORY_CHOICES)
-    # To track if the user owns the item
-    owned = models.BooleanField(default=False)
-
-    def __str__(self):
-        return self.name
+    

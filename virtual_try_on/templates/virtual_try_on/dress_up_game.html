@@ -13,30 +13,64 @@
         <div class="avatar-section">
             <div class="avatar-display" id="avatar-display">
                 <div class="podium">
-                    <img id="avatar-body" class="body" src="{{ user.avatar_body }}" alt="Avatar Body">
-                    <img id="avatar-hair" class="hair" src="{{ user.avatar_hair }}" alt="Avatar Hair">
-                    <img id="avatar-top" class="avatar-clothing top" src="{{ user.avatar_top }}" alt="Avatar Top">
-                    <img id="avatar-bottom" class="avatar-clothing bottom" src="{{ user.avatar_bottom }}" alt="Avatar Bottom">
-                    <img id="avatar-shoes" class="avatar-clothing shoes" src="{{ user.avatar_shoes }}" alt="Avatar Shoes">
+                    <img id="avatar-body" src="{{ body_image_path }}" alt="Body">
+                    <img id="avatar-hair" src="{{ hair_image_path }}" alt="Hair">
+                    <img id="avatar-top" src="{{ top_image_path }}" alt="Top">
+                    <img id="avatar-skirt" src="{{ skirt_image_path }}" alt="Skirt">
+                    <img id="avatar-dress" src="{{ dress_image_path }}" alt="Dress">
+                    <img id="avatar-shoes" src="{{ shoes_image_path }}" alt="Shoes">
                     <img id="avatar-stage" class="stage" src="{% static 'virtual_try_on/podium.png' %}" alt="Avatar Stage">
                     <div class="banner">
-                        <h2>{{ user.username }}</h2>
+                        <h2>{{ user.sissyname }}</h2>
                     </div>
                 </div>
             </div>
         </div>
 
         <div class="feature-options">
-            {% for item in clothing_items %}
-            <div class="draggable" data-category="{{ item.category }}" data-src="{{ item.image_url }}">
-                <img src="{{ item.image_url }}" alt="{{ item.category }}">
+            <!-- Display tops options -->
+            <div class="options-category" data-category="top">
+                <h3>Tops</h3>
+                <div class="options">
+                    {% if top_image_path %}
+                        <img src="{{ top_image_path }}" alt="Top" class="draggable" data-category="top" data-src="{{ top_image_path }}">
+                    {% endif %}
+                    {% for top in tops %}
+                        <img src="{{ top.image_url }}" alt="Top" class="draggable" data-category="top" data-src="{{ top.image_url }}">
+                    {% endfor %}
+                </div>
             </div>
-            {% endfor %}
+
+            <!-- Display skirts options -->
+            <div class="options-category" data-category="skirt">
+                <h3>Skirts</h3>
+                <div class="options">
+                    {% if skirt_image_path %}
+                        <img src="{{ skirt_image_path }}" alt="Skirt" class="draggable" data-category="skirt" data-src="{{ skirt_image_path }}">
+                    {% endif %}
+                    {% for skirt in skirts %}
+                        <img src="{{ skirt.image_url }}" alt="Skirt" class="draggable" data-category="skirt" data-src="{{ skirt.image_url }}">
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Display shoes options -->
+            <div class="options-category" data-category="shoes">
+                <h3>Shoes</h3>
+                <div class="options">
+                    {% if shoes_image_path %}
+                        <img src="{{ shoes_image_path }}" alt="Shoes" class="draggable" data-category="shoes" data-src="{{ shoes_image_path }}">
+                    {% endif %}
+                    {% for shoe in shoes %}
+                        <img src="{{ shoe.image_url }}" alt="Shoes" class="draggable" data-category="shoes" data-src="{{ shoe.image_url }}">
+                    {% endfor %}
+                </div>
+            </div>
         </div>
 
         <div class="bottom-controls">
-            <button type="button" onclick="resetAvatar()">Reset</button>
-            <button type="button" onclick="saveAvatar()">Save</button>
+            <button type="button" onclick="resetAvatarClothing()">Reset</button>                        
+            <button type="button" onclick="saveAvatarClothing()">Save</button>
         </div>
     </div>
 </div>

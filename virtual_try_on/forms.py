@@ -6,14 +6,12 @@ class AvatarForm(forms.ModelForm):
     class Meta:
         model = Avatar
         fields = ['body_type', 'skin_tone', 'hair_type',
-                  'hair_color', 'outfit', 'accessories']
+                  'hair_color']
         widgets = {
             'body_type': forms.Select(attrs={'class': 'form-control'}),
             'skin_tone': forms.Select(attrs={'class': 'form-control'}),
             'hair_type': forms.Select(attrs={'class': 'form-control'}),
             'hair_color': forms.Select(attrs={'class': 'form-control'}),
-            'outfit': forms.TextInput(attrs={'class': 'form-control'}),
-            'accessories': forms.Textarea(attrs={'class': 'form-control', 'rows': 3}),
         }
 
 

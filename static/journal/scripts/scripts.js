@@ -81,10 +81,10 @@ document.addEventListener("DOMContentLoaded", function () {
         generateTaskButton.addEventListener('click', function () {
             fetch('/journal/generate-task/')
                 .then(response => response.json())
-                .then(data => {taskResult
-                    const  = document.getElementById('task-result');
-                    if (taskResultul) {
-                        taskRest.innerHTML = data.task;
+                .then(data => {
+                    const taskResult = document.getElementById('task-result');
+                    if (taskResult) {
+                        taskResult.innerHTML = data.task;
                     }
                     showToast("New task generated! 💖", 'success');
                 })

@@ -1,3 +1,6 @@
+
+from .models import Avatar, ClothingItem
+from django.shortcuts import render, redirect
 from django.views.decorators.csrf import csrf_exempt
 from django.shortcuts import render, get_object_or_404, redirect
 from django.http import JsonResponse
@@ -13,28 +16,73 @@ def save_avatar(request):
     if request.method == 'POST':
         user = request.user
         data = json.loads(request.body)
-        user.avatar_body = f"/static/virtual_try_on/avatars/body/{
-            data['skin_tone']}/{data['body_type']}.png"
-        user.avatar_hair = f"/static/virtual_try_on/avatars/hair/{
-            data['hair_type']}/{data['hair_color']}.png"
-        user.avatar_top = "/static/virtual_try_on/garmets/tops/1.png"  # default values
-        user.avatar_bottom = "/static/virtual_try_on/garmets/skirts/1.png"
-        user.avatar_shoes = "/static/virtual_try_on/garmets/shoes/1.png"
-        user.save()
+        avatar, created = Avatar.objects.get_or_create(user=user)
+        avatar.body_type = data['body_type']
+        avatar.skin_tone = data['skin_tone']
+        avatar.hair_type = data['hair_type']
+        avatar.hair_color = data['hair_color']
+        avatar.save()
         return JsonResponse({'success': True})
     return JsonResponse({'success': False}, status=400)
 
 
+@login_required
 def dress_up_game(request):
-    user = request.user
-    clothing_items = [
-        {"category": "top", "image_url": "/static/virtual_try_on/garmets/tops/1.png"},
-        {"category": "dress", "image_url": "/static/virtual_try_on/garmets/dresses/1.png"},
-        {"category": "bottom", "image_url": "/static/virtual_try_on/garmets/skirts/1.png"},
-        {"category": "shoes", "image_url": "/static/virtual_try_on/garmets/shoes/1.png"},
-        # Add more items as needed
-    ]
-    return render(request, 'virtual_try_on/dress_up_game.html', {'user': user, 'clothing_items': clothing_items})
+    avatar = Avatar.objects.get(user=request.user)
+
+    if not avatar:
+        return redirect('virtual_try_on:avatar_customization')
+
+    tops = ClothingItem.objects.filter(category='top', is_premium=False)
+    skirts = ClothingItem.objects.filter(category='skirt', is_premium=False)
+    dresses = ClothingItem.objects.filter(category='dress', is_premium=False)
+    shoes = ClothingItem.objects.filter(category='shoes', is_premium=False)
+
+    if avatar.top:
+        tops = tops.exclude(id=avatar.top.id)[:2]
+    else:
+        tops = tops[:2]
+
+    if avatar.skirt:
+        skirts = skirts.exclude(id=avatar.skirt.id)[:2]
+    else:
+        skirts = skirts[:2]
+
+    if avatar.dress:
+        dresses = dresses.exclude(id=avatar.dress.id)[:2]
+    else:
+        dresses = dresses[:2]
+
+    if avatar.shoes:
+        shoes = shoes.exclude(id=avatar.shoes.id)[:2]
+    else:
+        shoes = shoes[:2]
+
+    context = {
+        'avatar': avatar,
+        'body_image_path': avatar.get_body_image_path(),
+        'hair_image_path': avatar.get_hair_image_path(),
+        'top_image_path': avatar.get_top_image_path(),
+        'skirt_image_path': avatar.get_skirt_image_path(),
+        'dress_image_path': avatar.get_dress_image_path(),
+        'shoes_image_path': avatar.get_shoes_image_path(),
+        'tops': tops,
+        'skirts': skirts,
+        'dresses': dresses,
+        'shoes': shoes,
+    }
+    return render(request, 'virtual_try_on/dress_up_game.html', context)
+
+
+
+
+# logic to check if user has an avatar saved, if not redirect them to avatar_customization.html
+def has_saved_avatar(user):
+    try:
+        avatar = Avatar.objects.get(user=user)
+    except Avatar.DoesNotExist:
+        return False
+    return True
 
 
 def premium_outfit_list(request):
@@ -44,24 +92,31 @@ def premium_outfit_list(request):
 # View to handle the avatar customization page
 
 
+# virtual_try_on/views.py
+
+
 @login_required
 def avatar_customization(request):
     avatar, _ = Avatar.objects.get_or_create(user=request.user)
-
     if request.method == 'POST':
         form = AvatarForm(request.POST, instance=avatar)
         if form.is_valid():
             form.save()
-            # Ensure this name matches your URL pattern
             return redirect('virtual_try_on:dress_up_game')
     else:
         form = AvatarForm(instance=avatar)
 
+    clothing_items = ClothingItem.objects.filter(is_premium=False)
     context = {
         'avatar': avatar,
         'form': form,
         'body_image_path': avatar.get_body_image_path(),
         'hair_image_path': avatar.get_hair_image_path(),
+        'top_image_path': avatar.get_top_image_path(),
+        'skirt_image_path': avatar.get_skirt_image_path(),
+        'dress_image_path': avatar.get_dress_image_path(),
+        'shoes_image_path': avatar.get_shoes_image_path(),
+        'clothing_items': clothing_items,
     }
     return render(request, 'virtual_try_on/avatar_customization.html', context)
 

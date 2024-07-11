@@ -1,74 +1,47 @@
 {% extends "virtual_try_on/base.html" %}
 {% load static %}
 
-{% block title %}Customize Your Avatar{% endblock %}
+{% block title %}Avatar Customization{% endblock %}
 
 {% block content %}
-<div class="customization-container">
-    <div class="title-banner">
-        <h1>Customize Your Avatar</h1>
-    </div>
+<div class="frame-container">
+    <div class="customization-container">
+        <div class="title-banner">
+            <h1>Customize Your Avatar</h1>
+        </div>
 
-    <div class="avatar-section">
-        <div class="avatar-display" id="avatar-display">
-            <div class="podium">
-                <img id="avatar-body" class="body" src="{% static 'virtual_try_on/avatars/body/light/hourglass.png' %}" alt="Avatar Body">
-                <img id="avatar-hair" class="hair" src="{% static 'virtual_try_on/avatars/hair/long_straight/blonde.png' %}" alt="Avatar Hair">
-                <img id="avatar-stage" class="stage" src="{% static 'virtual_try_on/stage.png' %}" alt="Avatar Stage">
-                <div class="banner">
-                    <h2>{{ user.username }}</h2>
+        <div class="avatar-section">
+            <div class="avatar-display" id="avatar-display">
+                <div class="podium">
+                    <img id="avatar-body" src="{{ body_image_path }}" alt="Body">
+                    <img id="avatar-hair" src="{{ hair_image_path }}" alt="Hair">
+                    <img id="avatar-top" src="{{ top_image_path }}" alt="Top">
+                    <img id="avatar-skirt" src="{{ skirt_image_path }}" alt="Skirt">
+                    <img id="avatar-dress" src="{{ dress_image_path }}" alt="Dress">
+                    <img id="avatar-shoes" src="{{ shoes_image_path }}" alt="Shoes">
+                    <img id="avatar-stage" class="stage" src="{% static 'virtual_try_on/podium.png' %}" alt="Avatar Stage">
+                    <div class="banner">
+                        <h2>{{ user.username }}</h2>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
 
-    <div class="feature-options">
-        <div>
-            <label for="body-type">Body Type:</label>
-            <select id="body-type">
-                <option value="hourglass">Hourglass</option>
-                <option value="slim">Slim</option>
-                <option value="straight">Straight</option>
-                <option value="thick">Thick</option>
-            </select>
+        <div class="feature-options">
+            {% for item in clothing_items %}
+            <div class="draggable" data-category="{{ item.category }}" data-src="{{ item.image_url }}">
+                <img src="{{ item.image_url }}" alt="{{ item.category }}">
+            </div>
+            {% endfor %}
         </div>
-        <div>
-            <label for="skin-tone">Skin Tone:</label>
-            <select id="skin-tone">
-                <option value="light">Light</option>
-                <option value="brown">Brown</option>
-                <option value="dark">Dark</option>
-            </select>
-        </div>
-        <div>
-            <label for="hair-type">Hair Type:</label>
-            <select id="hair-type">
-                <option value="long_straight">Long Straight</option>
-                <option value="long_curly">Long Curly</option>
-                <option value="short_straight">Short Straight</option>
-                <option value="short_curly">Short Curly</option>
-                <option value="bob">Bob</option>
-            </select>
-        </div>
-        <div>
-            <label for="hair-color">Hair Color:</label>
-            <select id="hair-color">
-                <option value="black">Black</option>
-                <option value="brown">Brown</option>
-                <option value="blonde">Blonde</option>
-                <option value="red">Red</option>
-                <option value="pink">Pink</option>
-            </select>
-        </div>
-    </div>
 
-    <div class="bottom-controls">
-        <button type="button" onclick="updateAvatar()">Check</button>
-        <button type="button" onclick="resetAvatar()">Reset</button>
-        <button type="button" onclick="randomizeAvatar()">Randomize</button>
-        <button type="button" onclick="saveAvatar()">Save</button>
+        <div class="bottom-controls">
+            <button type="button" onclick="resetAvatarClothing()">Reset</button>                        
+            <button type="button" onclick="saveAvatarClothing()">Save</button>
+        </div>
     </div>
 </div>
 
+<script src="https://cdn.jsdelivr.net/npm/interactjs/dist/interact.min.js"></script>
 <script src="{% static 'virtual_try_on/scripts.js' %}"></script>
 {% endblock %}

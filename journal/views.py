@@ -128,11 +128,10 @@ logger = logging.getLogger(__name__)
 class CustomLoginView(AuthLoginView):
     template_name = "welcome.html"
     authentication_form = CustomUserLoginForm
-    success_url = reverse_lazy("journal:dashboard")
 
     def form_valid(self, form):
-        user = form.get_user()
-        logger.info(f"User {user.username} logged in successfully.")
+        logger.info(
+            f"User {form.get_user().sissy_name} logged in successfully.")
         messages.success(self.request, "You have successfully logged in.")
         return super().form_valid(form)
 
@@ -143,9 +142,7 @@ class CustomLoginView(AuthLoginView):
         return super().form_invalid(form)
 
     def get_success_url(self):
-        logger.info("Redirecting to the dashboard after successful login.")
         return reverse_lazy('journal:dashboard')
-
 
 class LogoutView(auth_views.LogoutView):
     next_page = reverse_lazy("journal:welcome")

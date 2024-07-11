@@ -188,20 +188,20 @@ class JournalEntryForm(forms.ModelForm):
         widgets = {
             'tags': forms.CheckboxSelectMultiple(), }
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        self.helper = FormHelper(self)
-        self.helper.layout = Layout(
-            'title',
-            'content',
-            'tags',
-            'image',
-            'video',
-            'audio',
-            'file',
-            Submit('submit', 'Post Entry')
+        def __init__(self, *args, **kwargs):
+            super().__init__(*args, **kwargs)
+            self.helper = FormHelper(self)
+            self.helper.layout = Layout(
+                'title',
+                'content',
+                'tags',
+                'image',
+                'video',
+                'audio',
+                'file',
+                Submit('submit', 'Post Entry')
 
-        )
+            )
 
 
 class TagForm(forms.ModelForm):

@@ -15,5 +15,6 @@ urlpatterns = [
     path('outfits/', views.premium_outfit_list, name='premium_outfit_list'),
     path('dress_up_game/', views.dress_up_game, name='dress_up_game'),
     path('save_avatar/', views.save_avatar, name='save_avatar'),
+
     # other paths...
 ]
