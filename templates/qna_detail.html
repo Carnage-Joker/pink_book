@@ -1,9 +1,12 @@
-{% extends 'base.html' %}
+{% extends "base.html" %}
 {% block content %}
-<h1>{{ question.question }}</h1>
-<ul>
+  <h1>{{ question.title }}</h1>
+  <p>{{ question.content }}</p>
+  <h2>Answers</h2>
+  <ul>
     {% for answer in answers %}
-    <li>{{ answer.answer }} - {{ answer.professional.username }}</li>
+      <li>{{ answer.content }} - {{ answer.author }}</li>
     {% endfor %}
-</ul>
+  </ul>
+  <a href="{% url 'journal/answer_create' question.pk %}">Answer this Question</a>
 {% endblock %}

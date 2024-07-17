@@ -403,12 +403,16 @@ class JournalEntry(models.Model):
         return reverse('journal:entry_detail', kwargs={'pk': self.pk})
 
 
+# Assuming CustomUser and ResourceCategory are already defined somewhere in your project
+
+
 class Report(models.Model):
     content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
     object_id = models.PositiveIntegerField()
     content_object = GenericForeignKey('content_type', 'object_id')
     reason = models.TextField()
-    reported_by = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
+    reported_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     timestamp = models.DateTimeField(auto_now_add=True)
 
 
@@ -419,16 +423,16 @@ class Quote(models.Model):
 
 
 class Thread(models.Model):
-    title = models.CharField(max_length=100)
-    author = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
-    category = models.ForeignKey(ResourceCategory, on_delete=models.CASCADE)
+    title = models.CharField(max_length=255)
+    content = models.TextField()
 
     def __str__(self):
         return self.title
 
 
 class UserProfile(models.Model):
-    user = models.OneToOneField(CustomUser, on_delete=models.CASCADE)
+    user = models.OneToOneField(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     PRIVACY_CHOICES = [
         ('public', 'Public Darling 💋'),
         ('friends', 'Just for Friends 🎀'),
@@ -451,11 +455,11 @@ class Comment(models.Model):
     object_id = models.PositiveIntegerField(null=True)
     content_object = GenericForeignKey('content_type', 'object_id')
     content = models.TextField()
-    author = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
-    # Choose either auto_now_add or default
+    author = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     timestamp = models.DateTimeField(auto_now_add=True)
     title = models.CharField(max_length=100)
-    category = models.ForeignKey(ResourceCategory, on_delete=models.CASCADE)
+    thread = models.ForeignKey(Thread, on_delete=models.CASCADE)
     content_type = models.ForeignKey(
         ContentType, on_delete=models.CASCADE, null=True)
 
@@ -466,13 +470,14 @@ class Comment(models.Model):
 class Post(models.Model):
     title = models.CharField(max_length=200)
     content = models.TextField()
-    author = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
-    category = models.ForeignKey(ResourceCategory, on_delete=models.CASCADE)
-    timestamp = models.DateTimeField(auto_now_add=True, )
+    author = models.ForeignKey(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    thread = models.ForeignKey(Thread, on_delete=models.CASCADE)
+    timestamp = models.DateTimeField(auto_now_add=True)
     comments = GenericRelation(Comment, related_query_name='post_comments')
 
     def __str__(self):
-        return f"Post by {self.author.sissy_name} in {self.category}"
+        return f"Post by {self.author.sissy_name} in {self.thread}"
 
 
 class UserFeedback(models.Model):

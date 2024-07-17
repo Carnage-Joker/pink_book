@@ -6,7 +6,7 @@
 <h1>Guides</h1>
 <ul>
     {% for guide in guides %}
-    <li><a href="{% url 'guide_detail' guide.pk %}">{{ guide.title }}</a></li>
+    <li><a href="{% url 'journal:guide_detail' guide.pk %}">{{ guide.title }}</a></li>
     {% endfor %}
 </ul>
 {% endblock %}

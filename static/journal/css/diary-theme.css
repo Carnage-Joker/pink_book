@@ -76,8 +76,8 @@
     inline-size: 20px;
     background-color: #d1a3c7;
     position: absolute;
-    inset-block-start: 0;
-    inset-block-end: 0;
+    inset-block-start: 5%;
+    inset-block-end: 5%;
     inset-inline-start: 50%;
     transform: translateX(-50%);
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
@@ -141,11 +141,11 @@ nav.post-it-notes {
     display: flex;
     justify-content: flex-end;
     align-items: center;
-    gap: 10px;
-    margin-inline-end: 40px;
+    gap: 2%;
+    margin-inline-end: 1%;
     position: absolute;
     inset-block-start: 5%;
-    inset-inline-end: 20px;
+    inset-inline-end: 1%;
     inline-size: auto;
     z-index: 10;
 }
@@ -395,3 +395,80 @@ footer {
     .toast-warning {
         background-color: #ffcc00;
     }
+
+.list-group-item {
+    border: 1px solid #ff69b4;
+}
+
+.list-group-item-action:hover {
+    background-color: #ffe4e1;
+}
+
+.post-content,
+.comment-content {
+    background-color: #fff;
+    border: 1px solid #ff69b4;
+    padding: 10px;
+    border-radius: 10px;
+}
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+    transition: transform 0.3s;
+}
+
+ul li:hover {
+    transform: scale(1.05);
+}
+
+ul li a {
+    color: #4d004d;
+    font-weight: bold;
+    text-decoration: none;
+}
+
+ul li a:hover {
+    color: #cc6699;
+}
+
+.resource-link {
+    display: inline-block;
+    margin-block-start: 10px;
+    padding: 8px 15px;
+    background-color: #ff66b2;
+    color: #fff;
+    border-radius: 5px;
+    text-decoration: none;
+}
+
+.resource-link:hover {
+    background-color: #e55c99;
+}
+
+.pagination {
+    display: flex;
+    justify-content: center;
+    padding: 10px 0;
+}
+
+.page-item {
+    margin: 0 5px;
+}
+
+.page-link {
+    color: #FF88B1;
+    background-color: #ffe6f2;
+    border: 1px solid #FF88B1;
+    border-radius: 5px;
+    padding: 5px 10px;
+}
+
+.page-link:hover {
+    background-color: #FF88B1;
+    color: #fff;
+}
+
+.page-item.active .page-link {
+    background-color: #FF88B1;
+    color: #fff;
+    border: 1px solid #FF88B1;
+}

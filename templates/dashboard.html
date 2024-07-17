@@ -19,7 +19,40 @@
             <a href="{% url 'journal:profile_update' %}" class="btn btn-register">Edit Profile</a>
             <a href="{% url 'journal:profile_settings' %}" class="btn btn-register">Settings</a>
         </div>
-
+         <ul>
+        <li><strong>Girly Gauge:</strong>
+            {% if avg_subjectivity > 0.51 %} Oh, so girly, Gurl!
+            {% elif avg_subjectivity == 0.5 %} You're girling up, honey!
+                {% elif avg_subjectivity < 0.49 %} Boy alert, write with your heart not your head.
+                {% endif %}
+            </li>
+            <li><strong>Most talked about:</strong>
+                {% for keyword, count in frequent_keywords %}
+                {{ keyword }} ({{ count }}),
+                {% endfor %}
+            </li>
+            <li><strong>Most Common Tag:</strong> {{ common_tags.0.0 }}</li>
+            <li><strong>Most Common Emotion:</strong> {{ most_common_emotions.0.0 }}</li>
+            <li><strong>Average Word Count:</strong> {{ average_word_count }}</li>
+            <li><strong>Consistent Journaling:</strong> You've been journaling for {{ current_streak_length }} consecutive days!</li>
+            {% if current_streak_length >= 10 %}
+            <li>Impressive dedication, {{ user.sissy_name }}, your consistency is commendable. 🚀</li>
+            {% elif current_streak_length >= 5 %}
+            <li>You're building a strong habit. Keep the momentum alive! 🔥</li>
+            {% endif %}
+            <li><strong>Peak Journaling Hour:</strong> You're most active around {{ most_active_hour }}:00. Whether it's morning reflections or evening recaps, keep pouring your thoughts!</li>
+            {% for entry in entries_with_insights %}
+            <li>{{ entry.insight }}</li>
+            {% endfor %}
+        </ul>
+        <p>{{ collective_insight }}</p>
+        {% if not entries_with_insights %}
+        <p>No insights yet, darling. Why not write a new journal entry?</p>
+        {% endif %}
+        <div class="try-on-button-container">
+            <a href="{% url 'virtual_try_on:avatar_customization' %}" class="try-on-button">Try On Clothes! 💖</a>
+        </div>
+    </div>
         <h3>Recent Entries</h3>
         <ul>
             {% for entry in recent_entries %}
@@ -67,40 +100,7 @@ html
         </li>
         {% endfor %}
     </ul>
-    <ul>
-        <li><strong>Girly Gauge:</strong>
-            {% if avg_subjectivity > 0.51 %} Oh, so girly, Gurl!
-            {% elif avg_subjectivity == 0.5 %} You're girling up, honey!
-                {% elif avg_subjectivity < 0.49 %} Boy alert, write with your heart not your head.
-                {% endif %}
-            </li>
-            <li><strong>Most talked about:</strong>
-                {% for keyword, count in frequent_keywords %}
-                {{ keyword }} ({{ count }}),
-                {% endfor %}
-            </li>
-            <li><strong>Most Common Tag:</strong> {{ common_tags.0.0 }}</li>
-            <li><strong>Most Common Emotion:</strong> {{ most_common_emotions.0.0 }}</li>
-            <li><strong>Average Word Count:</strong> {{ average_word_count }}</li>
-            <li><strong>Consistent Journaling:</strong> You've been journaling for {{ current_streak_length }} consecutive days!</li>
-            {% if current_streak_length >= 10 %}
-            <li>Impressive dedication, {{ user.sissy_name }}, your consistency is commendable. 🚀</li>
-            {% elif current_streak_length >= 5 %}
-            <li>You're building a strong habit. Keep the momentum alive! 🔥</li>
-            {% endif %}
-            <li><strong>Peak Journaling Hour:</strong> You're most active around {{ most_active_hour }}:00. Whether it's morning reflections or evening recaps, keep pouring your thoughts!</li>
-            {% for entry in entries_with_insights %}
-            <li>{{ entry.insight }}</li>
-            {% endfor %}
-        </ul>
-        <p>{{ collective_insight }}</p>
-        {% if not entries_with_insights %}
-        <p>No insights yet, darling. Why not write a new journal entry?</p>
-        {% endif %}
-        <div class="try-on-button-container">
-            <a href="{% url 'virtual_try_on:avatar_customization' %}" class="try-on-button">Try On Clothes! 💖</a>
-        </div>
-    </div>
+   
 
     <!-- Book Binding in the Center -->
     <div class="binding"></div>

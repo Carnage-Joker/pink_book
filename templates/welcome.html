@@ -17,4 +17,32 @@
     </form>
     <p><a href="{% url 'journal:password_reset' %}" class="btn btn-secondary">Forgot Password?</a></p>
 </div>
+<div class="rightcolumn">
+
+</div>
+<div class="leftcolumn">
+    <h2>Explore More</h2>
+    <p>Discover more threads or start a new discussion. This is your space to connect and share.</p>
+    <a href="{% url 'journal:thread_list' %}" class="btn btn-secondary">Explore Threads</a>
+</div>
+<div class="rightcolumn">
+    <h2>Join the Community</h2>
+    <p>Connect with like-minded individuals and share your journey. Together, we can support and inspire each other.</p>
+    <p><a href="{% url 'journal:register' %}" class="btn btn-secondary">Join Now</a></p>
+</div>
+<div class="leftcolumn">
+    <h2>Get Inspired</h2>
+    <p>Stay motivated and inspired with journal prompts tailored to your personal sissy journey.</p>
+    <a href="{% url 'journal:feature_list' %}" class="btn btn-secondary">Check out our cool feature list!</a>
+</div>
+<div class="rightcolumn">
+    <h2>About Us</h2>
+    <p>Learn more about our mission and values. We are committed to creating a safe and inclusive space for all sissy enthusiasts.</p>
+    <p><a href="{% url 'journal:about' %}" class="btn btn-secondary">About Us</a></p>
+</div>
+<div class="leftcolumn">
+    <h2>Contact Us</h2>
+    <p>Have any questions or feedback? We'd love to hear from you. Get in touch with us and let us know how we can improve.</p>
+    <p><a href="{% url 'journal:contact' %}">Contact Us</a></p>
+</div>  
 {% endblock %}

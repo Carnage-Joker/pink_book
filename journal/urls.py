@@ -1,6 +1,6 @@
 from django.urls import path
 from .views import (ContactView, DashboardView, ForumPostDetailView,
-                    ForumThreadListView, HabitCreateView, HabitListView,
+                    HabitCreateView, HabitListView,
                     HabitUpdateView, HabitDetailView, JournalEntryDetailView,
                     JournalEntryCreateView, JournalEntryUpdateView,
                     JournalEntryDeleteView, JournalEntryListView,
@@ -13,22 +13,26 @@ from .views import (ContactView, DashboardView, ForumPostDetailView,
                     PasswordResetDoneView, PasswordResetView,
                     complete_todo_view,
                     guide_list, guide_detail, ActivityLogListView, BillingView,
-                    qna_list, qna_detail, ActivateAccountView, MessageListView,
-                    CustomLoginView, ResendActivationView)
+                    qna_list, qna_detail, activate_account, MessageListView,
+                    CustomLoginView, ModeratorListView, TemplateView,
+                    ForumCreateView, ForumDeleteView, PostListView, ThreadListView,
+                    ForumDeleteView, ForumPostDetailView, FeatureListView)
 
+app_name = 'journal'
 
 urlpatterns = [
     # Authentication
     path('', CustomLoginView.as_view(), name='welcome'),
+    path('features/', FeatureListView.as_view(), name='feature_list'),
     path('register/', RegisterView.as_view(), name='register'),
     path('logout/', LogoutView.as_view(), name='logout'),
     path('password_reset/', PasswordResetView.as_view(), name='password_reset'),
     path('password_reset/done/', PasswordResetDoneView.as_view(), name='password_reset_done'),
     path('about/', AboutView.as_view(), name='about'),
-    path('activate/<uidb64>/<token>/',
-         ActivateAccountView.as_view(), name='activate'),
-    path('resend-activation/', ResendActivationView.as_view(),
-         name='resend_activation'),
+    path('activate/<str:token>/', activate_account, name='activate_account'),
+    path('registration_complete/', TemplateView.as_view(
+        template_name='registration_complete.html'), name='registration_complete'),
+
 
     # Dashboard
     path('dashboard/', DashboardView.as_view(), name='dashboard'),
@@ -45,8 +49,14 @@ urlpatterns = [
     path('entry/<int:pk>/delete/', JournalEntryDeleteView.as_view(), name='entry_delete'),
 
     # Forum
-    path('forum/', ForumThreadListView.as_view(), name='categories'),
+    # Forum
+    path('forum/', ThreadListView.as_view(), name='thread_list'),
+    path('forum/posts/', PostListView.as_view(), name='post_list'),
+    path('forum/create/', ForumCreateView.as_view(), name='create_post'),
     path('forum/<int:pk>/', ForumPostDetailView.as_view(), name='post_detail'),
+    path('forum/<int:pk>/delete/', ForumDeleteView.as_view(), name='post_delete'),
+    path('forum/moderators/', ModeratorListView.as_view(), name='moderators'),
+     
 
     # Habit Tracker
     path('habits/', HabitListView.as_view(), name='habit_list'),

@@ -63,14 +63,13 @@ MIDDLEWARE = [
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'corsheaders.middleware.CorsMiddleware',
-    # 'csp.middleware.CSPMiddleware',  # Disabled for now
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",  
-    # Add your frontend URL
+    "http://www.thepinkbook.com",
     "http://localhost:8000",
     "http://127.0.0.1:3000",
 ]
@@ -104,12 +103,16 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 # settings.py
+# settings.py
+
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'smtp.gmail.com'  # Example for Gmail
-EMAIL_PORT = 587
-EMAIL_USE_TLS = True
-EMAIL_HOST_USER = 'phill.jones2112@gmail.com'
-EMAIL_HOST_PASSWORD = 'Ai100%mG4ever'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587  # Use 587 for TLS
+EMAIL_USE_TLS = True  # Enable TLS
+EMAIL_HOST_USER = 'dpinkbook@gmail.com'  # Replace with your Gmail address
+# Replace with your Gmail password or app-specific password
+EMAIL_HOST_PASSWORD = 'Notthepinkstory1!'
+DEFAULT_FROM_EMAIL = 'dpinkbook@gmail.com'
 
 
 # Internationalization settings
@@ -125,7 +128,7 @@ MEDIA_ROOT = BASE_DIR / 'media'
 AUTH_USER_MODEL = 'journal.CustomUser'
 LOGIN_URL = 'journal:welcome'
 
-LOGOUT_REDIRECT_URL = 'journal:login'
+LOGOUT_REDIRECT_URL = 'journal:welcome'
 
 # Define a constant for the literal "'self'"
 SELF = "'self'"

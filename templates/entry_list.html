@@ -7,7 +7,7 @@
     <div class="left-page">
         <h1>Your Journal Entries</h1>
         <ul>
-            {% for entry in recent_entries %}
+            {% for entry in page_obj %}
             <li>
                 <a href="{% url 'journal:entry_detail' entry.pk %}">{{ entry.title }}</a>
                 <small>Created on {{ entry.timestamp|date:"d M Y" }}</small>
@@ -17,6 +17,24 @@
             {% endfor %}
         </ul>
         <a href="{% url 'journal:new_entry' %}" class="btn btn-register">Create New Entry</a>
+        <!-- Pagination Controls -->
+        <div class="mt-4">
+            {% if is_paginated %}
+            <ul class="pagination">
+                {% if page_obj.has_previous %}
+                <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}">Previous</a></li>
+                {% endif %}
+                {% for num in paginator.page_range %}
+                <li class="page-item {% if page_obj.number == num %}active{% endif %}">
+                    <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                </li>
+                {% endfor %}
+                {% if page_obj.has_next %}
+                <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}">Next</a></li>
+                {% endif %}
+            </ul>
+            {% endif %}
+        </div>
     </div>
 
     <!-- Right Page - Placeholder Content or Additional Information -->

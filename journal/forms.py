@@ -1,16 +1,11 @@
 
-from .models import CustomUser
-from django.contrib.auth.forms import UserCreationForm
-from django.contrib.auth.forms import AuthenticationForm
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Column, Layout, Row, Submit
 from django import forms
 from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
 
-
 from .models import (Comment, CustomUser, Habit, JournalEntry, Post, Report,
-                     ResourceComment, Tag, ToDo, UserProfile,
-                     UserTheme)
+                     ResourceComment, Tag, ToDo, UserProfile, UserTheme)
 
 
 class HabitForm(forms.ModelForm):
@@ -24,7 +19,7 @@ class HabitForm(forms.ModelForm):
         self.helper = FormHelper()
         self.helper.layout = Layout(
             'name',
-            'frequency',
+            'description', 'reward', 'penalty', 'reminder_frequency',
             Submit('submit', 'Save Habit', css_class='btn-primary')
         )
         self.helper.form_method = 'post'
@@ -32,18 +27,18 @@ class HabitForm(forms.ModelForm):
 
 
 class PostForm(forms.ModelForm):
-    category = forms.ChoiceField(
+    thread = forms.ChoiceField(
         choices=[('personal', 'Personal'), ('kink', 'Kink'), ('lifestyle', 'Lifestyle'), ('other', 'Other')],
         required=True
     )
     
     class Meta:
         model = Post
-        fields = ['title', 'content', 'category']
+        fields = ['title', 'content', 'thread']
         labels = {
             'title': 'Post Title',
             'content': 'What’s on your mind, darling?',
-            'category': 'Choose a Category',
+            'thread': 'Choose a thread',
         }
         help_texts = {
             'title': 'Make it snappy and sweet!',
