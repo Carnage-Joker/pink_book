@@ -1,5 +1,7 @@
 import os
 from pathlib import Path
+from django.utils.timezone import get_current_timezone
+
 
 # Base directory
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -117,7 +119,9 @@ DEFAULT_FROM_EMAIL = 'dpinkbook@gmail.com'
 
 # Internationalization settings
 LANGUAGE_CODE = 'en-us'
-TIME_ZONE = 'UTC'
+
+
+TIME_ZONE = get_current_timezone()
 USE_I18N = True
 USE_TZ = True
 MEDIA_URL = '/media/'

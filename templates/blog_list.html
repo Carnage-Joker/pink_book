@@ -7,20 +7,6 @@
     <div class="left-page">
         <h1>Sissies Say</h1>
         <p>From one sissy to another...</p>
-        {% For BlogPost %}
-    </div>
-
-    <!-- Right Page - Placeholder or Additional Info -->
-    <div class="right-page">
-        <h2>Join the Conversation</h2>{% extends "base.html" %}
-{% load static %}
-{% block title %}Sissies Say{% endblock %}
-{% block content %}
-<div class="container diary-spread">
-    <!-- Left Page - Sissies Say Content -->
-    <div class="left-page">
-        <h1>Sissies Say</h1>
-        <p>From one sissy to another...</p>
         {% for post in posts %}
         <div class="blog-post">
             <h2>{{ post.title }}</h2>
@@ -34,15 +20,6 @@
     <!-- Right Page - Placeholder or Additional Info -->
     <div class="right-page">
         <h2>Join the Conversation</h2>
-        <p>Share your experiences and connect with other sissies in our community.</p>
-        <p>Your voice matters, and we're here to listen!</p>
-    </div>
-
-    <!-- Book Binding in the Center -->
-    <div class="binding"></div>
-</div>
-{% endblock %}
-
         <p>Share your experiences and connect with other sissies in our community.</p>
         <p>Your voice matters, and we're here to listen!</p>
     </div>

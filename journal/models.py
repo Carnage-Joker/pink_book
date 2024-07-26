@@ -1,4 +1,6 @@
 
+from django.utils import timezone
+from django.contrib.auth import get_user_model
 import os
 from datetime import date, datetime, timedelta
 from uuid import uuid4
@@ -34,10 +36,12 @@ def profile_pic_upload_path(instance, filename):
 
 class CustomUserManager(BaseUserManager):
     def create_user(self, sissy_name, email, password=None, **extra_fields):
-        if not email:
-            raise ValueError('The Email field must be set')
+        extra_fields.setdefault('is_staff', False)
+        extra_fields.setdefault('is_superuser', False)
+        if not sissy_name:
+            raise ValueError('The Sissy Name field must be set')
         email = self.normalize_email(email)
-        user = self.model(email=email, sissy_name=sissy_name, **extra_fields)
+        user = self.model(sissy_name=sissy_name, email=email, **extra_fields)
         user.set_password(password)
         user.save(using=self._db)
         return user
@@ -45,11 +49,16 @@ class CustomUserManager(BaseUserManager):
     def create_superuser(self, sissy_name, email, password=None, **extra_fields):
         extra_fields.setdefault('is_staff', True)
         extra_fields.setdefault('is_superuser', True)
-
-        return self.create_user(sissy_name, email, password, **extra_fields)
+        email = self.normalize_email(email)
+        user = self.model(email=email, sissy_name=sissy_name, **extra_fields)
+        user.set_password(password)
+        user.save(using=self._db)
+        return user
 
 
 class CustomUser(AbstractBaseUser, PermissionsMixin):
+    date_joined = models.DateTimeField(_('date joined'),
+                                       default=current_timestamp)
     bio = models.CharField(_('bio'), max_length=500, blank=True, null=True)
     date_of_birth = models.DateField(_('date of birth'), blank=True, null=True)
     sissy_name = models.CharField(_('sissy name'), max_length=255, unique=True)
@@ -65,7 +74,8 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
         ('other', _('other')),
     )
     pronouns = models.CharField(
-        _('pronouns'), max_length=20, choices=PRONOUN_CHOICES, blank=True, default='')
+        _('pronouns'), max_length=20, choices=PRONOUN_CHOICES, blank=True,
+        default='')
 
     SISSY_TYPE_CHOICES = (
         ('sissy_maid', _('Maid')),
@@ -75,7 +85,8 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
         ('bratty_sissy', _('Brat')),
     )
     sissy_type = models.CharField(
-        _('sissy type'), max_length=100, choices=SISSY_TYPE_CHOICES, blank=True)
+        _('sissy type'), max_length=100, choices=SISSY_TYPE_CHOICES,
+        blank=True)
 
     CHASTITY_CHOICES = (
         ('yes', _('I always wear a chastity device')),
@@ -83,7 +94,8 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
         ('partly', _('I sometimes wear a chastity device')),
     )
     chastity_status = models.CharField(
-        _('chastity status'), max_length=100, choices=CHASTITY_CHOICES, blank=True)
+        _('chastity status'), max_length=100, choices=CHASTITY_CHOICES,
+        blank=True)
 
     OWNED_CHOICES = (
         ('yes', _('I have an owner')),
@@ -98,9 +110,14 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
     is_staff = models.BooleanField(_('staff status'), default=False)
 
     avatar_body = models.CharField(
-        max_length=255, default="/static/virtual_try_on/avatars/body/light/hourglass.png")
+        max_length=255, default=(
+            "/static/virtual_try_on/avatars/body/light/"
+            "hourglass.png"
+        )
+    )
     avatar_hair = models.CharField(
-        max_length=255, default="/static/virtual_try_on/avatars/hair/long_straight/blonde.png")
+        max_length=255,
+        default="/static/virtual_try_on/avatars/hair/long_straight/blonde.png")
     avatar_top = models.CharField(
         max_length=255, default="/static/virtual_try_on/garmets/tops/1.png")
     avatar_bottom = models.CharField(
@@ -170,6 +187,8 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
 REWARD_CHOICES = [
     ('sticker', 'Digital Sticker'),
     ('unlock_content', 'Unlock New Content'),
+    ('sissy_store_credit', 'Sissy Store Credit'),
+    ('new_outfit', 'New Outfit')
     # ... more rewards
 ]
 
@@ -185,14 +204,15 @@ PENALTY_CHOICES = [
 class Habit(models.Model):
     user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
     name = models.CharField(max_length=255)
-    start_date = models.DateField(default=date.today)
+    start_date = models.DateField(default=timezone.now)
     end_date = models.DateField(blank=True, null=True)
     description = models.TextField(blank=True, null=True)
+    count = models.IntegerField(default=0)
     reward = models.CharField(
         max_length=50, choices=REWARD_CHOICES, null=True, blank=True)
     penalty = models.CharField(
         max_length=50, choices=PENALTY_CHOICES, null=True, blank=True)
-    timestamp = models.DateTimeField(default=datetime.now())
+    timestamp = models.DateTimeField(default=timezone.now)
     reminder_frequency = models.CharField(max_length=10, choices=[
         ('daily', 'Daily'),
         ('weekly', 'Weekly'),
@@ -210,11 +230,28 @@ class Habit(models.Model):
         ('domme_appreciation', 'Domme Appreciation'),
         ('orders', 'Orders')
     ], default='sissification_tasks')
-    progress = models.IntegerField(default=0)
+    last_reset_date = models.DateField(default=timezone.now)
+
+    def increment_count(self):
+        self.count += 1
+        self.save()
+
+    def reset_count(self):
+        self.count = 0
+        self.last_reset_date = timezone.now()
+        self.save()
+
+    def check_reset_needed(self):
+        now = timezone.now().date()
+        if self.reminder_frequency == 'daily' and self.last_reset_date < now:
+            self.reset_count()
+        elif self.reminder_frequency == 'weekly' and self.last_reset_date < now - timezone.timedelta(days=7):
+            self.reset_count()
+        elif self.reminder_frequency == 'monthly' and self.last_reset_date < now - timezone.timedelta(days=30):
+            self.reset_count()
 
     def save(self, *args, **kwargs):
-        if not self.end_date:
-            self.end_date = self.start_date + relativedelta(months=1)
+        self.check_reset_needed()
         super().save(*args, **kwargs)
 
     def __str__(self):
@@ -263,7 +300,7 @@ class Guide(models.Model):
     def __str__(self):
         return self.title
 
-
+ 
 class Notification(models.Model):
     user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
     title = models.CharField(max_length=200)
@@ -280,6 +317,11 @@ class RelatedModel(models.Model):
     object_id = models.PositiveIntegerField()
     content_object = GenericForeignKey('content_type', 'object_id')
     timestamp = models.DateTimeField(auto_now_add=True)
+    """_summary_
+
+    Returns:
+        _type_: _description_
+    """
 
 
 class Question(models.Model):
@@ -302,6 +344,14 @@ class Resource(models.Model):
     timestamp = models.DateTimeField(auto_now_add=True)
     allow_comments = models.BooleanField(default=True)
 
+
+class BlogPost(models.Model):
+    title = models.CharField(max_length=200)
+    content = models.TextField()
+    author = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
+    timestamp = models.DateTimeField(auto_now_add=True)
+    published = models.BooleanField(default=False)
+ 
 
 class ResourceCategory(models.Model):
     name = models.CharField(max_length=100)
@@ -329,15 +379,27 @@ class Contact(models.Model):
 class Moderator(models.Model):
     user = models.OneToOneField(CustomUser, on_delete=models.CASCADE)
     is_active = models.BooleanField(default=True)
-# JournalEntry Model
+
+
+class Task(models.Model):
+    title = models.CharField(max_length=255)
+    description = models.TextField(blank=True, null=True)
+    # Points awarded for completing the task
+    points = models.IntegerField(default=10)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    completed_by = models.ManyToManyField(
+        CustomUser, through='TaskCompletion', related_name='completed_tasks')
+
+    def __str__(self):
+        return self.title
 
 
 class JournalEntry(models.Model):
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         related_name='journal_entries',
-        on_delete=models.CASCADE
-    )
+        on_delete=models.CASCADE)
     title = models.CharField(max_length=200)
     content = models.TextField()
     # Field to store the generated prompt
@@ -403,9 +465,16 @@ class JournalEntry(models.Model):
         return reverse('journal:entry_detail', kwargs={'pk': self.pk})
 
 
-# Assuming CustomUser and ResourceCategory are already defined somewhere in your project
+class TaskCompletion(models.Model):
+    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
+    task = models.ForeignKey(Task, on_delete=models.CASCADE)
+    completed_at = models.DateTimeField(auto_now_add=True)
+    journal_entry = models.ForeignKey(JournalEntry, on_delete=models.CASCADE)
 
-
+    def __str__(self):
+        return f"{self.user} completed {self.task}"
+    
+    
 class Report(models.Model):
     content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
     object_id = models.PositiveIntegerField()

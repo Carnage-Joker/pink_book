@@ -12,6 +12,9 @@ def generate_task():
         "Do a sissy-themed workout or yoga session.",
         "Pamper yourself with a self-care routine and share your experience.",
         "Write a short story or poem about your sissy journey.",
-        "Comment on three other users' journal entries."
+        "Comment on three other users' journal entries.",
+        "Write a journal entry on why Pink is such a great colour.",
+        "Find 5 hot pics of guys and explain why each of them is so attractive to you"
+        
     ]
     return random.choice(tasks)

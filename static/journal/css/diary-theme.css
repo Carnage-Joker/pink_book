@@ -1,5 +1,5 @@
 /* General styles for diary texture */
-.body {
+body {
     font-family: 'Brush Script MT', cursive;
     margin: 0;
     padding: 0;
@@ -18,7 +18,6 @@
     max-inline-size: 90%;
     min-inline-size: 75%;
     min-block-size: 80vh;
-    block-size: auto;
     background-color: rgba(255, 255, 255, 0.95);
     border-radius: 15px;
     box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
@@ -26,7 +25,7 @@
     flex-direction: row;
     position: relative;
     padding: 20px;
-    padding-block-start: 80px;
+    padding-top: 80px;
     overflow: hidden;
     margin-block-end: 20px;
     font-size: 30px;
@@ -51,7 +50,7 @@
 .right-page {
     flex: 1;
     padding: 40px;
-    background-color: #ffe6f2;
+    background-color: #ffe6f25b;
     border: 1px solid #f2c1da;
     box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.1);
     overflow-y: auto;
@@ -60,20 +59,26 @@
     justify-content: center;
     text-align: center;
     min-block-size: 100%;
-    font-size: 30px;
+    font-size: 25px;
 }
 
 .left-page {
-    border-inline-end: 2px solid #d1a3c7;
+    border-inline-end: 2px solid #d1a3c756;
+    inline-size: 40%;
+    padding-inline-end: 20px;
+    inset-inline-start: 9%;
 }
 
 .right-page {
-    border-inline-start: 2px solid #d1a3c7;
+    border-left: 2px solid #d1a3c748;
+    inline-size: 40%;
+    padding-left: 20px;
+    inset-inline-start: 51%;
 }
 
 /* Book Binding */
 .binding {
-    inline-size: 20px;
+    inline-size: 2%;
     background-color: #d1a3c7;
     position: absolute;
     inset-block-start: 5%;
@@ -141,7 +146,7 @@ nav.post-it-notes {
     display: flex;
     justify-content: flex-end;
     align-items: center;
-    gap: 2%;
+    gap: 0.5%;
     margin-inline-end: 1%;
     position: absolute;
     inset-block-start: 5%;
@@ -154,14 +159,14 @@ nav.post-it-notes a {
     display: block;
     background-color: #fbafda;
     color: #740782;
-    padding: 10px 15px;
+    padding: 1% 1.5%;
     font-size: 1em;
     font-family: 'Dancing Script', cursive;
-    box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.3);
+    box-shadow: 0.25% 0.25% 0.5% rgba(0, 0, 0, 0.3);
     text-decoration: none;
     transform: rotate(-10deg);
     transition: transform 0.3s;
-    border-radius: 10px;
+    border-radius: 1%;
 }
 
 nav.post-it-notes a:hover {
@@ -171,7 +176,7 @@ nav.post-it-notes a:hover {
 /* Pink Padlock Background for Login Section */
 .logreg-section {
     background-color: rgba(255, 255, 255, 0.85);
-    background:url('../media/pink_heart_lock.png') no-repeat center center;
+    background: url('../media/pink_heart_lock.png') no-repeat center center;
     background-size: cover;
     padding: 20px;
     border-radius: 10px;
@@ -217,7 +222,7 @@ nav.post-it-notes a:hover {
 }
 
 /* Responsiveness */
-@media only screen and (max-inline-size: 768px) {
+@media only screen and (max-width: 768px) {
     .container {
         max-inline-size: 95%;
         block-size: auto;
@@ -275,12 +280,6 @@ nav.post-it-notes a:hover {
 .try-on-button:hover {
     background-color: #E76F89;
     box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
-}
-
-body {
-    font-family: 'Comic Sans MS', cursive, sans-serif;
-    background-color: #ffe6f2;
-    color: #4d004d;
 }
 
 header {
@@ -344,7 +343,7 @@ ul li a:hover {
 
 .resource-link {
     display: inline-block;
-    margin-block-start: 10px;
+    margin-top: 10px;
     padding: 8px 15px;
     background-color: #ff66b2;
     color: #fff;
@@ -391,10 +390,11 @@ footer {
 
 .toast-error {
     background-color: #ff6666;
+}
 
-    .toast-warning {
-        background-color: #ffcc00;
-    }
+.toast-warning {
+    background-color: #ffcc00;
+}
 
 .list-group-item {
     border: 1px solid #ff69b4;
@@ -409,8 +409,6 @@ footer {
     background-color: #fff;
     border: 1px solid #ff69b4;
     padding: 10px;
-    border-radius: 10px;
-}
     border-radius: 10px;
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
     transition: transform 0.3s;
@@ -432,7 +430,7 @@ ul li a:hover {
 
 .resource-link {
     display: inline-block;
-    margin-block-start: 10px;
+    margin-top: 10px;
     padding: 8px 15px;
     background-color: #ff66b2;
     color: #fff;
@@ -471,4 +469,152 @@ ul li a:hover {
     background-color: #FF88B1;
     color: #fff;
     border: 1px solid #FF88B1;
+}
+
+/* diary-theme.css */
+.container {
+    /* Add your container styles */
+}
+
+.diary-spread {
+    display: flex;
+    justify-content: space-between;
+}
+
+.left-page,
+.right-page {
+    width: 48%;
+}
+
+.profile-picture img {
+    max-width: 100%;
+    border-radius: 50%;
+}
+
+.edit-profile-links .btn {
+    display: inline-block;
+    margin: 0 5px;
+    padding: 10px;
+    background-color: #ff69b4;
+    /* Hot pink color */
+    color: #fff;
+    text-decoration: none;
+    border-radius: 5px;
+    text-align: center;
+}
+
+.try-on-button-container {
+    margin-top: 20px;
+}
+
+.try-on-button {
+    display: inline-block;
+    padding: 10px 20px;
+    background-color: #ff69b4;
+    /* Hot pink color */
+    color: #fff;
+    text-decoration: none;
+    border-radius: 5px;
+    text-align: center;
+}
+
+.glam-goals-title {
+    color: hotpink;
+    font-size: 24px;
+    margin-top: 20px;
+}
+
+.habit-item {
+    margin-bottom: 10px;
+}
+
+.habit-item .progress-container {
+    display: flex;
+    align-items: center;
+    margin-bottom: 5px;
+}
+
+.progress-bar {
+    height: 20px;
+    background-color: hotpink;
+    border-radius: 5px;
+    flex-grow: 1;
+    margin-right: 10px;
+}
+
+.update-progress-button {
+    background-color: #ff69b4;
+    /* Hot pink color */
+    color: #fff;
+    border: none;
+    padding: 5px 10px;
+    border-radius: 5px;
+}
+
+.btn-register {
+    background-color: #ff69b4;
+    /* Hot pink color */
+    color: #fff;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    text-decoration: none;
+    display: inline-block;
+    margin: 5px 0;
+}
+
+#todo-list {
+    list-style-type: none;
+    padding: 0;
+}
+
+#todo-list li {
+    margin-bottom: 10px;
+}
+
+#generate-task,
+#complete-task,
+#fail-task {
+    background-color: #ff69b4;
+    /* Hot pink color */
+    color: #fff;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    text-decoration: none;
+    margin-top: 10px;
+}
+
+#points-display {
+    margin-top: 10px;
+    font-weight: bold;
+}
+
+.binding {
+    width: 2%;
+    background-color: #333;
+}
+
+.toast {
+    position: fixed;
+    bottom: 10px;
+    right: 10px;
+    background-color: #333;
+    color: #fff;
+    padding: 10px;
+    border-radius: 5px;
+    margin-top: 5px;
+    z-index: 1000;
+}
+
+.toast-success {
+    background-color: #4caf50;
+}
+
+.toast-error {
+    background-color: #f44336;
+}
+
+.completed .todo-text {
+    text-decoration: line-through;
 }

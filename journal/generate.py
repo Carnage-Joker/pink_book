@@ -10,7 +10,7 @@ def generate_prompt():
     # Add truncation=True to handle long inputs properly
     generated = generator(prompt_text, max_length=50,
                           num_return_sequences=1, truncation=True)
-    return generated[0]['generated_text']
+    return generated['generated_text']
 
 
 def generate_insight(entry_content):

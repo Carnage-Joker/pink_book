@@ -1,4 +1,6 @@
 {% extends "base.html" %}
+{% load static %}
+
 {% block title %}Forum Threads{% endblock %}
 {% block content %}
 <div class="container diary-spread">
@@ -6,9 +8,10 @@
         <h2>Forum Threads</h2>
         <div class="list-group">
             {% for thread in threads %}
-            <ul><li><a href="{% url 'journal:post_list' thread.pk %}" class="list-group-item list-group-item-action"></li></ul>   
+            <ul><li> <a href="{% url 'journal:post_list' thread.pk %}" class="list-group-item list-group-item-action">
+                        <h5 class="mb-1">{{ thread.title }}</h5></li></ul>   
             
-                    <h5 class="mb-1">{{ thread.title }}</h5>
+                    
                 </a>
             {% endfor %}
         </div>

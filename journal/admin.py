@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import Comment, CustomUser, JournalEntry, RelatedModel, Report, Quote, Thread, UserProfile, Post, UserFeedback, Tag
+from .models import BlogPost, Comment, CustomUser, JournalEntry, RelatedModel, Report, Quote, Thread, UserProfile, Post, UserFeedback, Tag, Resource
 
 
 @admin.register(Thread)
@@ -19,7 +19,13 @@ class CustomUserAdmin(admin.ModelAdmin):
     search_fields = ('email', 'sissy_name')
     list_filter = ('is_staff',)
 
-
+@admin.register(BlogPost)
+class BlogPostAdmin(admin.ModelAdmin):
+    list_display = ('title', 'author', 'timestamp')
+    search_fields = ('title', 'author__sissy_name')
+    list_filter = ('timestamp',)
+    
+    # list_editable = ('title', 'author', 'timestamp')  
 @admin.register(JournalEntry)
 class JournalEntryAdmin(admin.ModelAdmin):
     list_display = ('title', 'user', 'timestamp')

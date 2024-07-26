@@ -1,163 +1,96 @@
-document.addEventListener("DOMContentLoaded", function () {
-    // Function to fetch and display the prompt
-    function generatePrompt() {
-        fetch('/generate-prompt/')
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('Network response was not ok ' + response.statusText);
-                }
-                return response.json();
-            })
-            .then(data => {
-                const generatedText = document.getElementById('generatedText');
-                if (generatedText) {
-                    generatedText.innerText = data.prompt ? data.prompt : "Error generating prompt.";
-                }
-            })
-            .catch(error => {
-                console.error('Error generating prompt:', error);
-                const generatedText = document.getElementById('generatedText');
-                if (generatedText) {
-                    generatedText.innerText = "Failed to fetch prompt. Please try again later.";
-                }
-            });
+// Function to get CSRF token from cookie
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        const cookies = document.cookie.split(';');
+        for (const cookie of cookies) {
+            const trimmedCookie = cookie.trim();
+            if (trimmedCookie.substring(0, name.length + 1) === (name + '=')) {
+                cookieValue = decodeURIComponent(trimmedCookie.substring(name.length + 1));
+                break;
+            }
+        }
     }
+    return cookieValue;
+}
 
-    // Function to fetch and display the insight
-    function generateInsight() {
-        const content = document.getElementById('entryContent') ? document.getElementById('entryContent').value : '';
-
-        fetch('/generate-insight/', {
+document.addEventListener("DOMContentLoaded", function () {
+    function generateTask() {
+        fetch('/journal/generate-task/', {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json'
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken')
             },
-            body: JSON.stringify({ content: content })
+            body: JSON.stringify({})
         })
-            .then(response => {
-                const contentType = response.headers.get('content-type');
-                if (!contentType || !contentType.includes('application/json')) {
-                    throw new Error('Received non-JSON response: ' + contentType);
-                }
-                if (!response.ok) {
-                    throw new Error('Network response was not ok ' + response.statusText);
-                }
-                return response.json();
-            })
+            .then(response => response.json())
             .then(data => {
-                const insightOutput = document.getElementById('insightOutput');
-                if (insightOutput) {
-                    insightOutput.innerText = data.insight ? data.insight : "Error generating insight.";
-                    if (data.insight) {
-                        const insightInput = document.getElementById('id_insight');
-                        if (insightInput) {
-                            insightInput.value = data.insight;
-                        }
-                    }
+                const taskResult = document.getElementById('task-result');
+                if (taskResult) {
+                    taskResult.innerHTML = data.task;
                 }
+                showToast("New task generated! 💖", 'success');
             })
             .catch(error => {
-                console.error('Error generating insight:', error);
-                const insightOutput = document.getElementById('insightOutput');
-                if (insightOutput) {
-                    insightOutput.innerText = "Failed to fetch insight. Please try again later.";
-                }
+                console.error('Error generating task:', error);
+                showToast("Error generating task.", 'error');
             });
     }
 
-    // Attach event listeners
-    const generatePromptButton = document.getElementById('generatePrompt');
-    if (generatePromptButton) {
-        generatePromptButton.addEventListener('click', generatePrompt);
-    }
-
-    const getInsightButton = document.getElementById('getInsight');
-    if (getInsightButton) {
-        getInsightButton.addEventListener('click', generateInsight);
-    }
-
-    const generateTaskButton = document.getElementById('generate-task');
-    if (generateTaskButton) {
-        generateTaskButton.addEventListener('click', function () {
-            fetch('/journal/generate-task/')
-                .then(response => response.json())
-                .then(data => {
-                    const taskResult = document.getElementById('task-result');
-                    if (taskResult) {
-                        taskResult.innerHTML = data.task;
-                    }
-                    showToast("New task generated! 💖", 'success');
-                })
-                .catch(error => console.error('Error generating task:', error));
-        });
-    }
-
-    const completeTaskButton = document.getElementById('complete-task');
-    if (completeTaskButton) {
-        completeTaskButton.addEventListener('click', function () {
-            fetch('/journal/complete-task/', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': getCookie('csrftoken')
+    function completeTask(taskId) {
+        fetch('/journal/complete-task/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+            body: JSON.stringify({ task_id: taskId })
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    document.getElementById('points-display').innerText = `Points: ${data.points}`;
+                    alert('Task completed successfully');
+                } else {
+                    alert('Error completing task: ' + data.message);
                 }
             })
-                .then(response => response.json())
-                .then(data => {
-                    showToast(data.message, 'success');
-                    const pointsDisplay = document.getElementById('points-display');
-                    if (pointsDisplay) {
-                        pointsDisplay.innerText = `Points: ${data.points}`;
-                    }
-                })
-                .catch(error => console.error('Error completing task:', error));
-        });
+            .catch(error => {
+                console.error('Error completing task:', error);
+            });
     }
 
-    const failTaskButton = document.getElementById('fail-task');
-    if (failTaskButton) {
-        failTaskButton.addEventListener('click', function () {
-            fetch('/journal/fail-task/', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/x-www-form-urlencoded',
-                    'X-CSRFToken': getCookie('csrftoken')
-                },
-                body: new URLSearchParams({
-                    penaltyType: 'LOCK_CONTENT', // or 'DEDUCT_POINTS'
-                    pointsToDeduct: 10, // if applicable
-                    contentName: 'Premium Article' // if applicable
-                })
+    function failTask() {
+        fetch('/journal/fail-task/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+            body: JSON.stringify({
+                penaltyType: 'DEDUCT_POINTS',
+                pointsToDeduct: 10,
+                contentName: 'example_content'
             })
-                .then(response => response.json())
-                .then(data => {
-                    console.log(data);
-                    showToast(data.message, 'error');
-                })
-                .catch(error => console.error('Error handling failed task:', error));
-        });
+        })
+            .then(response => response.json())
+            .then(data => {
+                showToast(data.message, 'success');
+            })
+            .catch(error => {
+                console.error('Error failing task:', error);
+                showToast("Error failing task.", 'error');
+            });
     }
 
-    // Function to show toast notifications
-    function showToast(message, type = 'info') {
-        const toastContainer = document.getElementById('toast-container');
-        if (!toastContainer) {
-            console.error('Toast container not found!');
-            return;
-        }
+    document.getElementById('generate-task').addEventListener('click', generateTask);
+    document.getElementById('complete-task').addEventListener('click', function () {
+        const taskId = this.getAttribute('data-task-id');
+        completeTask(taskId);
+    });
+    document.getElementById('fail-task').addEventListener('click', failTask);
 
-        const toast = document.createElement('div');
-        toast.classList.add('toast', `toast-${type}`);
-        toast.textContent = message;
-
-        toastContainer.appendChild(toast);
-
-        setTimeout(() => {
-            toastContainer.removeChild(toast);
-        }, 3000);
-    }
-
-    // Function to handle todo checkbox change
     document.querySelectorAll('.todo-checkbox').forEach(checkbox => {
         checkbox.addEventListener('change', function () {
             const todoId = this.getAttribute('data-id');
@@ -173,18 +106,17 @@ document.addEventListener("DOMContentLoaded", function () {
             headers: {
                 'Content-Type': 'application/json',
                 'X-CSRFToken': getCookie('csrftoken')
-            }
+            },
+            body: JSON.stringify({ todo_id: todoId })
         })
             .then(response => response.json())
             .then(data => {
-                if (data.success) {
+                if (data.status === 'success') {
                     const todoItem = document.getElementById(`todo-${todoId}`);
-                    if (todoItem) {
-                        todoItem.classList.add('completed');
-                        setTimeout(() => {
-                            todoItem.style.display = 'none';
-                        }, 1000); // Adjust the delay as needed
-                    }
+                    todoItem.classList.add('completed');
+                    setTimeout(() => {
+                        todoItem.style.display = 'none';
+                    }, 1000);
                 } else {
                     showToast(data.message, 'error');
                 }
@@ -192,72 +124,46 @@ document.addEventListener("DOMContentLoaded", function () {
             .catch(error => console.error('Error completing todo:', error));
     }
 
-    // Function to update habit progress
-    function updateProgress(habitId) {
-        fetch(`/update-habit-progress/${habitId}/`, {
+    document.querySelectorAll('.increment-counter-button').forEach(button => {
+        button.addEventListener('click', function () {
+            const habitId = this.getAttribute('data-id');
+            incrementHabitCounter(habitId);
+        });
+    });
+
+    function incrementHabitCounter(habitId) {
+        fetch(`/increment-habit-counter/${habitId}/`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
                 'X-CSRFToken': getCookie('csrftoken')
-            },
-            body: JSON.stringify({ progress: 100 }) // Example progress value
+            }
         })
             .then(response => response.json())
             .then(data => {
-                if (data.success) {
-                    const progressContainer = document.querySelector(`#habit-${habitId} .progress-container .progress-bar`);
-                    if (progressContainer) {
-                        progressContainer.style.width = `${data.new_progress}%`;
-                        showToast('Progress updated!', 'success');
-                    }
+                if (data.status === 'success') {
+                    const habitCount = document.getElementById(`habit-count-${habitId}`);
+                    habitCount.innerText = data.new_count;
+                    showToast('Habit counter incremented!', 'success');
                 } else {
                     showToast(data.message, 'error');
                 }
             })
-            .catch(error => console.error('Error updating progress:', error));
+            .catch(error => {
+                console.error('Error incrementing habit counter:', error);
+                showToast("Error incrementing habit counter: " + error.message, 'error');
+            });
     }
 
-    // Attach event listeners to habit update buttons
-    document.querySelectorAll('.update-progress-button').forEach(button => {
-        button.addEventListener('click', function () {
-            const habitId = this.getAttribute('data-id');
-            updateProgress(habitId);
-        });
-    });
+    function showToast(message, type = 'info') {
+        const toastContainer = document.getElementById('toast-container');
+        const toast = document.createElement('div');
+        toast.classList.add('toast', `toast-${type}`);
+        toast.textContent = message;
+        toastContainer.appendChild(toast);
 
-    // CSS for completed todos
-    const style = document.createElement('style');
-    style.innerHTML = `
-        .completed .todo-text {
-            text-decoration: line-through;
-        }
-    `;
-    document.head.appendChild(style);
-});
-
-// Function to show toast notifications
-function showToast(message, type = 'info') {
-    const toastContainer = document.getElementById('toast-container');
-    if (!toastContainer) {
-        console.error('Toast container not found!');
-        return;
+        setTimeout(() => {
+            toastContainer.removeChild(toast);
+        }, 3000);
     }
-
-    const toast = document.createElement('div');
-    toast.classList.add('toast', `toast-${type}`);
-    toast.textContent = message;
-
-    toastContainer.appendChild(toast);
-
-    setTimeout(() => {
-        toastContainer.removeChild(toast);
-    }, 3000);
-}
-
-document.addEventListener('DOMContentLoaded', function () {
-    document.querySelectorAll('a').forEach(function (link) {
-        link.addEventListener('click', function () {
-            showToast('Navigating to ' + link.textContent, 'info');
-        });
-    });
 });
