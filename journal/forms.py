@@ -1,8 +1,6 @@
 
-from crispy_forms.layout import Layout, Submit
-from .models import JournalEntry
 from crispy_forms.helper import FormHelper
-from crispy_forms.layout import Column, Layout, Row, Submit
+from crispy_forms.layout import Layout, Submit
 from django import forms
 from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
 

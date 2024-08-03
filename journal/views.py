@@ -1,56 +1,46 @@
 import json
-from django.views import View
 import logging
 import random
 from datetime import date
-
+from django.http import HttpResponse
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth import get_user_model, login
 from django.contrib.auth import views as auth_views
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.auth.tokens import default_token_generator
 from django.contrib.auth.views import LoginView as AuthLoginView
-from django.core.mail import send_mail
-from django.http import JsonResponse
+from django.contrib.sites.shortcuts import get_current_site
+from django.http import HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
+from django.template.loader import render_to_string
 from django.urls import reverse_lazy
 from django.utils import timezone
 from django.utils.crypto import get_random_string
+from django.utils.encoding import force_bytes
+from django.utils.html import strip_tags
+from django.utils.http import urlsafe_base64_encode
 from django.utils.timezone import now
+from django.views import View
 from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import (CreateView, DeleteView, DetailView, ListView,
                                   TemplateView, UpdateView)
 
 from .forms import (CustomUserCreationForm, CustomUserLoginForm,
-                    CustomUserUpdateForm, JournalEntryForm,
-                    ProfileSettingsForm, ThemeForm, ToDoForm, HabitForm)
+                    CustomUserUpdateForm, HabitForm, JournalEntryForm,
+                    ProfileSettingsForm, ThemeForm, ToDoForm)
 from .generate import generate_insight, generate_prompt
 from .models import (ActivityLog, Answer, Billing, BlogPost, Comment,
                      CustomUser, Guide, Habit, JournalEntry, Message, Post,
-                     Question, Quote, Resource, ResourceCategory, Thread, ToDo,
-                     Task, TaskCompletion, UserProfile)
+                     Question, Quote, Resource, ResourceCategory, Task,
+                     TaskCompletion, Thread, ToDo)
 from .utils.ai_utils import (extract_keywords, get_average_sentiment,
                              get_average_word_count, get_current_streak,
                              get_most_common_emotions, get_most_common_tags,
                              get_peak_journaling_time)
-from .utils.utils import generate_task
-# Adjust this import path as necessary
+from .utils.utils import generate_task, send_email
 
 User = get_user_model()
-
-
-def form_valid(self, form):
-    mail_subject = 'Activate your account.'
-    message = 'Here is the activation link.'
-    to_email = form.cleaned_data.get('email')
-    send_mail(
-        mail_subject,
-        message,
-        'dpinkbook@gmail.com',  # Your Gmail address
-        [to_email],
-        fail_silently=False,
-    )
-    return super().form_valid(form)
 
 
 class RegistrationCompleteView(TemplateView):
@@ -67,20 +57,29 @@ class RegisterView(CreateView):
         response = super().form_valid(form)
         user = form.save(commit=False)
         user.is_active = False  # Deactivate account until it is confirmed
+        user.email = form.cleaned_data['email']  # Add the email attribute
         user.activate_account_token = get_random_string(64)
         user.save()
-        self.send_activation_email(user)
+        self.send_activation_email(user, self.request)
         return response
 
-    def send_activation_email(self, user):
-        subject = 'Activate your account'
-        message = f'Hi {
-            user.sissy_name}, please click the link to activate your account: http://127.0.0.1:8000/activate/{user.activate_account_token}/'
-        from_email = settings.DEFAULT_FROM_EMAIL
-        recipient_list = [user.email]
-        send_mail(subject, message, from_email, recipient_list)
+    def send_activation_email(self, user, request):
+        token = default_token_generator.make_token(user)
+        uid = urlsafe_base64_encode(force_bytes(user.pk))
+        current_site = get_current_site(request)
+        activation_link = f"http://{current_site.domain}/activate/{uid}/{token}/"
 
-# views.py (continued)
+        subject = 'Activate your account'
+        message = render_to_string('activation_email_template.html', {
+            'user': user,
+            'activation_link': activation_link
+        })
+        plain_message = strip_tags(message)
+        from_email = settings.EMAIL_HOST_USER
+        to_email = user.email
+
+        send_email(subject, plain_message, from_email,
+                  [to_email], html_message=message)
 
 
 def activate_account(request, token):
@@ -96,6 +95,15 @@ def activate_account(request, token):
         return redirect('journal:dashboard')
     except CustomUser.DoesNotExist:
         return render(request, 'journal/activation_invalid.html')
+
+
+def oauth2callback(request):
+    flow = google_auth_oauthlib.flow.InstalledAppFlow.from_client_secrets_file(settings.GMAIL_CLIENT_SECRET_FILE, SCOPES)
+    flow.fetch_token(authorization_response=request.build_absolute_uri())
+    credentials = flow.credentials
+    with open(settings.GMAIL_TOKEN_FILE, 'w') as token:
+        token.write(credentials.to_json())
+    return HttpResponse('Authentication successful. You can close this window.')
 
 
 class AboutView(TemplateView):
@@ -407,6 +415,16 @@ class CompleteToDoView(View):
 
 logger = logging.getLogger(__name__)
 
+# views.py
+
+
+
+def privacy_policy(request):
+    return HttpResponse("<h1>Privacy Policy</h1><p>This is a placeholder for the privacy policy.</p>")
+
+
+def terms_of_service(request):
+    return HttpResponse("<h1>Terms of Service</h1><p>This is a placeholder for the terms of service.</p>")
 
 class CompleteTaskView(View):
     def post(self, request, *args, **kwargs):

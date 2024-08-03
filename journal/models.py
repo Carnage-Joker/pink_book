@@ -231,7 +231,12 @@ class Habit(models.Model):
         ('domme_appreciation', 'Domme Appreciation'),
         ('orders', 'Orders')
     ], default='sissification_tasks')
-    last_reset_date = models.DateField(default=timezone.now)
+    last_reset_date = models.DateField()
+
+    def check_reset_needed(self):
+        now = timezone.now().date()  # Convert now to a date object
+        if self.reminder_frequency == 'daily' and self.last_reset_date < now:
+            self.last_reset_date = now
 
     def increment_count(self):
         self.increment_counter += 1
@@ -241,15 +246,6 @@ class Habit(models.Model):
         self.increment_counter = 0
         self.last_reset_date = timezone.now()
         self.save()
-
-    def check_reset_needed(self):
-        now = timezone.now().date()
-        if self.reminder_frequency == 'daily' and self.last_reset_date < now:
-            self.reset_count()
-        elif self.reminder_frequency == 'weekly' and self.last_reset_date < now - timezone.timedelta(days=7):
-            self.reset_count()
-        elif self.reminder_frequency == 'monthly' and self.last_reset_date < now - timezone.timedelta(days=30):
-            self.reset_count()
 
     def save(self, *args, **kwargs):
         self.check_reset_needed()

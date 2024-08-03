@@ -12,7 +12,8 @@ from .views import (
     BillingView, qna_list, qna_detail, activate_account, MessageListView,
     CustomLoginView, ModeratorListView, TemplateView, ForumCreateView,
     ForumDeleteView, PostListView, ThreadListView, FeatureListView,
-    BlogListView, blog_detail, IncrementHabitCounter, CompleteTaskView
+    BlogListView, blog_detail, IncrementHabitCounter, CompleteTaskView,
+    privacy_policy, terms_of_service, oauth2callback
 )
 
 app_name = 'journal'
@@ -30,6 +31,7 @@ urlpatterns = [
     path('activate/<str:token>/', activate_account, name='activate_account'),
     path('registration_complete/', TemplateView.as_view(
         template_name='registration_complete.html'), name='registration_complete'),
+    path('oauth2callback/', oauth2callback, name='oauth2callback'),
 
     # Dashboard
     path('dashboard/', DashboardView.as_view(), name='dashboard'),
@@ -100,4 +102,7 @@ urlpatterns = [
     path('activity/', ActivityLogListView.as_view(), name='activity_log'),
     path('billing/', BillingView.as_view(), name='billing'),
     path('inbox/', MessageListView.as_view(), name='message_list'),
+    path('privacy-policy/', privacy_policy, name='privacy_policy'),
+    path('terms-of-service/', terms_of_service, name='terms_of_service'),
+    
 ]
