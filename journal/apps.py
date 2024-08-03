@@ -7,6 +7,6 @@ class JournalConfig(AppConfig):
     
     def ready(self):
         from . import signals
-        
-        
+
+
 # Path: journal/signals.py

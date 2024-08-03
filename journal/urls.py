@@ -12,7 +12,7 @@ from .views import (
     BillingView, qna_list, qna_detail, activate_account, MessageListView,
     CustomLoginView, ModeratorListView, TemplateView, ForumCreateView,
     ForumDeleteView, PostListView, ThreadListView, FeatureListView,
-    BlogListView, blog_detail, IncrementHabitCounterView, CompleteTaskView
+    BlogListView, blog_detail, IncrementHabitCounter, CompleteTaskView
 )
 
 app_name = 'journal'
@@ -43,7 +43,7 @@ urlpatterns = [
     # Journal
     path('journal/entry/create/<int:task_id>/',
          JournalEntryCreateView.as_view(), name='new_entry'),
-
+    path('journal/entry/create/', JournalEntryCreateView.as_view(), name='new_entry'),
     path('list/', JournalEntryListView.as_view(),
          name='entry_list'),  # Fixed missing slash
     path('entry/<int:pk>/', JournalEntryDetailView.as_view(), name='entry_detail'),
@@ -57,6 +57,7 @@ urlpatterns = [
     path('forum/posts/<int:thread_id>/',
          PostListView.as_view(), name='post_list'),
     path('forum/create/', ForumCreateView.as_view(), name='create_post'),
+
     path('forum/<int:pk>/', ForumPostDetailView.as_view(), name='post_detail'),
     path('forum/<int:pk>/delete/', ForumDeleteView.as_view(), name='post_delete'),
     path('forum/moderators/', ModeratorListView.as_view(), name='moderators'),
@@ -66,23 +67,18 @@ urlpatterns = [
     path('habits/create/', HabitCreateView.as_view(), name='habit_create'),
     path('habits/<int:pk>/', HabitDetailView.as_view(), name='habit_detail'),
     path('habits/<int:pk>/update/', HabitUpdateView.as_view(), name='habit_update'),
-    path('increment-habit-counter/<int:pk>/',
-         IncrementHabitCounterView.as_view(), name='increment_habit_counter'),
-    path('increment-habit-counter/<int:habit_id>/',
-         IncrementHabitCounterView.as_view(), name='increment_habit_counter'),
+    path('increment-habit-counter/<int:pk>/', IncrementHabitCounter.as_view(), name='increment_habit_counter'),
 
     # To-Do List
     path('todos/', ToDoListView.as_view(), name='todo_list'),
     path('todos/new/', ToDoCreateView.as_view(), name='create_todo'),
     path('todos/<int:pk>/edit/', ToDoUpdateView.as_view(), name='todo_update'),
-    path('todo/<int:pk>/', ToDoDetailView.as_view(), name='todo_detail'),
+    path('todos/<int:pk>/', ToDoDetailView.as_view(), name='todo_detail'),
     path('generate-task/', generate_task_view, name='generate_task'),
-
     path('fail-task/', fail_task_view, name='fail_task'),
-    path('complete-todo/<int:todo_id>/',
-         CompleteToDoView.as_view(), name='complete_todo'),
-
+    path('complete-todo/<int:todo_id>/', CompleteToDoView.as_view(), name='complete_todo'),
     path('complete-task/', CompleteTaskView.as_view(), name='complete_task'),
+
     # Resources
     path('guides/', guide_list, name='guide_list'),
     path('guides/<int:pk>/', guide_detail, name='guide_detail'),

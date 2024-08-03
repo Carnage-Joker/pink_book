@@ -1,0 +1,21 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="avatar-dress-up">
+    <h1>Dress Up Your Avatar</h1>
+    <div id="avatar-canvas">
+        <img src="{% static 'avatars/' %}{{ avatar.body }}.png" id="body">
+        <img src="{% static 'avatars/' %}{{ avatar.top }}.png" id="top">
+        <img src="{% static 'avatars/' %}{{ avatar.bottom }}.png" id="bottom">
+        <img src="{% static 'avatars/' %}{{ avatar.shoes }}.png" id="shoes">
+        <img src="{% static 'avatars/' %}{{ avatar.accessories }}.png" id="accessories">
+    </div>
+    <div class="item-selection">
+        {% for item in items %}
+        <div class="item" data-category="{{ item.category }}" data-name="{{ item.name }}">
+            <img src="{{ item.image.url }}" alt="{{ item.name }}">
+            <p>{{ item.name }}</p>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

@@ -17,7 +17,7 @@ HUGGING_FACE_API_KEY = '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'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [BASE_DIR / 'templates'],  # Ensure templates are pointed here
+        'DIRS': [BASE_DIR / 'templates', 'dressup/templates/dressup'],  # Ensure templates are pointed here
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -47,10 +47,11 @@ INSTALLED_APPS = [
     'django.contrib.sites',
     'django.contrib.humanize',
     'journal.apps.JournalConfig',
-    'virtual_try_on',
+    'dressup',
     'corsheaders',
     # 'csp',  # Disabled for now
     'channels',
+    'openai',
     ]
 
 ASGI_APPLICATION = 'Pink_Book.asgi.application'

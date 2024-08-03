@@ -1,0 +1,42 @@
+.avatar-creation,
+.avatar-dress-up,
+.mall {
+    text-align: center;
+}
+
+#avatar-canvas {
+    position: relative;
+    width: 200px;
+    height: 400px;
+    margin: 0 auto;
+}
+
+#avatar-canvas img {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+}
+
+.item-selection,
+.items {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.item {
+    margin: 10px;
+    padding: 10px;
+    border: 1px solid #ccc;
+    cursor: pointer;
+    text-align: center;
+}
+
+.item img {
+    width: 100px;
+    height: 100px;
+}
+
+.item p {
+    margin: 5px 0;
+}

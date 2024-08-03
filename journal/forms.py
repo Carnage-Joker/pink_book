@@ -1,4 +1,6 @@
 
+from crispy_forms.layout import Layout, Submit
+from .models import JournalEntry
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Column, Layout, Row, Submit
 from django import forms
@@ -31,7 +33,11 @@ class PostForm(forms.ModelForm):
         choices=[('personal', 'Personal'), ('kink', 'Kink'), ('lifestyle', 'Lifestyle'), ('other', 'Other')],
         required=True
     )
-    
+    tags = forms.ModelMultipleChoiceField(
+        queryset=Tag.objects.all(),
+        widget=forms.CheckboxSelectMultiple,
+        required=False)  
+
     class Meta:
         model = Post
         fields = ['title', 'content', 'thread']
@@ -179,24 +185,24 @@ class JournalEntryForm(forms.ModelForm):
     class Meta:
         model = JournalEntry
         fields = ['title', 'content', 'tags',
-                  'image', 'video', 'audio', 'file',]
+                  'image', 'video', 'audio', 'file']
         widgets = {
-            'tags': forms.CheckboxSelectMultiple(), }
+            'tags': forms.CheckboxSelectMultiple(),
+        }
 
-        def __init__(self, *args, **kwargs):
-            super().__init__(*args, **kwargs)
-            self.helper = FormHelper(self)
-            self.helper.layout = Layout(
-                'title',
-                'content',
-                'tags',
-                'image',
-                'video',
-                'audio',
-                'file',
-                Submit('submit', 'Post Entry')
-
-            )
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.helper = FormHelper(self)
+        self.helper.layout = Layout(
+            'title',
+            'content',
+            'tags',
+            'image',
+            'video',
+            'audio',
+            'file',
+            Submit('submit', 'Post Entry')
+        )
 
 
 class TagForm(forms.ModelForm):

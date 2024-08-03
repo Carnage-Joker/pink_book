@@ -39,13 +39,19 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     function completeTask(taskId) {
+        const journalEntry = prompt("Please write about completing the task:");
+        if (!journalEntry) {
+            alert("You must write about the task to complete it.");
+            return;
+        }
+
         fetch('/journal/complete-task/', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
                 'X-CSRFToken': getCookie('csrftoken')
             },
-            body: JSON.stringify({ task_id: taskId })
+            body: JSON.stringify({ task_id: taskId, journal_entry: journalEntry })
         })
             .then(response => response.json())
             .then(data => {
@@ -61,6 +67,13 @@ document.addEventListener("DOMContentLoaded", function () {
             });
     }
 
+    document.addEventListener("DOMContentLoaded", function () {
+        document.getElementById('complete-task').addEventListener('click', function () {
+            const taskId = this.getAttribute('data-task-id');
+            completeTask(taskId);
+        });
+    });
+
     function failTask() {
         fetch('/journal/fail-task/', {
             method: 'POST',
@@ -69,9 +82,9 @@ document.addEventListener("DOMContentLoaded", function () {
                 'X-CSRFToken': getCookie('csrftoken')
             },
             body: JSON.stringify({
-                penaltyType: 'DEDUCT_POINTS',
-                pointsToDeduct: 10,
-                contentName: 'example_content'
+                penaltyType: 'DEDUCT_POINTS', // Example penalty type
+                pointsToDeduct: 10, // Example points to deduct
+                contentName: 'example_content' // Example content name
             })
         })
             .then(response => response.json())
@@ -85,10 +98,7 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     document.getElementById('generate-task').addEventListener('click', generateTask);
-    document.getElementById('complete-task').addEventListener('click', function () {
-        const taskId = this.getAttribute('data-task-id');
-        completeTask(taskId);
-    });
+    document.getElementById('complete-task').addEventListener('click', completeTask);
     document.getElementById('fail-task').addEventListener('click', failTask);
 
     document.querySelectorAll('.todo-checkbox').forEach(checkbox => {
@@ -124,36 +134,29 @@ document.addEventListener("DOMContentLoaded", function () {
             .catch(error => console.error('Error completing todo:', error));
     }
 
-    document.querySelectorAll('.increment-counter-button').forEach(button => {
-        button.addEventListener('click', function () {
-            const habitId = this.getAttribute('data-id');
-            incrementHabitCounter(habitId);
-        });
+function incrementHabitCounter(habitId) {
+    fetch(`/increment-habit-counter/${habitId}/`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCookie('csrftoken')
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.status === 'success') {
+            const habitCount = document.getElementById(`habit-count-${habitId}`);
+            habitCount.innerText = data.new_count;
+            showToast('Habit counter incremented!', 'success');
+        } else {
+            showToast(data.message, 'error');
+        }
+    })
+    .catch(error => {
+        console.error('Error incrementing habit counter:', error);
+        showToast("Error incrementing habit counter: " + error.message, 'error');
     });
-
-    function incrementHabitCounter(habitId) {
-        fetch(`/increment-habit-counter/${habitId}/`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': getCookie('csrftoken')
-            }
-        })
-            .then(response => response.json())
-            .then(data => {
-                if (data.status === 'success') {
-                    const habitCount = document.getElementById(`habit-count-${habitId}`);
-                    habitCount.innerText = data.new_count;
-                    showToast('Habit counter incremented!', 'success');
-                } else {
-                    showToast(data.message, 'error');
-                }
-            })
-            .catch(error => {
-                console.error('Error incrementing habit counter:', error);
-                showToast("Error incrementing habit counter: " + error.message, 'error');
-            });
-    }
+}
 
     function showToast(message, type = 'info') {
         const toastContainer = document.getElementById('toast-container');

@@ -1,8 +1,10 @@
 {% extends 'base.html' %}
 {% load static %}
+
 {% block title %}
   Dashboard
 {% endblock %}
+
 {% block content %}
   <div class="container diary-spread">
     <!-- Left Page - Profile and Recent Activities -->
@@ -72,9 +74,19 @@
           No insights yet, darling. Why not write a <a href="{% url 'journal:new_entry' %}" class="btn btn-register">new entry</a> in your journal
         </p>
       {% endif %}
-      <div class="try-on-button-container">
-        <a href="{% url 'virtual_try_on:avatar_customization' %}" class="try-on-button">Try On Clothes! 💖</a>
-      </div>
+      {% for entry in entries %}
+      <ul> <li>{{ entry.title }}</li></ul>
+        <p>Check out the <a href="{% url 'journal:entry_detail' entry.pk %}" class="btn btn-register">entry</a> you wrote on {{ entry.created_at }}</p>
+        <p>or check out all your <a href="{% url 'journal:entries' %}" class="btn btn-register">entries</a></p>
+      {% endfor %}
+      {% if not entries %}
+        <p>
+          No entries yet, darling. Why not write a <a href="{% url 'journal:new_entry' %}" class="btn btn-register">new entry</a> in your journal
+        </p>
+      {% endif %}
+
+    <div class="try-on-button-container">
+      <a href="{% url 'dressup:create_avatar' %}" class="try-on-button">Try On Clothes! 💖</a>
     </div>
 
     <!-- Right Page - Chores and Goals -->
@@ -92,7 +104,7 @@
       <ul id="todo-list">
         {% for todo in todos %}
           <li id="todo-{{ todo.pk }}" class="{% if todo.completed %}completed{% endif %}">
-            <input type="checkbox" class="todo-checkbox" data-id="{{ todo.pk }}" {% if todo.completed %}checked{% endif %} />
+            <input type="checkbox" class="todo-checkbox" data-id="{{ todo.pk }}"/>
             <span class="todo-text">{{ todo.task }}</span>
             <a href="{% url 'journal:todo_update' todo.pk %}" class="btn btn-register">Edit</a>
             <a href="{% url 'journal:todo_detail' todo.pk %}" class="btn btn-register">Details</a>

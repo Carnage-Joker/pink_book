@@ -64,14 +64,14 @@ body {
 
 .left-page {
     border-inline-end: 2px solid #d1a3c756;
-    inline-size: 40%;
+    min-inline-size: 40%;
     padding-inline-end: 20px;
     inset-inline-start: 9%;
 }
 
 .right-page {
     border-left: 2px solid #d1a3c748;
-    inline-size: 40%;
+    min-inline-size: 40%;
     padding-left: 20px;
     inset-inline-start: 51%;
 }
@@ -81,8 +81,9 @@ body {
     inline-size: 2%;
     background-color: #d1a3c7;
     position: absolute;
-    inset-block-start: 5%;
-    inset-block-end: 5%;
+    min-block-size: 95%;
+    inset-block-start: 2.5%;
+    inset-block-end: 2.5%;
     inset-inline-start: 50%;
     transform: translateX(-50%);
     box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);

@@ -1,0 +1,10 @@
+{% extends 'dressup/base.html' %}
+{% block content %}
+<div class="avatar-creation">
+    <h1>Create Your Avatar</h1>
+    <form method="post">
+        {% csrf_token %}
+        <button type="submit">Create Avatar</button>
+    </form>
+</div>
+{% endblock %}

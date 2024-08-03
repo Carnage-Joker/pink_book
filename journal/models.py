@@ -1,12 +1,11 @@
-
-from django.utils import timezone
-from django.contrib.auth import get_user_model
 import os
+import uuid
 from datetime import date, datetime, timedelta
 from uuid import uuid4
 
 from dateutil.relativedelta import relativedelta
 from django.conf import settings
+from django.contrib.auth import get_user_model
 from django.contrib.auth.models import (AbstractBaseUser, BaseUserManager,
                                         Group, Permission, PermissionsMixin)
 from django.contrib.contenttypes.fields import (GenericForeignKey,
@@ -15,6 +14,7 @@ from django.contrib.contenttypes.models import ContentType
 from django.core.mail import send_mail
 from django.db import models
 from django.urls import reverse
+from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
 from .utils.ai_utils import get_sentiment
@@ -111,19 +111,19 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
 
     avatar_body = models.CharField(
         max_length=255, default=(
-            "/static/virtual_try_on/avatars/body/light/"
+            "/static/dressup/avatars/body/light/"
             "hourglass.png"
         )
     )
     avatar_hair = models.CharField(
         max_length=255,
-        default="/static/virtual_try_on/avatars/hair/long_straight/blonde.png")
+        default="/static/dressup/avatars/hair/long_straight/blonde.png")
     avatar_top = models.CharField(
-        max_length=255, default="/static/virtual_try_on/garmets/tops/1.png")
+        max_length=255, default="/static/dressup/garmets/tops/1.png")
     avatar_bottom = models.CharField(
-        max_length=255, default="/static/virtual_try_on/garmets/skirts/1.png")
+        max_length=255, default="/static/dressup/garmets/skirts/1.png")
     avatar_shoes = models.CharField(
-        max_length=255, default="/static/virtual_try_on/garmets/shoes/1.png")
+        max_length=255, default="/static/dressup/garmets/shoes/1.png")
 
     objects = CustomUserManager()
     activate_account_token = models.CharField(max_length=255, blank=True)
@@ -182,32 +182,33 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
 
 # Habit Trackers Models
 # Assuming the models are in journal/models.py
-
-
 REWARD_CHOICES = [
-    ('sticker', 'Digital Sticker'),
-    ('unlock_content', 'Unlock New Content'),
-    ('sissy_store_credit', 'Sissy Store Credit'),
-    ('new_outfit', 'New Outfit')
-    # ... more rewards
+    ('praise', 'Praise'),
+    ('treat', 'Treat'),
+    ('gift', 'Gift'),
+    ('privilege', 'Privilege'),
+    ('none', 'None')
 ]
 
 PENALTY_CHOICES = [
-    ('reminder', 'Reminder Message'),
-    ('lock_content', 'Lock Content'),
-    ('50_lines', 'Write 50 lines'),
-    ('corner_time', '15 minutes Corner Time'),
-    # ... more penalties
+    ('ignore', 'Ignore'),
+    ('punishment', 'Punishment'),
+    ('task', 'Task'),
+    ('loss', 'Loss'),
+    ('none', 'None')
 ]
 
 
 class Habit(models.Model):
     user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
     name = models.CharField(max_length=255)
+    id = models.UUIDField(
+        primary_key=True, default=uuid.uuid4, editable=False, unique=True)
     start_date = models.DateField(default=timezone.now)
     end_date = models.DateField(blank=True, null=True)
     description = models.TextField(blank=True, null=True)
-    count = models.IntegerField(default=0)
+    increment_counter = models.IntegerField(
+        default=0)  # Ensure this field is defined
     reward = models.CharField(
         max_length=50, choices=REWARD_CHOICES, null=True, blank=True)
     penalty = models.CharField(
@@ -233,11 +234,11 @@ class Habit(models.Model):
     last_reset_date = models.DateField(default=timezone.now)
 
     def increment_count(self):
-        self.count += 1
+        self.increment_counter += 1
         self.save()
 
     def reset_count(self):
-        self.count = 0
+        self.increment_counter = 0
         self.last_reset_date = timezone.now()
         self.save()
 
@@ -300,7 +301,7 @@ class Guide(models.Model):
     def __str__(self):
         return self.title
 
- 
+
 class Notification(models.Model):
     user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
     title = models.CharField(max_length=200)
@@ -351,7 +352,7 @@ class BlogPost(models.Model):
     author = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
     timestamp = models.DateTimeField(auto_now_add=True)
     published = models.BooleanField(default=False)
- 
+
 
 class ResourceCategory(models.Model):
     name = models.CharField(max_length=100)

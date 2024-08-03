@@ -7,10 +7,7 @@ from django.conf.urls.static import static
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('virtual_try_on/', include(
-        ('virtual_try_on.urls', 'virtual_try_on'),
-        namespace='virtual_try_on'
-    )),
+    path('dressup/', include('dressup.urls', 'dressup'), name='dressup'),
     path('journal/', include(('journal.urls', 'journal'), namespace='journal')),
     path('', RedirectView.as_view(url='/journal/', permanent=False)),  # Redirect root URL to journal
     # Add other URL patterns here

@@ -1,0 +1,19 @@
+{% extends 'base.html' %}
+{% block content %}
+<div class="mall">
+    <h1>Premium Items</h1>
+    <div class="items">
+        {% for item in items %}
+        <div class="item">
+            <img src="{{ item.image.url }}" alt="{{ item.name }}">
+            <p>{{ item.name }}</p>
+            <p>${{ item.price }}</p>
+            <form method="post" action="{% url 'purchase_item' item.id %}">
+                {% csrf_token %}
+                <button type="submit">Purchase</button>
+            </form>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endblock %}

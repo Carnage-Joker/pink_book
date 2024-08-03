@@ -1,11 +1,5 @@
-
-from .models import Habit
-from .models import ToDo
-from .models import Task, TaskCompletion, UserProfile
-from django.shortcuts import redirect
 import json
 from django.views import View
-from django.utils.decorators import method_decorator
 import logging
 import random
 from datetime import date
@@ -33,12 +27,14 @@ from .forms import (CustomUserCreationForm, CustomUserLoginForm,
 from .generate import generate_insight, generate_prompt
 from .models import (ActivityLog, Answer, Billing, BlogPost, Comment,
                      CustomUser, Guide, Habit, JournalEntry, Message, Post,
-                     Question, Quote, Resource, ResourceCategory, Thread, ToDo)
+                     Question, Quote, Resource, ResourceCategory, Thread, ToDo,
+                     Task, TaskCompletion, UserProfile)
 from .utils.ai_utils import (extract_keywords, get_average_sentiment,
                              get_average_word_count, get_current_streak,
                              get_most_common_emotions, get_most_common_tags,
                              get_peak_journaling_time)
-from .utils.utils import generate_task  # Adjust this import path as necessary
+from .utils.utils import generate_task
+# Adjust this import path as necessary
 
 User = get_user_model()
 
@@ -79,7 +75,7 @@ class RegisterView(CreateView):
     def send_activation_email(self, user):
         subject = 'Activate your account'
         message = f'Hi {
-                    user.sissy_name}, please click the link to activate your account: http://127.0.0.1:8000/activate/{user.activate_account_token}/'
+            user.sissy_name}, please click the link to activate your account: http://127.0.0.1:8000/activate/{user.activate_account_token}/'
         from_email = settings.DEFAULT_FROM_EMAIL
         recipient_list = [user.email]
         send_mail(subject, message, from_email, recipient_list)
@@ -117,12 +113,12 @@ class BlogListView(ListView):
 
     def get_queryset(self):
         return BlogPost.objects.filter(published=True,).order_by("-timestamp")
-    
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context['latest_posts'] = BlogPost.objects.order_by('-timestamp')[:5]
         return context
-        
+
 
 def blog_detail(request, pk):
     post = get_object_or_404(BlogPost, pk=pk)
@@ -134,9 +130,9 @@ class CustomLoginView(AuthLoginView):
     authentication_form = CustomUserLoginForm
 
     def form_valid(self, form):
-        user = form.get_user()
-        logger.info(f"User {user.sissy_name} (ID: {
-                    user.id}) logged in successfully.")
+        login(self.request, form.get_user())
+        logger.info(f"User {CustomUser.sissy_name} (ID: {
+                    CustomUser.sissy_name}) logged in successfully.")
         messages.success(self.request, "You have successfully logged in.")
         return super().form_valid(form)
 
@@ -150,12 +146,26 @@ class CustomLoginView(AuthLoginView):
 # Set up the logger
 logger = logging.getLogger(__name__)
 
+
 class CustomLogoutView(auth_views.LogoutView):
+    model = CustomUser
+    template_name = "logout.html"
+    next_page = reverse_lazy("journal:welcome")
+    redirect_field_name = "next"
+
+    def get_next_page(self):
+        next_page = super().get_next_page()
+        if next_page:
+            return next_page
+        return self.next_page
+
     def dispatch(self, request, *args, **kwargs):
-        user = request.user
+        user = self.request.user
         if user.is_authenticated:
-            logger.info(f"User {user.sissy_name} (ID: {user.id}) logged out successfully.")
-            messages.success(request, "You have successfully logged out.")
+            user.is_active = False
+        logger.info(
+            f"User {user.sissy_name} (ID: {user.id}) logged out successfully.")
+        messages.success(request, "You have successfully logged out.")
         return super().dispatch(request, *args, **kwargs)
 #  Ensure this is correctly imported
 
@@ -246,7 +256,7 @@ class FeatureListView(ListView):
     # this is for the welcome page to display the different features of the website to draw in subscribers
     template_name = "feature_list.html"
     context_object_name = 'features'
-    
+
 
 class PostListView(ListView):
     model = Post
@@ -297,19 +307,6 @@ class CommentCreateView(LoginRequiredMixin, CreateView):
         raise NotImplementedError("Define how to get content_object here")
 
 
-class IncrementHabitCounterView(View):
-    def post(self, request, *args, **kwargs):
-        try:
-            habit_id = kwargs['habit_id']
-            habit = Habit.objects.get(id=habit_id, user=request.user)
-            habit.increment_count()
-            return JsonResponse({'status': 'success', 'new_count': habit.count})
-        except Habit.DoesNotExist:
-            return JsonResponse({'status': 'error', 'message': 'Habit does not exist'}, status=404)
-        except Exception as e:
-            return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
-
-
 class HabitListView(LoginRequiredMixin, ListView):
     model = Habit
     template_name = "habit_list.html"
@@ -340,6 +337,22 @@ class HabitUpdateView(LoginRequiredMixin, UpdateView):
 class HabitDetailView(LoginRequiredMixin, DetailView):
     model = Habit
     template_name = "habit_detail.html"
+
+
+def increment_habit_counter(request, pk):
+    habit = get_object_or_404(Habit, pk=pk)
+    habit.increment_counter()
+    return redirect('journal:habit_detail', pk=pk)
+
+
+class IncrementHabitCounter(View):
+    def post(self, request, pk):
+        habit = get_object_or_404(Habit, pk=pk)
+        habit.increment_counter()
+        return JsonResponse({'status': 'success'})
+    
+    def get(self, request, *args, **kwargs):
+        return JsonResponse({'error': 'Invalid request method'}, status=400)
 
 
 @csrf_exempt
@@ -392,7 +405,6 @@ class CompleteToDoView(View):
             return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
 
 
-
 logger = logging.getLogger(__name__)
 
 
@@ -401,18 +413,18 @@ class CompleteTaskView(View):
         try:
             data = json.loads(request.body)
             task_id = data.get('task_id')
-            user_profile = UserProfile.objects.get(user=request.user)
+            user = CustomUser.objects.get(user=request.user)
             task = Task.objects.get(id=task_id)
 
             if not TaskCompletion.objects.filter(user=request.user, task=task).exists():
                 # Redirect to the journal entry form with the task details
-                return redirect('journal:entry_create', task_id=task.id)
+                return redirect('journal:entry_create', task_id=task_id)
             else:
                 return JsonResponse({'status': 'error', 'message': 'Task already completed'}, status=400)
         except Task.DoesNotExist:
             return JsonResponse({'status': 'error', 'message': 'Task does not exist'}, status=404)
-        except UserProfile.DoesNotExist:
-            return JsonResponse({'status': 'error', 'message': 'User profile does not exist'}, status=404)
+        except user.DoesNotExist:
+            return JsonResponse({'status': 'error', 'message': 'User does not exist'}, status=404)
         except Exception as e:
             return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
 
@@ -445,7 +457,98 @@ class ToDoListView(LoginRequiredMixin, ListView):
     template_name = "todo_list.html"
 
     def get_queryset(self):
-        return ToDo.objects.filter(user=self.request.user)
+        completed = self.request.GET.get('completed', None)
+        queryset = ToDo.objects.filter(user=self.request.user)
+        if completed is not None:
+            queryset = queryset.filter(completed=completed)
+        return queryset
+
+
+class JournalEntryCreateView(LoginRequiredMixin, CreateView):
+    model = JournalEntry
+    template_name = 'new_entry.html'
+    form_class = JournalEntryForm
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        # Generate a new prompt when the user accesses the new entry page
+        context['generated_prompt'] = generate_prompt()
+        return context
+
+    def form_valid(self, form):
+        form.instance.user = self.request.user
+        form.instance.prompt_text = self.get_context_data(
+        )['generated_prompt']  # Save the generated prompt
+
+        # Save the form but don't commit to the database yet
+        journal_entry = form.save(commit=False)
+
+        # Generate the insight for the journal entry content
+        try:
+            insight_text = generate_insight(journal_entry.content)
+            journal_entry.insight = insight_text
+        except Exception as e:
+            messages.error(self.request, f"Error generating insight: {str(e)}")
+            journal_entry.insight = "Insight generation failed."
+
+        # Save the journal entry
+        journal_entry.save()
+
+        # Save tags
+        form.save_m2m()
+
+        self.object = journal_entry
+
+        messages.success(
+            self.request, "Journal entry created successfully with insights.")
+        return super().form_valid(form)
+
+    def get_success_url(self):
+        return reverse_lazy('journal:entry_detail', kwargs={'pk': self.object.pk})
+
+
+class JournalEntryDetailView(LoginRequiredMixin, DetailView):
+    model = JournalEntry
+    template_name = "entry_detail.html"
+    context_object_name = 'entry'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        entry = context['entry']
+        # Pass the prompt to the context
+        context['prompt_text'] = entry.prompt_text
+        context['insight'] = entry.insight  # Pass the insight to the context
+        return context
+
+
+class JournalEntryListView(LoginRequiredMixin, ListView):
+    model = JournalEntry
+    template_name = "entry_list.html"
+    context_object_name = 'page_obj'
+    paginate_by = 10  # Adjust as needed
+
+    def get_queryset(self):
+        user = self.request.user
+        return JournalEntry.objects.filter(user=user)
+
+
+class JournalEntryUpdateView(LoginRequiredMixin, UpdateView):
+    model = JournalEntry
+    template_name = "entry_update.html"
+    form_class = JournalEntryForm
+    success_url = reverse_lazy('journal:entry_list')
+
+    def get_queryset(self):
+        return JournalEntry.objects.filter(user=self.request.user)
+
+
+class JournalEntryDeleteView(LoginRequiredMixin, DeleteView):
+    model = JournalEntry
+    template_name = "entry_delete.html"
+    success_url = reverse_lazy('journal:entry_list')
+
+    def get_queryset(self):
+        return JournalEntry.objects.filter(user=self.request.user)
 
 
 class DashboardView(LoginRequiredMixin, TemplateView):
@@ -506,93 +609,17 @@ class DashboardView(LoginRequiredMixin, TemplateView):
         return context
 
 
-class JournalEntryCreateView(LoginRequiredMixin, CreateView):
-    model = JournalEntry
-    template_name = 'new_entry.html'
-    form_class = JournalEntryForm
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        # Generate a new prompt when the user accesses the new entry page
-        context['generated_prompt'] = generate_prompt()
-        return context
-
-    def form_valid(self, form):
-        form.instance.user = self.request.user
-        form.instance.prompt_text = self.get_context_data(
-        )['generated_prompt']  # Save the generated prompt
-
-        # Save the form but don't commit to the database yet
-        journal_entry = form.save(commit=False)
-
-        # Generate the insight for the journal entry content
-        try:
-            insight_text = generate_insight(journal_entry.content)
-            journal_entry.insight = insight_text
-        except Exception as e:
-            messages.error(self.request, f"Error generating insight: {str(e)}")
-            journal_entry.insight = "Insight generation failed."
-
-        journal_entry.save()
-        self.object = journal_entry
-
-        messages.success(
-            self.request, "Journal entry created successfully with insights.")
-        return super().form_valid(form)
-
-    def get_success_url(self):
-        return reverse_lazy('journal:entry_detail', kwargs={'pk': self.object.pk})
-
-
-class JournalEntryDetailView(LoginRequiredMixin, DetailView):
-    model = JournalEntry
-    template_name = "entry_detail.html"
-    context_object_name = 'entry'
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        entry = context['entry']
-        # Pass the prompt to the context
-        context['prompt_text'] = entry.prompt_text
-        context['insight'] = entry.insight  # Pass the insight to the context
-        context['comments'] = entry.comments.all()
-        return context
-
-
-class JournalEntryListView(LoginRequiredMixin, ListView):
-    model = JournalEntry
-    template_name = "entry_list.html"
-    context_object_name = 'page_obj'
-    paginate_by = 10  # Adjust as needed
-
-    def get_queryset(self):
-        user = self.request.user
-        return JournalEntry.objects.filter(user=user)
-
-
-class JournalEntryUpdateView(LoginRequiredMixin, UpdateView):
-    model = JournalEntry
-    template_name = 'new_entry.html'
-    fields = ['title', 'content', 'tags', 'image', 'video', 'audio', 'file']
-
-
-class JournalEntryDeleteView(LoginRequiredMixin, DeleteView):
-    model = JournalEntry
-    template_name = 'confirm_delete.html'
-    success_url = reverse_lazy('journal:entry_list')
-
-
 logger = logging.getLogger(__name__)
 
 
 def guide_list(request):
     guides = Guide.objects.all()
-    return render(request, 'guides/guide_list.html', {'guides': guides})
+    return render(request, 'journal/guide_list.html', {'guides': guides})
 
 
 def guide_detail(request, pk):
     guide = get_object_or_404(Guide, pk=pk)
-    return render(request, 'guides/guide_detail.html', {'guide': guide})
+    return render(request, 'journal /guide_detail.html', {'guide': guide})
 
 
 class ResourceListView(ListView):
@@ -621,7 +648,7 @@ class ResourceDetailView(DetailView):
 class QuestionCreateView(LoginRequiredMixin, CreateView):
     model = Question
     fields = ['title', 'content']
-    template_name = 'qna/question_form.html'
+    template_name = 'question_form.html'
     success_url = reverse_lazy('journal:qna_list')
 
     def form_valid(self, form):
@@ -632,7 +659,7 @@ class QuestionCreateView(LoginRequiredMixin, CreateView):
 class AnswerCreateView(LoginRequiredMixin, CreateView):
     model = Answer
     fields = ['content']
-    template_name = 'qna/answer_form.html'
+    template_name = 'answer_form.html'
 
     def form_valid(self, form):
         form.instance.author = self.request.user
@@ -646,13 +673,13 @@ class AnswerCreateView(LoginRequiredMixin, CreateView):
 
 def qna_list(request):
     questions = Question.objects.all()
-    return render(request, 'qna/qna_list.html', {'questions': questions})
+    return render(request, 'qna_list.html', {'questions': questions})
 
 
 def qna_detail(request, pk):
     question = get_object_or_404(Question, pk=pk)
     answers = Answer.objects.filter(question=question)
-    return render(request, 'qna/qna_detail.html', {'question': question, 'answers': answers})
+    return render(request, 'qna_detail.html', {'question': question, 'answers': answers})
 
 
 class ContactView(TemplateView):
@@ -670,6 +697,20 @@ class MessageListView(LoginRequiredMixin, ListView):
 class ActivityLogListView(LoginRequiredMixin, ListView):
     model = ActivityLog
     template_name = "activity_log.html"
+    context_object_name = 'activity_logs'
+    paginate_by = 10
+    ordering = ['-timestamp']
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['latest_logs'] = ActivityLog.objects.order_by('-timestamp')[:5]
+        return context
+
+    def get_queryset(self):
+        return ActivityLog.objects.all().order_by('-timestamp')
+
+
+# a log of the user's activity for admin purposes
 
 
 # need to get subscription billing working
@@ -677,8 +718,14 @@ class ActivityLogListView(LoginRequiredMixin, ListView):
 class BillingView(LoginRequiredMixin, ListView):
     model = Billing
     template_name = "billing.html"
+    context_object_name = 'billing'
+    fields = ['user', 'subscription', 'payment_method',
+              'status', 'created_at', 'updated_at']
+    success_url = reverse_lazy('journal:billing')
+    paginate_by = 10
+    ordering = ['-created_at']
 
- 
+
 # class NotificationListView(LoginRequiredMixin, ListView):
 #    model = Notification
 #    template_name = "notifications.html"
