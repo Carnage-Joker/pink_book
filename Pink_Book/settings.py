@@ -50,6 +50,10 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'django.contrib.sites',
+    'allauth',
+    'allauth.account',
+    'allauth.socialaccount',
+    'allauth.socialaccount.providers.google',
     'django.contrib.humanize',
     'journal.apps.JournalConfig',
     'dressup',
@@ -57,11 +61,13 @@ INSTALLED_APPS = [
     'channels',
     'openai',
     'gmailapi_backend',
+    'jwt',
 ]
 
 ASGI_APPLICATION = 'Pink_Book.asgi.application'
 AUTHENTICATION_BACKENDS = [
     'django.contrib.auth.backends.ModelBackend',
+    'allauth.account.auth_backends.AuthenticationBackend',
 ]
 
 # Middleware framework
@@ -74,6 +80,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
+    'allauth.account.middleware.AccountMiddleware',
 ]
 
 CORS_ALLOWED_ORIGINS = os.getenv(
@@ -117,6 +124,7 @@ EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER')
 EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')
 DEFAULT_FROM_EMAIL = os.getenv('EMAIL_HOST_USER')
 
+
 # Internationalization settings
 LANGUAGE_CODE = 'en-us'
 TIME_ZONE = get_current_timezone()
@@ -128,10 +136,15 @@ MEDIA_ROOT = BASE_DIR / 'media'
 # Authentication settings
 AUTH_USER_MODEL = 'journal.CustomUser'
 LOGIN_URL = 'journal:welcome'
-LOGOUT_REDIRECT_URL = 'journal:welcome'
+ACCOUNT_USER_MODEL_USERNAME_FIELD = 'sissy_name'
+ACCOUNT_AUTHENTICATION_METHOD = 'username'
+ACCOUNT_USERNAME_REQUIRED = True
+ACCOUNT_EMAIL_REQUIRED = True
+ACCOUNT_UNIQUE_EMAIL = True
+
 
 # CSP Settings (currently disabled)
-SELF = "'self'"
+SELF = 'self'
 CSP_DEFAULT_SRC = (SELF,)
 CSP_SCRIPT_SRC = (SELF, "https://static.cloudflareinsights.com",
                   "https://perchance.org", "'unsafe-inline'")
@@ -139,3 +152,23 @@ CSP_STYLE_SRC = (SELF, "https://fonts.googleapis.com", "'unsafe-inline'")
 CSP_FONT_SRC = (SELF, "https://fonts.gstatic.com")
 
 SITE_ID = 1
+LOGIN_REDIRECT_URL = '/'
+LOGOUT_REDIRECT_URL = '/'
+SOCIALACCOUNT_REDIRECT_URL = 'http://localhost:8000/'
+
+
+# Ensure you have configured the Google credentials
+SOCIALACCOUNT_PROVIDERS = {
+    'google': {
+        'SCOPE': [
+            'profile',
+            'email',
+        ],
+        'AUTH_PARAMS': {
+            'access_type': 'online',
+        },
+        'OAUTH_PKCE_ENABLED': True,
+        # Ensure this matches your registered URI
+        'REDIRECT_URI': 'http://localhost:8000/accounts/google/login/callback/',
+    }
+}

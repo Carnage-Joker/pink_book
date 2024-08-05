@@ -1,30 +1,28 @@
 import json
 import logging
 import random
+import uuid
 from datetime import date
-from django.http import HttpResponse
+
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth import get_user_model, login
 from django.contrib.auth import views as auth_views
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.contrib.auth.tokens import default_token_generator
+
 from django.contrib.auth.views import LoginView as AuthLoginView
-from django.contrib.sites.shortcuts import get_current_site
+
 from django.http import HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
-from django.template.loader import render_to_string
+
 from django.urls import reverse_lazy
-from django.utils import timezone
-from django.utils.crypto import get_random_string
-from django.utils.encoding import force_bytes
-from django.utils.html import strip_tags
-from django.utils.http import urlsafe_base64_encode
+
 from django.utils.timezone import now
 from django.views import View
 from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import (CreateView, DeleteView, DetailView, ListView,
                                   TemplateView, UpdateView)
+from google_auth_oauthlib import flow
 
 from .forms import (CustomUserCreationForm, CustomUserLoginForm,
                     CustomUserUpdateForm, HabitForm, JournalEntryForm,
@@ -38,7 +36,8 @@ from .utils.ai_utils import (extract_keywords, get_average_sentiment,
                              get_average_word_count, get_current_streak,
                              get_most_common_emotions, get_most_common_tags,
                              get_peak_journaling_time)
-from .utils.utils import generate_task, send_email
+from .utils.send_activation_email import send_activation_email
+from .utils.utils import generate_task
 
 User = get_user_model()
 
@@ -51,54 +50,71 @@ class RegisterView(CreateView):
     model = CustomUser
     form_class = CustomUserCreationForm
     template_name = 'register.html'
-    success_url = reverse_lazy('journal:registration_complete')
+    success_url = reverse_lazy('journal:resend_activation')
 
     def form_valid(self, form):
-        response = super().form_valid(form)
         user = form.save(commit=False)
         user.is_active = False  # Deactivate account until it is confirmed
-        user.email = form.cleaned_data['email']  # Add the email attribute
-        user.activate_account_token = get_random_string(64)
+        # Generate a unique activation token
+        user.activate_account_token = str(uuid.uuid4())
         user.save()
-        self.send_activation_email(user, self.request)
-        return response
 
-    def send_activation_email(self, user, request):
-        token = default_token_generator.make_token(user)
-        uid = urlsafe_base64_encode(force_bytes(user.pk))
-        current_site = get_current_site(request)
-        activation_link = f"http://{current_site.domain}/activate/{uid}/{token}/"
+        # Generate activation link
+        activation_link = self.request.build_absolute_uri(
+            reverse_lazy('journal:activate', args=[
+                user.activate_account_token])
+        )
 
-        subject = 'Activate your account'
-        message = render_to_string('activation_email_template.html', {
-            'user': user,
-            'activation_link': activation_link
-        })
-        plain_message = strip_tags(message)
-        from_email = settings.EMAIL_HOST_USER
-        to_email = user.email
+        # Send activation email
+        send_activation_email(user.email, activation_link)
 
-        send_email(subject, plain_message, from_email,
-                  [to_email], html_message=message)
+        return super().form_valid(form)
 
 
-def activate_account(request, token):
-    try:
-        user = CustomUser.objects.get(
-            activate_account_token=token, is_active=False)
-        if (timezone.now() - user.date_joined).days > 1:  # Token is valid for 1 day
-            return render(request, 'journal/activation_expired.html')
+class ActivateAccountView(View):
+    def get(self, request, token):
+        user = get_object_or_404(CustomUser, activate_account_token=token)
         user.is_active = True
         user.activate_account_token = ''
         user.save()
-        login(request, user)
-        return redirect('journal:dashboard')
-    except CustomUser.DoesNotExist:
-        return render(request, 'journal/activation_invalid.html')
+        # Redirect to login page after activation
+        return redirect('journal:login')
+
+
+CustomUser = get_user_model()
+
+
+class ResendActivationView(View):
+    template_name = 'resend_activation.html'
+
+    def get(self, request):
+        return render(request, self.template_name)
+
+    def post(self, request):
+        email = request.POST.get('email')
+        user = get_object_or_404(CustomUser, email=email)
+
+        if not user.is_active:
+            # Generate a new activation token
+            user.activate_account_token = str(uuid.uuid4())
+            user.save()
+
+            # Generate activation link
+            activation_link = request.build_absolute_uri(
+                reverse_lazy('journal:activate', args=[
+                             user.activate_account_token])
+            )
+
+            # Send activation email
+            send_activation_email(user.email, activation_link)
+            return render(request, self.template_name, {'message': 'Activation email sent successfully!'})
+
+        return render(request, self.template_name, {'error': 'This account is already active.'})
 
 
 def oauth2callback(request):
-    flow = google_auth_oauthlib.flow.InstalledAppFlow.from_client_secrets_file(settings.GMAIL_CLIENT_SECRET_FILE, SCOPES)
+    SCOPES = ['https://www.googleapis.com/auth/userinfo.email', 'https://www.googleapis.com/auth/userinfo.profile']
+    flow = flow.InstalledAppFlow.from_client_secrets_file(settings.GMAIL_CLIENT_SECRET_FILE, SCOPES)
     flow.fetch_token(authorization_response=request.build_absolute_uri())
     credentials = flow.credentials
     with open(settings.GMAIL_TOKEN_FILE, 'w') as token:

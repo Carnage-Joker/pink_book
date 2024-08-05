@@ -7,6 +7,7 @@ from django.conf.urls.static import static
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('accounts/', include('allauth.urls')),
     path('dressup/', include('dressup.urls', 'dressup'), name='dressup'),
     path('journal/', include(('journal.urls', 'journal'), namespace='journal')),
     path('', RedirectView.as_view(url='/journal/', permanent=False)),  # Redirect root URL to journal

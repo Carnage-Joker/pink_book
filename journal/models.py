@@ -5,7 +5,6 @@ from uuid import uuid4
 
 from dateutil.relativedelta import relativedelta
 from django.conf import settings
-from django.contrib.auth import get_user_model
 from django.contrib.auth.models import (AbstractBaseUser, BaseUserManager,
                                         Group, Permission, PermissionsMixin)
 from django.contrib.contenttypes.fields import (GenericForeignKey,
@@ -36,10 +35,8 @@ def profile_pic_upload_path(instance, filename):
 
 class CustomUserManager(BaseUserManager):
     def create_user(self, sissy_name, email, password=None, **extra_fields):
-        extra_fields.setdefault('is_staff', False)
-        extra_fields.setdefault('is_superuser', False)
-        if not sissy_name:
-            raise ValueError('The Sissy Name field must be set')
+        if not email:
+            raise ValueError('The Email field must be set')
         email = self.normalize_email(email)
         user = self.model(sissy_name=sissy_name, email=email, **extra_fields)
         user.set_password(password)
@@ -49,16 +46,13 @@ class CustomUserManager(BaseUserManager):
     def create_superuser(self, sissy_name, email, password=None, **extra_fields):
         extra_fields.setdefault('is_staff', True)
         extra_fields.setdefault('is_superuser', True)
-        email = self.normalize_email(email)
-        user = self.model(email=email, sissy_name=sissy_name, **extra_fields)
-        user.set_password(password)
-        user.save(using=self._db)
-        return user
+
+        return self.create_user(sissy_name, email, password, **extra_fields)
+
+# models.py
 
 
 class CustomUser(AbstractBaseUser, PermissionsMixin):
-    date_joined = models.DateTimeField(_('date joined'),
-                                       default=current_timestamp)
     bio = models.CharField(_('bio'), max_length=500, blank=True, null=True)
     date_of_birth = models.DateField(_('date of birth'), blank=True, null=True)
     sissy_name = models.CharField(_('sissy name'), max_length=255, unique=True)
@@ -74,8 +68,7 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
         ('other', _('other')),
     )
     pronouns = models.CharField(
-        _('pronouns'), max_length=20, choices=PRONOUN_CHOICES, blank=True,
-        default='')
+        _('pronouns'), max_length=20, choices=PRONOUN_CHOICES, blank=True, default='')
 
     SISSY_TYPE_CHOICES = (
         ('sissy_maid', _('Maid')),
@@ -85,8 +78,7 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
         ('bratty_sissy', _('Brat')),
     )
     sissy_type = models.CharField(
-        _('sissy type'), max_length=100, choices=SISSY_TYPE_CHOICES,
-        blank=True)
+        _('sissy type'), max_length=100, choices=SISSY_TYPE_CHOICES, blank=True)
 
     CHASTITY_CHOICES = (
         ('yes', _('I always wear a chastity device')),
@@ -94,8 +86,7 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
         ('partly', _('I sometimes wear a chastity device')),
     )
     chastity_status = models.CharField(
-        _('chastity status'), max_length=100, choices=CHASTITY_CHOICES,
-        blank=True)
+        _('chastity status'), max_length=100, choices=CHASTITY_CHOICES, blank=True)
 
     OWNED_CHOICES = (
         ('yes', _('I have an owner')),
@@ -108,26 +99,21 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
         _('collective insight'), max_length=1000, null=True, blank=True)
     email = models.EmailField(_('email address'), unique=True)
     is_staff = models.BooleanField(_('staff status'), default=False)
+    is_active = models.BooleanField(default=False)
 
     avatar_body = models.CharField(
-        max_length=255, default=(
-            "/static/dressup/avatars/body/light/"
-            "hourglass.png"
-        )
-    )
+        max_length=255, default="/static/virtual_try_on/avatars/body/light/hourglass.png")
     avatar_hair = models.CharField(
-        max_length=255,
-        default="/static/dressup/avatars/hair/long_straight/blonde.png")
+        max_length=255, default="/static/virtual_try_on/avatars/hair/long_straight/blonde.png")
     avatar_top = models.CharField(
-        max_length=255, default="/static/dressup/garmets/tops/1.png")
+        max_length=255, default="/static/virtual_try_on/garmets/tops/1.png")
     avatar_bottom = models.CharField(
-        max_length=255, default="/static/dressup/garmets/skirts/1.png")
+        max_length=255, default="/static/virtual_try_on/garmets/skirts/1.png")
     avatar_shoes = models.CharField(
-        max_length=255, default="/static/dressup/garmets/shoes/1.png")
+        max_length=255, default="/static/virtual_try_on/garmets/shoes/1.png")
 
     objects = CustomUserManager()
     activate_account_token = models.CharField(max_length=255, blank=True)
-    is_active = models.BooleanField(default=False)
 
     USERNAME_FIELD = 'sissy_name'
     REQUIRED_FIELDS = ['email']
@@ -182,6 +168,8 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
 
 # Habit Trackers Models
 # Assuming the models are in journal/models.py
+
+
 REWARD_CHOICES = [
     ('praise', 'Praise'),
     ('treat', 'Treat'),

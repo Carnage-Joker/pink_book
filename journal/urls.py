@@ -9,11 +9,12 @@ from .views import (
     ToDoListView, ToDoUpdateView, AboutView,
     generate_task_view, fail_task_view, PasswordResetDoneView, PasswordResetView,
     CompleteToDoView, guide_list, guide_detail, ActivityLogListView,
-    BillingView, qna_list, qna_detail, activate_account, MessageListView,
+    BillingView, qna_list, qna_detail, MessageListView,
     CustomLoginView, ModeratorListView, TemplateView, ForumCreateView,
     ForumDeleteView, PostListView, ThreadListView, FeatureListView,
     BlogListView, blog_detail, IncrementHabitCounter, CompleteTaskView,
-    privacy_policy, terms_of_service, oauth2callback
+    privacy_policy, terms_of_service, oauth2callback, ActivateAccountView,
+    ResendActivationView
 )
 
 app_name = 'journal'
@@ -28,10 +29,15 @@ urlpatterns = [
     path('password_reset/done/', PasswordResetDoneView.as_view(),
          name='password_reset_done'),
     path('about/', AboutView.as_view(), name='about'),
-    path('activate/<str:token>/', activate_account, name='activate_account'),
+  
     path('registration_complete/', TemplateView.as_view(
         template_name='registration_complete.html'), name='registration_complete'),
     path('oauth2callback/', oauth2callback, name='oauth2callback'),
+    path('activate/<str:token>/', ActivateAccountView.as_view(), name='activate'),
+    path('resend_activation/', ResendActivationView.as_view(),
+         name='resend_activation'),
+
+
 
     # Dashboard
     path('dashboard/', DashboardView.as_view(), name='dashboard'),
