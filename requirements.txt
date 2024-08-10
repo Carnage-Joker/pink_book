@@ -7,7 +7,7 @@ charset-normalizer==3.2.0
 click==8.1.6
 colorama==0.4.6
 cryptography==41.0.3
-Django==4.2.7
+Django==4.2.15
 Django-Accounts==0.1
 django-analytical==3.1.0
 django-appconf==1.0.5
