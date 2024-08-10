@@ -28,7 +28,7 @@
                     <h2>Activate Your Account</h2>
                     {% if valid_link %}
                     <p>Welcome, lovely! Your account has been successfully activated. You can now log in and start your sissy journey!</p>
-                    <a href="{% url 'journal:login' %}" class="btn">Log In</a>
+                    <a href="{% url 'journal:welcome' %}" class="btn">Log In</a>
                     {% else %}
                     <p>Oh no! This activation link is invalid or has expired. Please request a new activation link.</p>
                     <a href="{% url 'journal:resend_activation' %}" class="btn">Resend Activation Email</a>

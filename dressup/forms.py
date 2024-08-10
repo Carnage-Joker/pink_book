@@ -1,5 +1,5 @@
 from django import forms
-from .models import Avatar, PremiumOutfit, Favorites
+from .models import Avatar
 
 
 class AvatarForm(forms.ModelForm):

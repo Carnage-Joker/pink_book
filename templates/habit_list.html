@@ -7,15 +7,18 @@
     <div class="left-page">
         <h1 style="color: hotpink;">Glam Goals</h1>
         <ul>
-            {% for habit in habits %}
-            <li style="color: hotpink;">
-                <div class="progress-container">
-                    <div class="progress-bar" style="width: {{ habit.progress }}%; background-color: hotpink;"></div>
-                    <button onclick="updateProgress({{ habit.id }})" class="btn btn-register">Update Progress</button>
-                </div>
-                {{ habit.name }}
-            </li>
-            {% endfor %}
+           {% for habit in habits %}
+    <li id="habit-{{ habit.id }}" class="habit-item">
+        <div class="progress-container">
+            <div class="progress-bar" style="inline-size: {{ habit.progress }}%;"></div>
+            <button class="update-progress-button btn btn-register" data-id="{{ habit.id }}">Update Progress</button>
+        </div>
+        {{ habit.name }} - Count: <span id="habit-count-{{ habit.id }}">{{ habit.increment_counter }}</span>
+        <button class="increment-counter-button btn btn-register" data-id="{{ habit.id }}">+1</button>
+        <div id="insight-{{ habit.id }}" class="habit-insight">{{ habit.get_insights }}</div> <!-- New line for insight -->
+    </li>
+{% endfor %}
+
         </ul>
     </div>
 

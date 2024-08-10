@@ -1,16 +1,23 @@
 from django.db import models
 from journal.models import CustomUser
+from django.conf import settings
 
 
 class Avatar(models.Model):
-    user = models.OneToOneField(CustomUser, on_delete=models.CASCADE)
-    body = models.ImageField(upload_to=None, height_field=None, width_field=None, max_length=100)
-    hair = models.ImageField(upload_to=None, height_field=None, width_field=None, max_length=100)
-    eyes = models.ImageField(upload_to=None, height_field=None, width_field=None, max_length=100)
-    top = models.ImageField(upload_to=None, height_field=None, width_field=None, max_length=100)
-    bottom = models.ImageField(upload_to=None, height_field=None, width_field=None, max_length=100)
-    shoes = models.ImageField(upload_to=None, height_field=None, width_field=None, max_length=100)
-    accessories = models.ImageField(upload_to=None, height_field=None, width_field=None, max_length=100)
+    id = models.AutoField(primary_key=True, unique=True)
+    user = models.OneToOneField(
+        settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    body = models.ImageField(upload_to='avatars/body/', max_length=100)
+    hair = models.ImageField(upload_to='avatars/hair/', max_length=100)
+    eyes = models.ImageField(upload_to='avatars/eyes/', max_length=100)
+    top = models.ImageField(upload_to='avatars/top/', max_length=100)
+    bottom = models.ImageField(upload_to='avatars/bottom/', max_length=100)
+    shoes = models.ImageField(upload_to='avatars/shoes/', max_length=100)
+    accessories = models.ImageField(
+        upload_to='avatars/accessories/', max_length=100)
+
+    def __str__(self):
+        return self.user.username
 
 
 

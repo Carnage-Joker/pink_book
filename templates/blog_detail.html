@@ -1,0 +1,52 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}{{ post.title }}{% endblock %}
+{% block content %}
+<div class="container diary-spread">
+    <!-- Left Page - Blog Post Content -->
+    <div class="left-page">
+        <h1>{{ post.title }}</h1>
+        <p class="author">by {{ post.author }} on {{ post.timestamp|date:"F j, Y" }}</p>
+        <div class="content">
+            {{ post.content }}
+        </div>
+        
+        <!-- Comments Section -->
+        <div class="comments-section">
+            <h2>Comments</h2>
+            {% for comment in post.blog_comments.all %}
+            <div class="comment">
+                <p><strong>{{ comment.user.username }}</strong> said on {{ comment.timestamp|date:"F j, Y" }}:</p>
+                <p>{{ comment.content }}</p>
+            </div>
+            {% empty %}
+            <p>No comments yet. Be the first to share your thoughts!</p>
+            {% endfor %}
+            
+            <!-- Add a Comment Form -->
+            <h3>Leave a Comment</h3>
+            <form method="post">
+                {% csrf_token %}
+                {{ comment_form.as_p }}
+                <button type="submit" class="btn btn-register">Post Comment</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- Right Page - Placeholder or Additional Info -->
+    <div class="right-page">
+        <h2>Related Posts</h2>
+        <ul>
+            {% for related_post in related_posts %}
+            <li><a href="{% url 'journal:blog_detail' related_post.id %}">{{ related_post.title }}</a></li>
+            {% endfor %}
+        </ul>
+        <h2>Join the Conversation</h2>
+        <p>Share your experiences and connect with other sissies in our community.</p>
+        <p>Your voice matters, and we're here to listen!</p>
+    </div>
+
+    <!-- Book Binding in the Center -->
+    <div class="binding"></div>
+</div>
+{% endblock %}

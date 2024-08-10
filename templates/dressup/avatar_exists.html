@@ -1,0 +1,10 @@
+{% extends 'base.html' %}
+{% block title %}Avatar Exists{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1>Avatar Already Exists</h1>
+    <p>You already have an avatar. You can dress it up or modify it.</p>
+    <a href="{% url 'dressup:dress_up' %}" class="btn btn-register">Dress Up Your Avatar</a>
+</div>
+{% endblock %}

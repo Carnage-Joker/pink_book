@@ -1,6 +1,13 @@
-{% extends 'base.html' %}
+{% extends "base.html" %}
+{% block title %}{{ guide.title }}{% endblock %}
 {% block content %}
-<h1>{{ guide.title }}</h1>
-<p>{{ guide.content }}</p>
-<p>Author: {{ guide.author }}</p>
+<div class="container diary-spread">
+    <div class="left-page">
+        <h1>{{ guide.title }}</h1>
+        <p class="author">by {{ guide.author }}</p>
+        <div class="content">
+            {{ guide.content }}
+        </div>
+    </div>
+</div>
 {% endblock %}

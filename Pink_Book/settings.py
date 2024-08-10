@@ -22,7 +22,7 @@ TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
         # Ensure templates are pointed here
-        'DIRS': [BASE_DIR / 'templates', 'dressup/templates/dressup'],
+        'DIRS': [BASE_DIR / 'templates', BASE_DIR / 'templates/dressup'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -60,7 +60,6 @@ INSTALLED_APPS = [
     'corsheaders',
     'channels',
     'openai',
-    'gmailapi_backend',
     'jwt',
 ]
 
@@ -114,15 +113,17 @@ AUTH_PASSWORD_VALIDATORS = [
 ]
 
 # Email settings
-GMAIL_CLIENT_SECRET_FILE = BASE_DIR / 'client_secret.json'
-GMAIL_TOKEN_FILE = BASE_DIR / 'token.json'
-EMAIL_BACKEND = 'gmailapi_backend.mail.GmailBackend'
-EMAIL_HOST = 'smtp.gmail.com'
-EMAIL_PORT = 587
-EMAIL_USE_TLS = True
-EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER')
-EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')
-DEFAULT_FROM_EMAIL = os.getenv('EMAIL_HOST_USER')
+# settings.py
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = 'mail.thepinkbook.com.au'
+EMAIL_PORT = 465
+EMAIL_USE_SSL = True
+EMAIL_HOST_USER = 'noreplyaccactivation@thepinkbook.com.au'
+# Replace with your actual email password
+EMAIL_HOST_PASSWORD = 'tz{32#CAlhQx'
+DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
+
 
 
 # Internationalization settings
@@ -154,21 +155,5 @@ CSP_FONT_SRC = (SELF, "https://fonts.gstatic.com")
 SITE_ID = 1
 LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/'
-SOCIALACCOUNT_REDIRECT_URL = 'http://localhost:8000/'
 
 
-# Ensure you have configured the Google credentials
-SOCIALACCOUNT_PROVIDERS = {
-    'google': {
-        'SCOPE': [
-            'profile',
-            'email',
-        ],
-        'AUTH_PARAMS': {
-            'access_type': 'online',
-        },
-        'OAUTH_PKCE_ENABLED': True,
-        # Ensure this matches your registered URI
-        'REDIRECT_URI': 'http://localhost:8000/accounts/google/login/callback/',
-    }
-}

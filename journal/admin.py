@@ -1,5 +1,11 @@
+
 from django.contrib import admin
-from .models import BlogPost, Comment, CustomUser, JournalEntry, RelatedModel, Report, Quote, Thread, UserProfile, Post, UserFeedback, Tag, Resource
+from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
+from django.contrib.auth.models import Group
+
+from .models import (BlogPost, Comment, CustomUser, Faq, JournalEntry, Post, Quote,
+                     RelatedModel, Report, Tag, Thread, UserFeedback,
+                     UserProfile)
 
 
 @admin.register(Thread)
@@ -13,11 +19,30 @@ class CommentInline(admin.StackedInline):
     extra = 1
 
 
-@admin.register(CustomUser)
-class CustomUserAdmin(admin.ModelAdmin):
-    list_display = ('email', 'sissy_name', 'is_staff')
-    search_fields = ('email', 'sissy_name')
-    list_filter = ('is_staff',)
+class CustomUserAdmin(BaseUserAdmin):
+    list_display = ('email', 'sissy_name', 'is_active',
+                    'is_staff', 'is_superuser')
+    list_filter = ('is_superuser', 'is_active')
+    fieldsets = (
+        (None, {'fields': ('email', 'password', 'activate_account_token')}),
+        ('Personal info', {'fields': ('sissy_name', 'date_of_birth')}),
+        ('Permissions', {'fields': ('is_staff', 'is_superuser','is_active')}),
+        ('Important dates', {'fields': ('last_login',)}),
+    )
+    add_fieldsets = (
+        (None, {
+            'classes': ('wide',),
+            'fields': ('email', 'password1', 'password2'),
+        }),
+    )
+    search_fields = ('email', 'sissy_type', 'sissy_name')
+    ordering = ('email',)
+    filter_horizontal = ()
+    actions = ['deactivate_users', 'activate_users']
+
+
+admin.site.register(CustomUser, CustomUserAdmin)
+admin.site.unregister(Group)
 
 @admin.register(BlogPost)
 class BlogPostAdmin(admin.ModelAdmin):
@@ -29,14 +54,14 @@ class BlogPostAdmin(admin.ModelAdmin):
 @admin.register(JournalEntry)
 class JournalEntryAdmin(admin.ModelAdmin):
     list_display = ('title', 'user', 'timestamp')
-    inlines = [CommentInline,]
+    search_fields = ('title', 'user__sissy_name')
 
 
 @admin.register(Comment)
 class CommentAdmin(admin.ModelAdmin):
-    list_display = ('content', 'author', 'timestamp')
-    list_filter = ('author', 'timestamp')
-    search_fields = ('content', 'author__sissy_name')
+    list_display = ('content', 'timestamp')
+    list_filter = ('timestamp',)
+    search_fields = ('content',)
     actions = ['remove_comment']
 
     def remove_comment(self, request, queryset):
@@ -88,3 +113,15 @@ class UserFeedbackAdmin(admin.ModelAdmin):
 class TagAdmin(admin.ModelAdmin):
     list_display = ('name', 'description')
     search_fields = ('name',)
+
+
+@admin.register(Faq)
+class FaqAdmin(admin.ModelAdmin):
+    list_display = ('question', 'answer')
+    search_fields = ('question', 'answer')
+    list_filter = ('question', 'answer')
+    actions = ['remove_faq']
+
+    def remove_faq(self, request, queryset):
+        queryset.delete()
+    remove_faq.short_description = "Delete selected faqs"

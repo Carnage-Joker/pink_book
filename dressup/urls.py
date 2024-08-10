@@ -12,5 +12,7 @@ urlpatterns = [
     path('purchase-item/<int:item_id>/',
          views.purchase_item, name='purchase_item'),
     path('mall/', views.mall, name='mall'),
+    path('avatar_created/', views.avatar_created, name='avatar_created'),
+    path('avatar_exists/', views.avatar_exists, name='avatar_exists'),
 ]
 

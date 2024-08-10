@@ -1,14 +1,10 @@
 # In journal/utils.py or a similar utilities file
-import os
-from django.conf import settings
-from email.mime.text import MIMEText
-from googleapiclient.errors import HttpError
-import googleapiclient.discovery
-import google_auth_oauthlib.flow
-import google.oauth2.credentials
-import google.auth.transport.requests
-import google.auth
-import base64
+from django.template.loader import render_to_string
+from django.utils.encoding import force_bytes
+from django.utils.http import urlsafe_base64_encode
+from django.contrib.auth.tokens import default_token_generator
+from django.core.mail import send_mail
+from django.urls import reverse
 import random
 
 
@@ -36,41 +32,20 @@ def generate_task():
     else:
         tasks.append(
             "Practise your sissy walk and write about how it makes you feel")
-    return random.choice(tasks)
+    return random.choice(tasks), task_id
 
 
-SCOPES = ['https://www.googleapis.com/auth/gmail.send']
-
-
-def get_gmail_service():
-    creds = None
-    if os.path.exists(settings.GMAIL_TOKEN_FILE):
-        creds = google.oauth2.credentials.Credentials.from_authorized_user_file(
-            settings.GMAIL_TOKEN_FILE, SCOPES)
-    if not creds or not creds.valid:
-        if creds and creds.expired and creds.refresh_token:
-            creds.refresh(google.auth.transport.requests.Request())
-        else:
-            flow = google_auth_oauthlib.flow.InstalledAppFlow.from_client_secrets_file(
-                settings.GMAIL_CLIENT_SECRET_FILE, SCOPES)
-            creds = flow.run_local_server(port=0)
-        with open(settings.GMAIL_TOKEN_FILE, 'w') as token:
-            token.write(creds.to_json())
-    return googleapiclient.discovery.build('gmail', 'v1', credentials=creds)
-
-
-def send_email(subject, body, to):
-    service = get_gmail_service()
-    message = MIMEText(body)
-    message['to'] = to
-    message['from'] = 'dpinkbook@gmail.com'
-    message['subject'] = subject
-    raw_message = base64.urlsafe_b64encode(message.as_bytes()).decode('utf-8')
-    try:
-        message = service.users().messages().send(
-            userId='me', body={'raw': raw_message}).execute()
-        print(f'Message Id: {message["id"]}')
-        return message
-    except HttpError as error:
-        print(f'An error occurred: {error}')
-        return None
+def send_activation_email(user, request):
+    token = default_token_generator.make_token(user)
+    uid = urlsafe_base64_encode(force_bytes(user.pk))
+    activation_link = request.build_absolute_uri(
+        reverse('journal:activate_account',
+                kwargs={'uidb64': uid, 'token': token})
+    )
+    subject = 'Activate Your Account'
+    message = render_to_string('activation_email.html', {
+        'user': user,
+        'activation_link': activation_link,
+    })
+    send_mail(subject, message,
+              'noreplyaccactivation@thepinkbook.com.au', [user.email])

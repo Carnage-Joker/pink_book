@@ -1,0 +1,10 @@
+{% extends 'base.html' %}
+{% block title %}Avatar Created{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h1>Avatar Created!</h1>
+    <p>Your avatar has been successfully created. You can now dress it up and have fun!</p>
+    <a href="{% url 'dressup:dress_up' %}" class="btn btn-register">Dress Up Your Avatar</a>
+</div>
+{% endblock %}

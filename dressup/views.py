@@ -1,3 +1,4 @@
+from .models import Avatar
 from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
 from .models import Avatar, Item, PurchasedItem
@@ -15,13 +16,23 @@ def dress_up(request):
 
 @login_required
 def create_avatar(request):
-    if request.method == 'POST':
-        user = CustomUser.objects.get(id=request.user.id)
-        avatar = Avatar.objects.create(user=user)  # Corrected to use the user instance
-        # Assuming you want to redirect to a URL that uses the avatar's ID
-        return redirect('dressup:dress_up', avatar_id=avatar.id)  # Corrected redirect
-    return render(request, 'create_avatar.html')
+    user = request.user
+    avatar, created = Avatar.objects.get_or_create(user=user)
+    if created:
+        # Avatar was created
+        return redirect('dressup:avatar_created')
+    else:
+        # Avatar already exists
+        # Redirect to a different page if needed
+        return redirect('dressup:avatar_exists')
 
+
+def avatar_created(request):
+    return render(request, 'avatar_created.html')
+
+
+def avatar_exists(request):
+    return render(request, 'avatar_exists.html')
 
 @login_required
 def purchase_item(request, item_id):

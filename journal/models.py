@@ -1,3 +1,4 @@
+
 import os
 import uuid
 from datetime import date, datetime, timedelta
@@ -34,28 +35,35 @@ def profile_pic_upload_path(instance, filename):
 
 
 class CustomUserManager(BaseUserManager):
-    def create_user(self, sissy_name, email, password=None, **extra_fields):
+    def create_user(self, email, password=None, **extra_fields):
         if not email:
             raise ValueError('The Email field must be set')
         email = self.normalize_email(email)
-        user = self.model(sissy_name=sissy_name, email=email, **extra_fields)
+        user = self.model(email=email, **extra_fields)
         user.set_password(password)
         user.save(using=self._db)
         return user
 
-    def create_superuser(self, sissy_name, email, password=None, **extra_fields):
+    def create_superuser(self, email, password=None, **extra_fields):
         extra_fields.setdefault('is_staff', True)
         extra_fields.setdefault('is_superuser', True)
 
-        return self.create_user(sissy_name, email, password, **extra_fields)
+        if extra_fields.get('is_staff') is not True:
+            raise ValueError('Superuser must have is_staff=True.')
+        if extra_fields.get('is_superuser') is not True:
+            raise ValueError('Superuser must have is_superuser=True.')
 
-# models.py
+        return self.create_user(email, password, **extra_fields)
 
 
 class CustomUser(AbstractBaseUser, PermissionsMixin):
     bio = models.CharField(_('bio'), max_length=500, blank=True, null=True)
     date_of_birth = models.DateField(_('date of birth'), blank=True, null=True)
-    sissy_name = models.CharField(_('sissy name'), max_length=255, unique=True)
+    sissy_name = models.CharField(max_length=100, unique=True)
+    email = models.EmailField(unique=True)
+    date_joined = models.DateTimeField(default=current_timestamp, editable=False)
+    activate_account_token = models.CharField(
+        max_length=64, blank=True, null=True)
     location = models.CharField(
         _('location'), max_length=100, blank=True, null=True)
     profile_picture = models.ImageField(
@@ -97,10 +105,10 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
 
     collective_insight = models.CharField(
         _('collective insight'), max_length=1000, null=True, blank=True)
-    email = models.EmailField(_('email address'), unique=True)
     is_staff = models.BooleanField(_('staff status'), default=False)
     is_active = models.BooleanField(default=False)
-
+    is_moderator = models.BooleanField(default=False)
+    is_subscriber = models.BooleanField(default=False)
     avatar_body = models.CharField(
         max_length=255, default="/static/virtual_try_on/avatars/body/light/hourglass.png")
     avatar_hair = models.CharField(
@@ -113,7 +121,6 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
         max_length=255, default="/static/virtual_try_on/garmets/shoes/1.png")
 
     objects = CustomUserManager()
-    activate_account_token = models.CharField(max_length=255, blank=True)
 
     USERNAME_FIELD = 'sissy_name'
     REQUIRED_FIELDS = ['email']
@@ -157,12 +164,27 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
         self.locked_content[content_name] = True
         self.save()
 
+    def is_premium(self):
+        return self.userprofile.billing.subscription_type in ['premium', 'moderator', 'admin']
+
+    def is_basic_subscriber(self):
+        return self.userprofile.billing.subscription_type == 'basic'
+
+    def is_moderator_or_admin(self):
+        return self.is_moderator or self.is_staff or self.is_superuser
+    
     def email_user(self, subject, message, from_email=None, **kwargs):
         send_mail(subject, message, from_email, [self.email], **kwargs)
 
     def __str__(self):
         return self.sissy_name
 
+    def has_perm(self, perm, obj=None):
+        return self.is_superuser
+
+    def has_module_perms(self, app_label):
+        return self.is_superuser
+    
     def save(self, *args, **kwargs):
         super(CustomUser, self).save(*args, **kwargs)
 
@@ -222,9 +244,9 @@ class Habit(models.Model):
     last_reset_date = models.DateField()
 
     def check_reset_needed(self):
-        now = timezone.now().date()  # Convert now to a date object
+        now = timezone.now().date()
         if self.reminder_frequency == 'daily' and self.last_reset_date < now:
-            self.last_reset_date = now
+            self.reset_count()
 
     def increment_count(self):
         self.increment_counter += 1
@@ -235,12 +257,17 @@ class Habit(models.Model):
         self.last_reset_date = timezone.now()
         self.save()
 
+    def get_insights(self):
+        if self.increment_counter == 0:
+            return "You haven't started this habit yet."
+        elif self.increment_counter > 10:
+            return f"Great job! You've hit {self.increment_counter} in {self.name}. Keep it up!"
+        else:
+            return "You're making progress, but there’s room to improve. Try to be more consistent."
+
     def save(self, *args, **kwargs):
         self.check_reset_needed()
         super().save(*args, **kwargs)
-
-    def __str__(self):
-        return self.name
 
 
 class ToDo(models.Model):
@@ -310,9 +337,11 @@ class RelatedModel(models.Model):
 
 
 class Question(models.Model):
-    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
+    author = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
     question = models.TextField()
     created_at = models.DateTimeField(auto_now_add=True)
+    tags = models.ManyToManyField('Tag', blank=True)
+    related_models = GenericRelation(RelatedModel)
 
 
 class Answer(models.Model):
@@ -320,6 +349,8 @@ class Answer(models.Model):
     answer = models.TextField()
     professional = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
+    tags = models.ManyToManyField('Tag', blank=True)
+    related_models = GenericRelation(RelatedModel)
 
 
 class Resource(models.Model):
@@ -333,9 +364,10 @@ class Resource(models.Model):
 class BlogPost(models.Model):
     title = models.CharField(max_length=200)
     content = models.TextField()
-    author = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
+    author = models.CharField(max_length=100, default='Sissy Sparkles')
     timestamp = models.DateTimeField(auto_now_add=True)
     published = models.BooleanField(default=False)
+    comments = GenericRelation('Comment', related_query_name='blog_comments')
 
 
 class ResourceCategory(models.Model):
@@ -486,7 +518,7 @@ class Thread(models.Model):
 
 class UserProfile(models.Model):
     user = models.OneToOneField(
-        settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+        CustomUser, on_delete=models.CASCADE)
     PRIVACY_CHOICES = [
         ('public', 'Public Darling 💋'),
         ('friends', 'Just for Friends 🎀'),
@@ -504,21 +536,15 @@ class UserProfile(models.Model):
 
 
 class Comment(models.Model):
-    entry = models.ForeignKey(
-        JournalEntry, related_name='comments', on_delete=models.CASCADE, null=True)
-    object_id = models.PositiveIntegerField(null=True)
+    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
+    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
+    object_id = models.PositiveIntegerField()
     content_object = GenericForeignKey('content_type', 'object_id')
     content = models.TextField()
-    author = models.ForeignKey(
-        settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     timestamp = models.DateTimeField(auto_now_add=True)
-    title = models.CharField(max_length=100)
-    thread = models.ForeignKey(Thread, on_delete=models.CASCADE)
-    content_type = models.ForeignKey(
-        ContentType, on_delete=models.CASCADE, null=True)
 
     def __str__(self):
-        return self.title
+        return f'Comment by {self.user} on {self.content_object}'
 
 
 class Post(models.Model):
@@ -577,13 +603,23 @@ class Streak(models.Model):
 
 class Billing(models.Model):
     user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
-    subscription_type = models.CharField(max_length=50)
+    subscription_tier = models.CharField(max_length=50, default='free')  # free, basic, premium, moderator, admin
     start_date = models.DateField()
     end_date = models.DateField()
     is_active = models.BooleanField(default=True)
 
     def __str__(self):
-        return f"{self.user.sissy_name}'s {self.subscription_type} subscription"
+        return f"{self.user.sissy_name}'s {self.subscription_tier} subscription"
+
+
+def check_subscription_status():
+    for billing in Billing.objects.filter(is_active=True):
+        if billing.end_date < timezone.now().date():
+            billing.is_active = False
+            billing.user.userprofile.subscription_tier = 'free'
+            billing.user.is_subscriber = False
+            billing.save()
+            billing.user.save()
 
 
 class Message(models.Model):
@@ -605,3 +641,12 @@ class ActivityLog(models.Model):
 
     def __str__(self):
         return f"{self.user.sissy_name} - {self.action}"
+
+
+class Faq(models.Model):
+    question = models.CharField(max_length=200, blank=True, null=True)
+    answer = models.CharField(max_length=200, blank=True, null=True)
+
+    def __str__(self):
+        return self.question
+    

@@ -1,16 +1,34 @@
 /* General styles for diary texture */
-body {
-    font-family: 'Brush Script MT', cursive;
+.h1 {
+    font-family: 'Pacifico', cursive;
+    color: #FF69B4;
+    /* Example color */
+}
+
+.h2 {
+    font-family: 'Dancing Script', cursive;
+    color: #f799c8;
+    /* Example color */
+}
+
+.h3 {
+    font-family: 'Great Vibes', cursive;
+    color: #9f0854;
+    /* Example color */
+}
+
+.body {
+    font-family: 'Cookie', cursive;
     margin: 0;
     padding: 0;
     background-color: #f8e0f3;
-    color: #4a154b;
+    color: #6e0370;
     display: flex;
     justify-content: center;
     align-items: flex-start;
     min-block-size: 100vh;
     overflow: auto;
-    font-size: 40px;
+    font-size: 16px;
 }
 
 /* Container and padding adjustments for the book layout */
@@ -25,10 +43,10 @@ body {
     flex-direction: row;
     position: relative;
     padding: 20px;
-    padding-top: 80px;
+    padding-block-start: 80px;
     overflow: hidden;
     margin-block-end: 20px;
-    font-size: 30px;
+    font-size: 16px;
     margin-block-start: 120px;
 }
 
@@ -59,7 +77,7 @@ body {
     justify-content: center;
     text-align: center;
     min-block-size: 100%;
-    font-size: 25px;
+    font-size: 16px;
 }
 
 .left-page {
@@ -70,9 +88,9 @@ body {
 }
 
 .right-page {
-    border-left: 2px solid #d1a3c748;
+    border-inline-start: 2px solid #d1a3c748;
     min-inline-size: 40%;
-    padding-left: 20px;
+    padding-inline-start: 20px;
     inset-inline-start: 51%;
 }
 
@@ -81,7 +99,7 @@ body {
     inline-size: 2%;
     background-color: #d1a3c7;
     position: absolute;
-    min-block-size: 95%;
+    block-size: 95%;
     inset-block-start: 2.5%;
     inset-block-end: 2.5%;
     inset-inline-start: 50%;
@@ -172,23 +190,150 @@ nav.post-it-notes a {
 
 nav.post-it-notes a:hover {
     transform: rotate(-5deg);
-}
 
-/* Pink Padlock Background for Login Section */
-.logreg-section {
-    background-color: rgba(255, 255, 255, 0.85);
-    background: url('../media/pink_heart_lock.png') no-repeat center center;
-    background-size: cover;
-    padding: 20px;
-    border-radius: 10px;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
-    position: absolute;
-    inset-block-start: 50%;
-    inset-inline-end: 10%;
-    transform: translateY(-50%);
-    inline-size: 300px;
-    z-index: 20;
-    text-align: center;
+    /* Welcome Page Styles */
+    .cover-page {
+        background-color: #f8e0f3;
+        text-align: center;
+        padding: 50px 20px;
+        border-radius: 15px;
+        box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+        margin-block-end: 30px;
+    }
+
+    .welcome-title {
+        font-family: 'Brush Script MT', cursive;
+        font-size: 2.5em;
+        color: #4a154b;
+        margin-block-end: 20px;
+    }
+
+    css margin-bottom.welcome-description {
+        font-family: 'Dancing Script', cursive;
+        font-size: 1.2em;
+        color: #4a154b;
+        margin-block-end: 30px;
+    }
+
+    .btn-register {
+        background-color: #FF69B4;
+        color: white;
+        padding: 10px 20px;
+        border: none;
+        border-radius: 10px;
+        cursor: pointer;
+        transition: background-color 0.3s;
+        font-size: 1em;
+        text-decoration: none;
+    }
+
+    .btn-register:hover {
+        background-color: #FF1493;
+    }
+
+    .logreg-section {
+        background-color: rgba(255, 255, 255, 0.85);
+        padding: 30px;
+        border-radius: 15px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+        margin-block-end: 30px;
+        text-align: center;
+    }
+
+    .logreg-form .form-group {
+        margin-block-end: 15px;
+    }
+
+    .btn-login {
+        background-color: #FF88B1;
+        color: white;
+        padding: 10px 20px;
+        border: none;
+        border-radius: 10px;
+        cursor: pointer;
+        transition: background-color 0.3s;
+        font-size: 1em;
+        inline-size: 100%;
+        text-decoration: none;
+    }
+
+    .btn-login:hover {
+        background-color: #E76F89;
+    }
+
+    .info-sections {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        gap: 20px;
+    }
+
+    .info-column {
+        background-color: #ffe6f2;
+        padding: 20px;
+        border-radius: 15px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+        flex: 1 1 30%;
+        min-inline-size: 250px;
+        text-align: center;
+    }
+
+    .info-column h2 {
+        font-family: 'Brush Script MT', cursive;
+        font-size: 1.8em;
+        color: #4a154b;
+        margin-block-end: 15px;
+    }
+
+    .info-column p {
+        font-family: 'Dancing Script', cursive;
+        font-size: 1.2em;
+        color: #4a154b;
+        margin-block-end: 15px;
+    }
+
+    .btn-secondary {
+        background-color: #FF88B1;
+        color: white;
+        padding: 10px 20px;
+        border: none;
+        border-radius: 10px;
+        cursor: pointer;
+        transition: background-color 0.3s;
+        font-size: 1em;
+        text-decoration: none;
+    }
+
+    .btn-secondary:hover {
+        background-color: #E76F89;
+    }
+
+    /* Responsive Styles */
+    @media (max-inline-size: 768px) {
+        .info-sections {
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .info-column {
+            min-inline-size: 100%;
+        }
+
+        .welcome-title {
+            font-size: 2em;
+        }
+
+        .welcome-description {
+            font-size: 1em;
+        }
+
+        .btn-register,
+        .btn-login,
+        .btn-secondary {
+            padding: 8px 16px;
+            font-size: 0.9em;
+        }
+    }
 }
 
 /* Cover Page */
@@ -238,7 +383,7 @@ nav.post-it-notes a:hover {
         margin: 5px 0;
     }
 
-    nav.post-it-notes a {
+    .nav.post-it-notes a {
         font-size: 18px;
         padding: 5px 10px;
         transform: rotate(-7deg);
@@ -283,43 +428,43 @@ nav.post-it-notes a:hover {
     box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
 }
 
-header {
+.header {
     background-color: #ff99cc;
     padding: 10px;
     text-align: center;
     border-block-end: 2px solid #cc6699;
 }
 
-header h1 {
+.header .h1 {
     margin: 0;
     font-size: 2.5em;
     color: #fff;
 }
 
-nav a {
+.nav-a {
     color: #fff;
     text-decoration: none;
     margin: 0 10px;
 }
 
-nav a:hover {
+.nav-a:hover {
     text-decoration: underline;
 }
 
-main {
+.main {
     padding: 20px;
 }
 
-h2 {
+.h2 {
     color: #cc6699;
 }
 
-ul {
+.ul {
     list-style-type: none;
     padding: 0;
 }
 
-ul li {
+.ul.li {
     margin: 10px 0;
     padding: 10px;
     background-color: #fff;
@@ -328,23 +473,23 @@ ul li {
     transition: transform 0.3s;
 }
 
-ul li:hover {
+.ul.li:hover {
     transform: scale(1.05);
 }
 
-ul li a {
+.ul.li-a {
     color: #4d004d;
     font-weight: bold;
     text-decoration: none;
 }
 
-ul li a:hover {
+.ul.li-a:hover {
     color: #cc6699;
 }
 
 .resource-link {
     display: inline-block;
-    margin-top: 10px;
+    margin-block-start: 10px;
     padding: 8px 15px;
     background-color: #ff66b2;
     color: #fff;
@@ -356,7 +501,7 @@ ul li a:hover {
     background-color: #e55c99;
 }
 
-footer {
+.footer {
     background-color: #ff99cc;
     padding: 10px;
     text-align: center;
@@ -367,7 +512,7 @@ footer {
     inset-inline-start: 0;
 }
 
-#toast-container {
+.toast-container {
     position: fixed;
     inset-block-start: 10px;
     inset-inline-end: 10px;
@@ -415,34 +560,6 @@ footer {
     transition: transform 0.3s;
 }
 
-ul li:hover {
-    transform: scale(1.05);
-}
-
-ul li a {
-    color: #4d004d;
-    font-weight: bold;
-    text-decoration: none;
-}
-
-ul li a:hover {
-    color: #cc6699;
-}
-
-.resource-link {
-    display: inline-block;
-    margin-top: 10px;
-    padding: 8px 15px;
-    background-color: #ff66b2;
-    color: #fff;
-    border-radius: 5px;
-    text-decoration: none;
-}
-
-.resource-link:hover {
-    background-color: #e55c99;
-}
-
 .pagination {
     display: flex;
     justify-content: center;
@@ -472,150 +589,9 @@ ul li a:hover {
     border: 1px solid #FF88B1;
 }
 
-/* diary-theme.css */
-.container {
-    /* Add your container styles */
-}
-
-.diary-spread {
-    display: flex;
-    justify-content: space-between;
-}
-
-.left-page,
-.right-page {
-    width: 48%;
-}
-
-.profile-picture img {
-    max-width: 100%;
-    border-radius: 50%;
-}
-
-.edit-profile-links .btn {
-    display: inline-block;
-    margin: 0 5px;
-    padding: 10px;
-    background-color: #ff69b4;
-    /* Hot pink color */
-    color: #fff;
-    text-decoration: none;
-    border-radius: 5px;
-    text-align: center;
-}
-
-.try-on-button-container {
-    margin-top: 20px;
-}
-
-.try-on-button {
-    display: inline-block;
-    padding: 10px 20px;
-    background-color: #ff69b4;
-    /* Hot pink color */
-    color: #fff;
-    text-decoration: none;
-    border-radius: 5px;
-    text-align: center;
-}
-
-.glam-goals-title {
-    color: hotpink;
-    font-size: 24px;
-    margin-top: 20px;
-}
-
-.habit-item {
-    margin-bottom: 10px;
-}
-
-.habit-item .progress-container {
-    display: flex;
-    align-items: center;
-    margin-bottom: 5px;
-}
-
-.progress-bar {
-    height: 20px;
-    background-color: hotpink;
-    border-radius: 5px;
-    flex-grow: 1;
-    margin-right: 10px;
-}
-
-.update-progress-button {
-    background-color: #ff69b4;
-    /* Hot pink color */
-    color: #fff;
-    border: none;
-    padding: 5px 10px;
-    border-radius: 5px;
-}
-
-.btn-register {
-    background-color: #ff69b4;
-    /* Hot pink color */
-    color: #fff;
-    border: none;
-    padding: 10px 20px;
-    border-radius: 5px;
-    text-decoration: none;
-    display: inline-block;
-    margin: 5px 0;
-}
-
-#todo-list {
-    list-style-type: none;
-    padding: 0;
-}
-
-#todo-list li {
-    margin-bottom: 10px;
-}
-
-#generate-task,
-#complete-task,
-#fail-task {
-    background-color: #ff69b4;
-    /* Hot pink color */
-    color: #fff;
-    border: none;
-    padding: 10px 20px;
-    border-radius: 5px;
-    text-decoration: none;
-    margin-top: 10px;
-}
-
-#points-display {
-    margin-top: 10px;
-    font-weight: bold;
-}
-
-.binding {
-    width: 2%;
-    background-color: #333;
-}
-
-.toast {
-    position: fixed;
-    bottom: 10px;
-    right: 10px;
-    background-color: #333;
-    color: #fff;
-    padding: 10px;
-    border-radius: 5px;
-    margin-top: 5px;
-    z-index: 1000;
-}
-
-.toast-success {
-    background-color: #4caf50;
-}
-
-.toast-error {
-    background-color: #f44336;
-}
-
-.completed .todo-text {
-    text-decoration: line-through;
+.dashfont {
+    font-family: 'Pacifico', cursive;
+    font-size: 2.5em;
+    color: #4a154b;
+    margin-block-end: 20px;
 }

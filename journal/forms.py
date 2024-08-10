@@ -4,8 +4,10 @@ from crispy_forms.layout import Layout, Submit
 from django import forms
 from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
 
-from .models import (Comment, CustomUser, Habit, JournalEntry, Post, Report,
-                     ResourceComment, Tag, ToDo, UserProfile, UserTheme)
+from .models import (Answer, Comment, CustomUser, Habit, JournalEntry, Post,
+                     Report, ResourceComment, Tag, ToDo, UserProfile,
+                     UserTheme, Question)
+                     
 
 
 class HabitForm(forms.ModelForm):
@@ -28,7 +30,7 @@ class HabitForm(forms.ModelForm):
 
 class PostForm(forms.ModelForm):
     thread = forms.ChoiceField(
-        choices=[('personal', 'Personal'), ('kink', 'Kink'), ('lifestyle', 'Lifestyle'), ('other', 'Other')],
+        choices=[('general', 'General'), ('hair_makeup', 'Hair & Makeup'),('fashion', 'Fashion Advice'), ('chastity', 'Chastity Chats'), ('fitness', 'Fitness and lifestyle'), ('NSFW', 'NSFW Stories'), ('other', 'Other')],
         required=True
     )
     tags = forms.ModelMultipleChoiceField(
@@ -49,11 +51,18 @@ class PostForm(forms.ModelForm):
             'content': 'Feel free to express yourself. 💖',
         }
 
-
-class ResourceCommentForm(forms.ModelForm):
-    class Meta:
-        model = ResourceComment
-        fields = ['content']
+    def __init__(self, *args, **kwargs):
+        super(PostForm, self).__init__(*args, **kwargs)
+        self.helper = FormHelper()
+        self.helper.layout = Layout(
+            'title',
+            'content',
+            'thread',
+            'tags',
+            Submit('submit', 'Post', css_class='btn-primary')
+        )
+        self.helper.form_method = 'post'
+        self.helper.form_class = 'form-horizontal'
 
 
 class CommentForm(forms.ModelForm):
@@ -116,14 +125,17 @@ class CustomUserLoginForm(AuthenticationForm):
 
 
 class ResendActivationForm(forms.Form):
-    email = forms.EmailField(label='Email', max_length=254, widget=forms.EmailInput(
-        attrs={'class': 'form-control'}))
+    email = forms.EmailField(
+        label='Email',
+        max_length=254,
+        widget=forms.EmailInput(attrs={'class': 'form-control'})
+    )
 
 
 class CustomUserCreationForm(UserCreationForm):
     class Meta:
         model = CustomUser
-        fields = ('sissy_name', 'email', 'password1', 'password2')
+        fields = ('email', 'sissy_name', 'password1', 'password2')
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -216,4 +228,40 @@ class TagForm(forms.ModelForm):
             'name',
             'description',
             Submit('submit', 'Create Tag')
+        )
+
+
+class QuestionForm(forms.ModelForm):
+    class Meta:
+        model = Question
+        fields = ['question', 'tags']
+        widgets = {
+            'tags': forms.CheckboxSelectMultiple(),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.helper = FormHelper(self)
+        self.helper.layout = Layout(
+            'content',
+            'tags',
+            Submit('submit', 'Post Question')
+        )
+        
+
+class AnswerForm(forms.ModelForm):
+    class Meta:
+        model = Answer
+        fields = ['answer', 'tags']
+        widgets = {
+            'tags': forms.CheckboxSelectMultiple(),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.helper = FormHelper(self)
+        self.helper.layout = Layout(
+            'content',
+            'tags',
+            Submit('submit', 'Post Answer')
         )

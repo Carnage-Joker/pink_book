@@ -14,30 +14,39 @@
     
     <!-- Navigation Tabs (Post-it Notes) -->
     <nav class="post-it-notes">
-         <a href="{% url 'journal:welcome' %}">Home</a>
+        <a href="{% url 'journal:welcome' %}">Home</a>
         <a href="{% url 'journal:resource_list' %}">Resources</a>
         <a href="{% url 'journal:dashboard' %}">Dashboard</a>
-        <a href="{% url 'journal:thread_list' %}">Forum</a>
-        <a href="{% url 'journal:blog_list' %}">Sissies Say</a> <!-- Link to Blog List -->
-        <a href="{% url 'journal:logout' %}">Logout</a>
+        <a href="{% url 'journal:thread_list' %}">Fab Forum</a>
+        <a href="{% url 'journal:blog_list' %}">Blog</a> <!-- Link to Blog List -->
+        <a href="{% url 'journal:entry_list' %}">Journal</a> <!-- Link to Journal List -->
     </nav>
 
-    <!-- Main Content -->
-    <div class="content">
-        {% block content %}
-        {% endblock %}
-    </div>
-    <div class="rightcolumn">
-        <a href="{% url 'journal:about' %}">About Us</a>
-
-    </div>
-    <!-- Scripts -->
-    <script src="{% static 'journal/scripts/scripts.js' %}"></script>
+<!-- Main Content -->
+<div class="content">
+    {% block content %}
+    {% endblock %}
+</div>
+   <script src="{% static 'journal/scripts/scripts.js' %}"></script>
     {% block scripts %}{% endblock %}
-</body>
-  <footer>
+</body> 
+<footer>
         <p>&copy; 2024 Sissy Diary</p>
-    </footer>
+    
+<div class="footer">
+    <nav class="footer-nav">
+        <a href="{% url 'journal:about' %}">About Us</a>
+        <a href="{% url 'journal:contact' %}">Contact</a>
+        <a href="{% url 'journal:privacy_policy' %}">Privacy Policy</a>
+        <a href="{% url 'journal:terms_of_service' %}">Terms of Service</a>
+        <a href="{% url 'journal:faq' %}">FAQ</a>
+        <a href="{% url 'journal:feedback' %}">Feedback</a>
+        <a href="{% url 'journal:logout' %}">Logout</a>
+    </nav>
+</div>
+</footer>
+ 
+ 
     <div id="toast-container"></div>
     <script src="{% static 'journal/scripts/scripts.js' %}"></script>
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
