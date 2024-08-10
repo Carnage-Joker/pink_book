@@ -1,3 +1,4 @@
+# mypy: allow-untyped-defs
 from __future__ import annotations
 
 import inspect
@@ -71,7 +72,7 @@ class InputAdapter:
             Union[torch.nn.Module, Callable, torch_export.ExportedProgram]
         ] = None,
         **model_kwargs,
-    ) -> Sequence[Union[int, float, bool, str, "torch.Tensor", None]]:
+    ) -> Sequence[Union[int, float, bool, str, "torch.Tensor", torch.dtype, None]]:
         """Converts the PyTorch model inputs to exported ONNX model inputs format.
 
         Args:
