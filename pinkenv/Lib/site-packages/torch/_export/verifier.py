@@ -1,3 +1,4 @@
+# mypy: allow-untyped-defs
 import inspect
 import math
 import operator
@@ -13,6 +14,7 @@ from torch.export.graph_signature import (
     InputKind,
     SymIntArgument,
     TensorArgument,
+    TokenArgument,
 )
 from torch.fx import GraphModule
 from torch.fx.experimental.symbolic_shapes import SymBool, SymFloat, SymInt
@@ -63,6 +65,17 @@ def _check_val(node: torch.fx.Node) -> None:
     if not _check_correct_val(val):
         raise SpecViolationError(f"Node.meta {node.name} has invalid val field {val}")
 
+
+def _check_torch_fn(node: torch.fx.Node) -> None:
+    torch_fn = node.meta.get("torch_fn")
+    if torch_fn is None:
+        raise SpecViolationError(f"Unable to find torch_fn metadata for node {node.name}")
+    if (
+        not isinstance(torch_fn, tuple) and
+        isinstance(torch_fn[0], str) and
+        isinstance(torch_fn[1], str)
+    ):
+        raise SpecViolationError(f"Node.meta {node.name} has invalid torch_fn field {torch_fn}")
 
 class _VerifierMeta(type):
     _registry: Dict[str, Type['Verifier']] = {}
@@ -121,7 +134,8 @@ class Verifier(metaclass=_VerifierMeta):
         ]
 
     def allowed_op_types(self) -> Tuple[Type[Any], ...]:
-        return (OpOverload, HigherOrderOperator)
+        from torch._export.serde.serialize import allowed_registered_op_types  # Avoid circular import.
+        return (OpOverload, HigherOrderOperator, *allowed_registered_op_types())
 
     def allowed_getattr_types(self) -> Tuple[Type[Any], ...]:
         return (torch.fx.GraphModule,)
@@ -162,6 +176,7 @@ class Verifier(metaclass=_VerifierMeta):
             _allowed_torch_functions = (
                 torch.autograd.grad_mode.set_grad_enabled,
                 torch.sym_int,
+                torch.sym_float,
                 torch.sym_ite,
                 torch.sym_max,
                 torch.sym_min,
@@ -170,8 +185,7 @@ class Verifier(metaclass=_VerifierMeta):
                 # TODO (tmanlaibaatar)
                 # Predispatch export is able to contain autograd ops.
                 # These will be modeled as HOO later
-                torch._C._set_grad_enabled
-
+                torch._C._set_grad_enabled,
             )
 
             if not isinstance(op, _allowed_op_types()):
@@ -351,7 +365,7 @@ def _verify_exported_program_signature(exported_program) -> None:
                     f"Custom object {custom_obj} is not in the constants dictionary."
                 )
         elif input_spec.kind == InputKind.TOKEN:
-            if not isinstance(input_spec.arg, TensorArgument):
+            if not isinstance(input_spec.arg, TokenArgument):
                 raise SpecViolationError(
                     f"Constant tensor {input_spec.name} is not a tensor argument. Found {input_spec.arg} instead."
                 )
@@ -411,6 +425,6 @@ def _verify_exported_program_signature(exported_program) -> None:
 
 
 def load_verifier(dialect: str) -> Optional[Type[Verifier]]:
-    if dialect == "ATEN":
+    if dialect == "ATEN" or dialect == "":
         return _VerifierMeta._registry.get(dialect)
     return _VerifierMeta._registry[dialect]
