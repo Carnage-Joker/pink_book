@@ -1,3 +1,13 @@
+from .utils import (
+    get_average_sentiment, extract_keywords, get_most_common_tags,
+    get_most_common_emotions, get_average_word_count, get_current_streak,
+    get_peak_journaling_time
+)
+from .models import CustomUser, JournalEntry, ToDo, Habit, Quote
+from django.views.generic import TemplateView
+from .models import ResourceCategory, Guide
+from django.views.generic import DetailView
+from django.core.paginator import Paginator
 import json
 import logging
 import random
@@ -63,9 +73,9 @@ class RegisterView(View):
     # extra_context = {'title': 'Register'}
     # success_message = "Your account was created successfully. Please check your email to activate your account."
     # failure_message = "There was an error creating your account. Please try again."
-    
+
     def get(self, request):
-        form = CustomUserCreationForm()    
+        form = CustomUserCreationForm()
         return render(request, 'register.html', {'form': form})
 
     def post(self, request):
@@ -117,6 +127,17 @@ def activation_sent(request):
 
 class RegistrationSuccessView(TemplateView):
     template_name = 'registration_success.html'
+
+    def send_welcome_email(self, user):
+        subject = "Welcome to the Sissy Journal!"
+        message = f"Hi {CustomUser.sissy_name},\n\n" \
+                  "Welcome to The Pink Book! We're so excited to have you join our community. " \
+                  "You're one step closer to becoming the best sissy you can be.\n\n" \
+                  "If you have any questions or need help getting started, feel free to reach out to us. " \
+                  "We're here to support you on your journey.\n\n" \
+                  "Best wishes,\n" \
+                  "The Pink Team"
+        user.email_user(subject, message)
 
     def get(self, request):
         messages.success(request, "Your account was activated successfully. Welcome to the community sis.")
@@ -192,6 +213,8 @@ class CustomLoginView(AuthLoginView, SafeMixin):
             self.request, "Login failed. Please check your sissy name and password.")
         return super().form_invalid(form)
 # Set up the logger
+
+
 logger = logging.getLogger(__name__)
 
 
@@ -208,16 +231,15 @@ class CustomLogoutView(auth_views.LogoutView):
         return self.next_page
 
     def dispatch(self, request, *args, **kwargs):
-        user = CustomUser.objects.get(pk=request.user.sissy_name)
+        user = request.user
         if user.is_authenticated:
-            logger.info(f"User {user.sissy_name} (ID: {user.email}) is logging out.")
+            logger.info(f"User {CustomUser.sissy_name} (ID: {
+                        CustomUser.email}) is logging out.")
             messages.success(request, "You have successfully logged out.")
             return super().dispatch(request, *args, **kwargs)
         else:
             messages.error(request, "You are not logged in.")
             return redirect('journal:welcome')
-
-#  Ensure this is correctly imported
 
 
 class PasswordResetView(auth_views.PasswordResetView):
@@ -650,6 +672,7 @@ class DashboardView(LoginRequiredMixin, TemplateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         user = self.request.user
+
         try:
             # Fetch recent journal entries, todos, and habits
             recent_entries = JournalEntry.objects.filter(
@@ -657,12 +680,9 @@ class DashboardView(LoginRequiredMixin, TemplateView):
             todos = ToDo.objects.filter(user=user).order_by('-timestamp')[:5]
             habits = Habit.objects.filter(user=user).order_by('-timestamp')[:5]
 
-            # Fetch user points
-            points = user.points
-
             # Process overdue todos
             for todo in todos:
-                if todo.due_date and now().date() > todo.due_date and not todo.completed:
+                if now().date() > todo.due_date and not todo.completed:
                     todo.processed = True
                     todo.save()
 
@@ -670,9 +690,10 @@ class DashboardView(LoginRequiredMixin, TemplateView):
             sentiment_data = get_average_sentiment(
                 JournalEntry.objects.filter(user=user))
 
+            # Update context with all necessary data
             context.update({
                 'user': user,
-                'points': points,
+                'points': user.points,
                 'quote_of_the_day': self.get_quote_of_the_day(),
                 'todos': todos,
                 'habits': habits,
@@ -689,7 +710,11 @@ class DashboardView(LoginRequiredMixin, TemplateView):
                 'subjectivity': sentiment_data.get('avg_subjectivity', 0),
             })
         except Exception as e:
-            context['error'] = str(e)
+            # Log the error if needed, and provide user-friendly error messages
+            context['error'] = "There was an issue loading your dashboard. Please try again later."
+            # Optional: for development/debugging
+            context['debug_error'] = str(e)
+
         return context
 
 
@@ -701,35 +726,61 @@ def guide_list(request):
     return render(request, 'journal/guide_list.html', {'guides': guides})
 
 
-def guide_detail(request, pk):
-    guide = get_object_or_404(Guide, pk=pk)
-    return render(request, 'journal/guide_detail.html', {'guide': guide})
+class GuideDetailView(DetailView):
+    model = Guide
+    template_name = "guide_detail.html"
+    context_object_name = 'guide'
+
+
 
 
 class ResourceListView(ListView):
     model = ResourceCategory
-    template_name = "resources.html"
-
-
-class ResourceCategoryView(DetailView):
-    model = ResourceCategory
     template_name = "resource_category_detail.html"
+    # Optional, for clarity in the template
+    context_object_name = "resource_category"
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+
+        # Retrieve all ResourceCategories
         context["journal_categories"] = ResourceCategory.objects.all()
+
+        # Retrieve Guides, optionally filtering by the current ResourceCategory
+        guides = Guide.objects.all()
+
+        # Pagination
+        paginator = Paginator(guides, 5)  # Show 5 guides per page
+        page_number = self.request.GET.get('page')
+        page_obj = paginator.get_page(page_number)
+
+        context["journal_guides"] = page_obj
+        context["is_paginated"] = page_obj.has_other_pages()
+        context["paginator"] = paginator
+
+        return context
+
+
+class ResourceCategoryView(ListView):
+    model = ResourceCategory  # The primary model for this view
+    template_name = "resource_category_detail.html"
+    paginate = 10
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        # Get all ResourceCategories for display
+        context["journal_categories"] = ResourceCategory.objects.all()
+
+        # Get all Guides, or you can filter them if needed
+        context["journal_guides"] = Guide.objects.all()
+
         return context
 
 
 class ResourceDetailView(DetailView):
     model = Resource
     template_name = "resource_detail.html"
-
-# need to make question and answer section of website functional
-# views.py
-
-
-# views.py
 
 
 class QuestionCreateView(LoginRequiredMixin, CreateView):
@@ -773,13 +824,13 @@ class AnswerCreateView(LoginRequiredMixin, CreateView):
 
 def qna_list(request):
     questions = Question.objects.all()
-    return render(request, 'journal:qna_list.html', {'questions': questions})
+    return render(request, 'qna_list.html', {'questions': questions})
 
 
 def qna_detail(request, pk):
     question = get_object_or_404(Question, pk=pk)
     answers = Answer.objects.filter(question=question)
-    return render(request, 'journal:qna_detail.html', {'question': question, 'answers': answers})
+    return render(request, 'qna_detail.html', {'question': question, 'answers': answers})
 
 
 class ContactView(TemplateView):
@@ -837,7 +888,7 @@ class FeedbackView(LoginRequiredMixin, TemplateView):
         context = super().get_context_data(**kwargs)
         context['feedback'] = "We'd love to hear your feedback!"
         return context
-    
+
 
 class FaqView(LoginRequiredMixin, TemplateView):
     template_name = "faqs.html"

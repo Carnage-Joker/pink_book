@@ -10,7 +10,7 @@ from .views import (
     ToDoListView, ToDoUpdateView, AboutView,
     generate_task_view, fail_task_view, PasswordResetDoneView,
     PasswordResetView,
-    CompleteToDoView, guide_list, guide_detail, ActivityLogListView,
+    CompleteToDoView, GuideDetailView, ActivityLogListView,
     BillingView, qna_list, qna_detail, MessageListView,
     CustomLoginView, ModeratorListView, ForumCreateView,
     ForumDeleteView, PostListView, ThreadListView, FeatureListView,
@@ -104,8 +104,7 @@ urlpatterns = [
      path('complete-task/', CompleteTaskView.as_view(), name='complete_task'),
 
      # Resources
-     path('guides/', guide_list, name='guide_list'),
-     path('guides/<int:pk>/', guide_detail, name='guide_detail'),
+     path('guide/<int:pk>/', GuideDetailView.as_view(), name='guide_detail'),
      path('resources/', ResourceListView.as_view(), name='resource_list'),
      path('resources/<int:pk>/', ResourceCategoryView.as_view(),
           name='resource_category_detail'),

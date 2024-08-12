@@ -215,6 +215,7 @@ class Habit(models.Model):
     id = models.UUIDField(
         primary_key=True, default=uuid.uuid4, editable=False, unique=True)
     start_date = models.DateField(default=timezone.now)
+    date = models.DateField(default=timezone.now)
     end_date = models.DateField(blank=True, null=True)
     description = models.TextField(blank=True, null=True)
     increment_counter = models.IntegerField(
@@ -242,10 +243,10 @@ class Habit(models.Model):
         ('orders', 'Orders')
     ], default='sissification_tasks')
     last_reset_date = models.DateField()
-
+    
     def check_reset_needed(self):
         now = timezone.now().date()
-        if self.reminder_frequency == 'daily' and self.last_reset_date < now:
+        if self.reminder_frequency == 'daily' and self.last_reset_date.date() < now:
             self.reset_count()
 
     def increment_count(self):
@@ -551,7 +552,7 @@ class Post(models.Model):
     title = models.CharField(max_length=200)
     content = models.TextField()
     author = models.ForeignKey(
-        settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+        CustomUser, on_delete=models.CASCADE)
     thread = models.ForeignKey(Thread, on_delete=models.CASCADE)
     timestamp = models.DateTimeField(auto_now_add=True)
     comments = GenericRelation(Comment, related_query_name='post_comments')
@@ -606,7 +607,7 @@ class Billing(models.Model):
     subscription_tier = models.CharField(max_length=50, default='free')  # free, basic, premium, moderator, admin
     start_date = models.DateField()
     end_date = models.DateField()
-    is_active = models.BooleanField(default=True)
+    is_active = models.BooleanField(default=False)
 
     def __str__(self):
         return f"{self.user.sissy_name}'s {self.subscription_tier} subscription"
@@ -616,7 +617,7 @@ def check_subscription_status():
     for billing in Billing.objects.filter(is_active=True):
         if billing.end_date < timezone.now().date():
             billing.is_active = False
-            billing.user.userprofile.subscription_tier = 'free'
+            billing.user.subscription_tier = 'free'
             billing.user.is_subscriber = False
             billing.save()
             billing.user.save()

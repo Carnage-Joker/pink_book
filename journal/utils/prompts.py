@@ -132,5 +132,11 @@ default_prompts = [
     "What was it that first made you realize you were a sissy?",
     "If you could give one piece of advice to a new sissy, what would it be?",
     "How are you and you're sissy self different? Are you different people or just different sides of the same person?",
-
+    "Imagine waking up tomorrow and being the perfect sissy. What would that look like?",
+    "write a list of things that make you happy. Even if only a little bit, get at least 10 things down.",
+    "What is your favorite thing about being a sissy?",
+    "What is your least favorite thing about being a sissy?",
+    "What is your favorite sissy activity?",
+    "Tell your most memorable reveal story. Who did you tell? How did you feel before and after?  If you haven't revealed your sissy self yet, write about what you think it will be like.",
+    "How did you come to terms with your sissy identity?",
 ]

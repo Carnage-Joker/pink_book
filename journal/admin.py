@@ -5,7 +5,7 @@ from django.contrib.auth.models import Group
 
 from .models import (BlogPost, Comment, CustomUser, Faq, JournalEntry, Post, Quote,
                      RelatedModel, Report, Tag, Thread, UserFeedback,
-                     UserProfile)
+                     UserProfile, Guide)
 
 
 @admin.register(Thread)
@@ -125,3 +125,8 @@ class FaqAdmin(admin.ModelAdmin):
     def remove_faq(self, request, queryset):
         queryset.delete()
     remove_faq.short_description = "Delete selected faqs"
+    
+    @admin.register(Guide)
+    class GuideAdmin(admin.ModelAdmin):
+        list_display = ('title',)
+        search_fields = ('title',)
