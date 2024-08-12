@@ -10,7 +10,7 @@ STATICFILES_DIRS = [
     BASE_DIR / "static",
 ]
 STATIC_ROOT = BASE_DIR / "staticfiles"
-HUGGING_FACE_API_KEY = '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'
+HUGGING_FACE_API_KEY = os
 # Template directories
 TEMPLATES = [
     {
