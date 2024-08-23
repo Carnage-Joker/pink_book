@@ -1,0 +1,52 @@
+{% extends 'base.html' %}
+{% load custom_filters %}
+{% load static %}
+{% block title %}Resources and Guides{% endblock %}
+{% block content %}
+<div class="container diary-spread">
+    <!-- Left Page - Resources List -->
+    <div class="left-page">
+        <h2>Resources</h2>
+        <p>Welcome to the ultimate sissy resource hub! Girl, we've got you covered! 💖 sissies succeed with a strong sense of community</p>
+        <ul class="resource-list">
+            {% for category in object_list %}
+            <li><a href="{% url 'journal:resource_category_detail' category.pk %}">{{ category.name }}</a></li>
+            {% endfor %}
+        </ul>
+    </div>
+
+    <!-- Right Page - Placeholder or Additional Info -->
+    <div class="right-page">
+        <h2>Guides</h2>
+        <p>Check out these sissy style guides that can help you on your journey.</p>
+        <p> P.s. They were written by girls just like you!</p>
+        <p>Whether you're looking for support, learning new skills, or just exploring, we've got something for you!</p>
+        <ul>
+            {% for guide in journal_guides %}
+            <li><a href="{% url 'journal:guide_detail' guide.pk %}">{{ guide.title }}</a></li>
+            {% endfor %}
+        </ul>
+
+        <div class="mt-4">
+            {% if is_paginated %}
+            <ul class="pagination">
+                {% if journal_guides.has_previous %}
+                <li class="page-item"><a class="page-link" href="?page={{ journal_guides.previous_page_number }}">Previous</a></li>
+                {% endif %}
+                {% for num in paginator.page_range %}
+                <li class="page-item {% if journal_guides.number == num %}active{% endif %}">
+                    <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                </li>
+                {% endfor %}
+                {% if journal_guides.has_next %}
+                <li class="page-item"><a class="page-link" href="?page={{ journal_guides.next_page_number }}">Next</a></li>
+                {% endif %}
+            </ul>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Book Binding in the Center -->
+    <div class="binding"></div>
+</div>
+{% endblock %}

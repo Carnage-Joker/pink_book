@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Journal Entry {% endblock title %}
+{% block content %}
+<div class="container entry-detail-page">
+    <div class="entry-detail-page-left">
+        <h3>{{ entry.title }} </h3>
+        <p><strong>Theme:</strong> {{ entry.theme }}</p>
+        <p><strong>Date:</strong> {{ entry.timestamp }}</p>
+        <p><strong>Prompt:</strong> {{ prompt_text }}</p> <!-- Display the saved prompt -->
+        <div class="entry-content">
+            {{ entry.content|linebreaks }}
+        </div>
+    </div>
+    <div class="entry-detail-page-right">
+        <p><strong>Tags:</strong> {{ entry.tags|join:", " }}</p>
+        {% if entry.image %}
+        <p><strong>Image:</strong></p>
+        <p><img src="{{ entry.image.url }}" alt="{{ entry.title }}"></p>
+        {% endif %}
+        {% if entry.video %}
+        <p><strong>Video:</strong></p>
+        <p><video controls>
+            <source src="{{ entry.video.url }}" type="video/mp4">
+        </video></p>
+        {% endif %}
+        {% if entry.audio %}
+        <p><strong>Audio:</strong></p>
+        <p><audio controls>
+            <source src="{{ entry.audio.url }}" type="audio/mpeg">
+        </audio></p>
+        {% endif %}
+        {% if entry.file %}
+        <p><strong>File:</strong> <a href="{{ entry.file.url }}" download>Download</a></p>
+        {% endif %}
+        {% if user.is_premium_user or user.is_highest_user %}
+            {% if entry.insight %}
+                <p><strong>Insight:</strong> {{ insight }}</p>
+            {% endif %}
+        {% endif %}
+        <p><a href="{% url 'journal:entry_list' %}" class="btn btn-secondary">Back to Entry List</a></p>
+    </div>
+</div>
+{% endblock %}
