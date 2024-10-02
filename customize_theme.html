@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block content %}
+<div class="container">
+    <h1>Profile Theme Customization</h1>
+    <p>Customize your profile theme here.</p>
+    <p>Current theme: {{ user.theme }}</p>
+    <p>Choose a theme:</p>
+    <div>
+        <p>Light theme:</p>
+        <img src="{{ url_for('static', filename='images/light_theme.png') }}" alt="Light theme" width="200" height="200">
+    </div>
+    <div>
+        <p>Dark theme:</p>
+        <img src="{{ url_for('static', filename='images/dark_theme.png') }}" alt="Dark theme" width="200" height="200">
+    </div>
+    
+    <form method="post">
+        <label for="theme">Theme:</label>
+        <select name="theme" id="theme">
+            <option value="light">Light</option>
+            <option value="dark">Dark</option>
+        </select>
+        <button type="submit">Save</button>
+    </form>
+</div>
+{% endblock %}

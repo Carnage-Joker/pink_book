@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}Profile{% endblock %}
+{% block content %}
+<div class="container diary-spread">
+    <!-- Left Page - Profile Information -->
+    <div class="left-page">
+        <h2>Profile Information</h2>
+        {% if user.profile_picture %}
+        <div class="profile-picture">
+            <img src="{{ user.profile_picture.url }}" alt="Profile Pic">
+        </div>
+        {% else %}
+        <div class="profile-picture">
+            <img src="{% static 'default-profile-pic.jpg' %}" alt="Profile Pic">
+        </div>
+        {% endif %}
+        <p><strong>Name:</strong> {{ user.sissy_name }}</p>
+        <p><strong>Type:</strong> {{ user.get_sissy_type_display }}</p>
+        <p><strong>Pronouns:</strong> {{ user.pronouns }}</p>
+        <p><strong>Bio:</strong> {{ user.bio }}</p>
+        <p><strong>DOB:</strong> {{ user.date_of_birth }}</p>
+        <p><strong>Chastity Status:</strong> {{ user.get_chastity_status_display }}</p>
+        <p><strong>Owned Status:</strong> {{ user.get_owned_status_display }}</p>
+        <p><strong>Location:</strong> {{ user.location }}</p>
+        <a href="{% url 'journal:profile_update' %}" class="btn btn-register">Edit Profile</a>
+        <a href="{% url 'journal:customize_theme' %}" class="btn btn-register">Customize Theme</a>
+    </div>
+
+    <!-- Right Page - Additional Content or Placeholder -->
+    <div class="right-page">
+        <h2>More About You</h2>
+        <p>Use this space to add more personal details or additional features for your profile.</p>
+        <!-- Placeholder for future content or customization -->
+    </div>
+
+    <!-- Book Binding in the Center -->
+    <div class="binding"></div>
+</div>
+{% endblock %}

@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Error{% endblock %}
+{% block content %}
+<div class="container diary-spread">
+    <!-- Left Page - Error Message -->
+    <div class="left-page">
+        <h1 style="color: hotpink;">Oopsie-daisy! Something Went Wrong!</h1>
+        <p>Don't worry, darling, let's try again!</p>
+    </div>
+
+    <!-- Right Page - Placeholder or Additional Info -->
+    <div class="right-page">
+        <h2>Need Help?</h2>
+        <p>If you're having trouble, please contact support for assistance.</p>
+        <p>Try refreshing the page or return to the <a href="{% url 'journal:welcome' %}" class="btn btn-register">Home Page</a>.</p>
+    </div>
+
+    <!-- Book Binding in the Center -->
+    <div class="binding"></div>
+</div>
+{% endblock %}

@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block content %}
+  <h1>{{ question.title }}</h1>
+  <p>{{ question.content }}</p>
+  <h2>Answers</h2>
+  <ul>
+    {% for answer in answers %}
+      <li>{{ answer.content }} - {{ answer.author }}</li>
+    {% endfor %}
+  </ul>
+  {% if user.is_premium_user or user.is_highest_user %}
+    <a href="{% url 'journal:answer_create' question.pk %}">Answer this Question</a>
+  {% else %}
+    <p>You need to upgrade to Premium to answer questions.</p>
+  {% endif %}
+{% endblock %}

@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}To-Do List{% endblock %}
+{% block content %}
+<div class="container diary-spread">
+    <!-- Left Page - To-Do List -->
+    <div class="left-page">
+        <h2>{{ user.sissy_name }}'s Chores</h2>
+        {% for todo in todos %}
+        <div class="todo-item">
+            <span>{{ todo.task }}</span>
+            <button onclick="giveReward('{{ todo.reward }}')" class="btn btn-register">Mark Completed</button>
+            <button onclick="givePenalty('{{ todo.penalty }}')" class="btn btn-register">I Failed</button>
+            <button onclick="updateProgress({{ todo.id }})" class="btn btn-register">Update Progress</button>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Right Page - Placeholder or Additional Info -->
+    <div class="right-page">
+        <h2>Tips for Managing Your Tasks</h2>
+        <p>Stay on top of your tasks by regularly updating your to-do list.</p>
+        <p>Celebrate each completed task with a small reward!</p>
+        <p>If you miss a task, don't be too hard on yourself. Reflect and learn for next time.</p>
+    </div>
+
+    <!-- Book Binding in the Center -->
+    <div class="binding"></div>
+</div>
+
+<!-- Include scripts -->
+<script src="{% static 'journal/scripts/scripts.js' %}"></script>
+{% endblock %}
