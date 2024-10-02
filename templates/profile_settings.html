@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 {% extends 'base.html' %}
 {% load static %}
 {% block title %}Settings{% endblock %}
@@ -52,3 +53,31 @@
     <div class="binding"></div>
 </div>
 {% endblock %}
+=======
+{% extends 'base.html' %}
+{% load static %}
+{% block content %}
+    <div class="diary-page">
+        <h2>Oh, you want to tweak your settings? How adventurous! 🎀</h2>
+        
+        <form method="post">
+            {% csrf_token %}
+            {{ form.as_p }}
+            <label for="privacy">Privacy Level:</label>
+            <select id="privacy" name="privacy">
+                <option value="public">Public (Everyone can see you, darling!)</option>
+                <option value="friends">Friends Only (Keep it exclusive, sweetie)</option>
+                <option value="private">Private (Shy, are we? 🙈)</option>
+            </select>
+            
+            <label for="nsfw">NSFW Content:</label>
+            <input type="checkbox" id="nsfw" name="nsfw"> Blur it for me, please! 🌸
+            
+            <button type="submit" class="button">Save Changes</button>
+        </form>
+        
+        <p>Want to change how fabulous you look? <a href="{% url 'profile_settings_view' %}">Edit Profile</a></p>
+        <p>Or maybe you'd like to redecorate? <a href="{% url 'customize_theme_view' %}">Customize Theme</a></p>
+    </div>
+{% endblock content %}
+>>>>>>> bc61eea2aedc4e423bc10c64ed6a584fcf87a9cc

@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+
+{% block title %}A journal just for you sis{% endblock %}
+{% block content %}
+<div class="diary-page">
+    <!-- Your content here -->
+    <div class="header">
+        <span class="header-text">Recent Entries</span>  <!-- Removed extra angle bracket -->
+    </div>
+
+    <section class="recent-entries-section">
+        <div class="diary-headings-left"></div>
+        <div class="recent-entries">
+            {% for entry in recent_entries %}  <!-- Changed 'entries' to 'recent_entries' -->
+                <div class="entry-card">
+                    <h4>{{ entry.title }}</h4>
+                    <p>{{ entry.content|truncatewords:20 }}... <a href="{% url 'journal:entry_detail_view' entry.id %}">Read more</a></p>
+                </div>
+            {% empty %}
+                <p>You haven't added any recent entries. Start journaling now!</p>
+            {% endfor %}
+            <a href="{% url 'journal:new_entry_view' %}" class="btn btn-primary">New Entry</a>
+        </div>
+    </section>
+</div>
+{% endblock content %}

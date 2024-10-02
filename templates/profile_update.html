@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 {% extends 'base.html' %}
 {% load static %}
 {% block title %}Edit Profile{% endblock %}
@@ -24,3 +25,19 @@
     <div class="binding"></div>
 </div>
 {% endblock %}
+=======
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="profile-page">
+    <h2>Edit Profile</h2>
+    <form method="post" class="form-group" enctype="multipart/form-data">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit" class="btn btn-primary">Update Profile</button>
+    </form>
+</div>
+{% endblock content %}
+```
+>>>>>>> bc61eea2aedc4e423bc10c64ed6a584fcf87a9cc

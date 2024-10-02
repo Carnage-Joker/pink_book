@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 {% extends "base.html" %}
 {% load static %}
 {% block title %}Add Comment{% endblock %}
@@ -24,3 +25,14 @@
     <div class="binding"></div>
 </div>
 {% endblock %}
+=======
+{% extends "base.html" %}
+{% load static %}
+{% block content %}
+<form method="post">
+    {% csrf_token %}
+    {{ form.as_p }}
+    <button type="submit">Add Comment</button>
+</form>
+{% end block %}
+>>>>>>> bc61eea2aedc4e423bc10c64ed6a584fcf87a9cc

@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+{% load static %}
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Activate Account - Pink Book{% endblock %}</title>
+    <link rel="stylesheet" href="{% static 'journal/css/diary-theme.css' %}">
+    {% block head %}{% endblock %}
+</head>
+<body>
+    
+    <!-- Navigation Tabs (Post-it Notes) -->
+    <nav class="post-it-notes">
+        <a href="{% url 'journal:welcome' %}">Home</a>
+        <a href="{% url 'journal:resource_list' %}">Resources</a>
+        <a href="{% url 'journal:dashboard' %}">Dashboard</a>
+        <a href="{% url 'journal:thread_list' %}">Forum</a>
+        <a href="{% url 'journal:logout' %}">Logout</a>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="content">
+        {% block content %}
+        <div class="container">
+            <div class="diary-spread">
+                <div class="left-page">
+                    <h2>Activate Your Account</h2>
+                    {% if valid_link %}
+                    <p>Welcome, lovely! Your account has been successfully activated. You can now log in and start your sissy journey!</p>
+                    <a href="{% url 'journal:welcome' %}" class="btn">Log In</a>
+                    {% else %}
+                    <p>Oh no! This activation link is invalid or has expired. Please request a new activation link.</p>
+                    <a href="{% url 'journal:resend_activation' %}" class="btn">Resend Activation Email</a>
+                    {% endif %}
+                </div>
+                <div class="right-page">
+                    <h2>Diary Notes</h2>
+                    <p>Keep track of your progress and remember to fill out your diary daily. Your sissy journey is just beginning, and we're here to support you every step of the way.</p>
+                </div>
+            </div>
+            <div class="binding"></div>
+        </div>
+        {% endblock %}
+    </div>
+    <div class="rightcolumn">
+        <a href="{% url 'journal:about' %}">About Us</a>
+    </div>
+    <!-- Scripts -->
+    <script src="{% static 'journal/scripts/scripts.js' %}"></script>
+    {% block scripts %}{% endblock %}
+</body>
+<footer>
+    <p>&copy; 2024 Sissy Diary</p>
+</footer>
+<div id="toast-container"></div>
+<script src="{% static 'journal/scripts/scripts.js' %}"></script>
+</html>

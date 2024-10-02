@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 {% extends "base.html" %}
 {% block title %}{{ post.title }}{% endblock %}
 {% block content %}
@@ -27,3 +28,15 @@
         {% endif %}
     </div>
 {% endblock %}
+=======
+{% extends "base.html" %}
+{%load static%}
+{% block content %}
+<h1>{{ post.title }}</h1>
+<p>{{ post.content }}</p>
+{% for comment in comments %}
+    <p>{{ comment.author }}: {{ comment.content }}</p>
+{% endfor %}
+<a href="{% url 'journal:create_comment_view' post.id %}">Add Comment</a>
+{% endblock %}
+>>>>>>> bc61eea2aedc4e423bc10c64ed6a584fcf87a9cc

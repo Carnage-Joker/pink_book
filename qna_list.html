@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% block title %}Q&A{% endblock %}
+{% block content %}
+<div class="container diary-spread">
+    <div class="left-page">
+        <h1>Q&A</h1>
+        <ul>
+            {% for question in questions %}
+            <li>
+                <h2>{{ question.question }}</h2>
+                <p>{{ question.answer.answer }}</p>
+            </li>
+            {% endfor %}
+        </ul>
+        {% if user.is_premium_user or user.is_highest_user %}
+            <a href="{% url 'journal:question_create' %}" class="btn btn-register">Ask a Question</a>
+        {% else %}
+            <p>You need to upgrade to Premium to ask questions.</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

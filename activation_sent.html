@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+    {% load static %}
+<head>
+    <meta charset="UTF-8">
+    <title>Activation Email Sent</title>
+</head>
+<body>
+    <div class="container">
+        <div class="diary-spread">
+            <div class="left-page">
+                <h2>Activate Your Account</h2>              
+<p>A new activation link has been sent to your email address. Please check your inbox.</p>
+<p>Remember to check your spam folder if you don't see the email in your inbox.</p>
+<p>If you still don't see the email, you can request a new activation link.</p>
+<p><a href="{% url 'journal:resend_activation' %}" class="btn">here!</a></p>
+</div>
+<div class="right-page">
+    <h2>Diary Notes</h2>
+    <p>Keep track of your progress and remember to fill out your diary daily. Your sissy journey is just beginning, and we're here to support you every step of the way.</p>
+    <p>Don't forget to check out our <a href="{% url 'journal:blog_list' %}">blog</a> page to stay up to date with all things sissy</p>
+    <p>Need some inspiration? Check out our <a href="{% url 'journal:resource_list' %}">resources</a> page for helpful tips and tricks.</p>
+    <p>Have a question or need support? Visit our <a href="{% url 'journal:contact' %}">contact</a> page to get in touch with us.</p>
+    <p>Want to connect with other sissies? Join our <a href="{% url 'journal:thread_list' %}">forum</a> to share your thoughts and experiences.</p>
+    <p>Remember to stay safe and take care of yourself throughout your journey. We're here to help you every step of the way.</p>
+    <p>Happy sissy training!</p>
+    <img src="{% static 'journal/media/pinkbooklogo.png' %}" alt="Pink Book Logo">
+    </p>
+</div>
+</div>
+</div>
+</body>
+</html>
+<!-- Compare this snippet from templates/activation_sent.html: -->
+
+
+<!-- with the top snippet from templates/activation_sent.html: -->

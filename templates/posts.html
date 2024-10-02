@@ -1,0 +1,6 @@
+{% extends "base.html" %}
+<h1>{{ category.name }}</h1>
+{% for post in posts %}
+    <a href="{% url 'journal:post_detail_view' post.id %}">{{ post.title }}</a><br>
+{% endfor %}
+<a href="{% url 'journal:create_post_view' %}">Create Post</a>

@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
@@ -130,3 +131,20 @@ class FaqAdmin(admin.ModelAdmin):
     class GuideAdmin(admin.ModelAdmin):
         list_display = ('title',)
         search_fields = ('title',)
+=======
+from django.contrib import admin
+from .models import RelatedModel, Comment, CustomUser, JournalEntry
+
+admin.site.register(JournalEntry)
+admin.site.register(CustomUser)
+admin.site.register(RelatedModel)  # Register RelatedModel without any inlines
+
+@admin.register(Comment)
+class CommentAdmin(admin.ModelAdmin):
+    list_display = ['content', 'author', 'content_type', 'object_id']
+    list_filter = ['content_type']
+
+# You can add more admin registrations for other models if needed
+
+
+>>>>>>> bc61eea2aedc4e423bc10c64ed6a584fcf87a9cc

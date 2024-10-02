@@ -1,0 +1,93 @@
+{% extends "base.html" %}
+{% block content %}
+{% load static %}
+
+<div class="dashboard-page">
+        {% if user.profile_picture %}
+        <div class="profile-picture">
+            <img src="{{ user.profile_picture.url }}" alt="Profile Picture">
+        </div>
+    {% else %}
+        <div class="profile-picture">
+            <!-- Default image when no profile picture is set -->
+            <img src="{% static 'default-profile-pic.jpg' %}" alt="Profile Picture">
+        </div>
+    {% endif %}
+    <h2>Welcome, {{ user.sissy_name }}!</h2>
+
+    <!-- Edit Profile and Settings Links -->
+    <div class="profile-links">
+        <a href="{% url 'update_profile_view' %}" class="edit-link">Edit Profile</a>
+        <span>|</span>
+        <a href="{% url 'profile_settings_view' %}" class="settings-link">Settings</a>
+    </div>
+
+    <div class="recent-entries">
+        <ul>
+        {% for entry in entries %}
+            <li>
+                <a href="{% url 'entry_detail_view' entry_id=entry.id %}">{{ entry.title }}</a>
+                <small>Created on {{ entry.timestamp|date:"d M Y" }}</small>
+            </li>
+        {% empty %}
+            <p>You haven't added any recent entries. Start journaling now!</p>
+        {% endfor %}
+        </ul>
+        <div class="dashboard-details-right">
+           
+        </div>
+        <a href="{% url 'new_entry_view' %}" class="btn btn-primary">New Entry</a>
+    </div>
+    
+   
+  
+
+        <div class="diary-page-details-right">
+            <!-- Insights Section -->
+            <section class="insights-section">
+                {% if avg_polarity and avg_subjectivity %}
+          <!-- Display insights here, glam queen! -->
+        
+        
+          <ul>
+            <li><strong>General feels:</strong>  
+                {% if avg_polarity > 0 %}  Happy feels Yayyyy!
+                {% elif avg_polarity == 0 %} Got the Meh feels....
+                {% elif avg_polarity < 0 %} OMG babe, I got a sissy shoulder to cry on
+                {% endif %} 
+            </li>
+            <li><strong>Girly Guage:</strong>  
+                {% if avg_subjectivity > 0.51 %}  Oh, so girly, Gurl!
+                {% elif avg_subjectivity == 0.5 %} you're girling up honey!
+                {% elif avg_subjectivity < 0.49 %} Boy alert, write with your heart not your head
+                {% endif %} </li>
+            
+        <li><strong>Most talked about:</strong>  {% for keyword, count in frequent_keywords %}
+                                                 {{ keyword }} ({{ count }}), 
+                                                 {% endfor %}</li>
+        <li><strong>Most Common Tag:</strong> {{ common_tags.0.0 }}</li>
+        <li><strong>Most Common Emotion:</strong> {{ most_common_emotions.0.0 }}</li>
+        <li><strong>Average Word Count:</strong> {{ average_word_count }}</li>
+        <li><strong>Consistent Journaling:</strong> You've been journaling for {{ streak }} consecutive days!</li>
+        {% if streak >= 10 %}
+            <li>Impressive dedication, {{user.sissy_name}}, Your consistency is commendable. 🚀</li>
+        {% elif streak >= 5 %}
+            <li>You're building a strong habit. Keep the momentum alive! 🔥</li>
+        {% endif %}
+        <li><strong>Peak Journaling Hour:</strong> You're most active around {{ most_active_hour }}:00. Whether it's morning reflections or evening recaps, keep pouring your thoughts!</li>
+        {% for entry in entries_with_insights %}
+              <li>{{ entry.insight }}</li>  <!-- Again, replace 'insight' with actual field name -->
+        {% endfor %}
+    </ul>
+    {% else %}
+          <p>No insights yet, darling. Why not write a new journal entry?</p>
+        {% endif %}
+</section>    
+    </div>
+   
+
+    
+         
+
+
+{% endblock %}

@@ -1,0 +1,45 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Forum Threads{% endblock %}
+{% block content %}
+<div class="container diary-spread">
+    <div class="left-page">
+        <h2>Forum Threads</h2>
+        <div class="list-group">
+            {% for thread in threads %}
+            <ul><li> <a href="{% url 'journal:post_list' thread.pk %}" class="list-group-item list-group-item-action">
+                        <h5 class="mb-1">{{ thread.title }}</h5></li></ul>   
+            {% endfor %}
+        </div>
+        <!-- Pagination Controls -->
+        <div class="mt-4">
+            {% if is_paginated %}
+                <ul class="pagination">
+                    {% if page_obj.has_previous %}
+                        <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}">Previous</a></li>
+                    {% endif %}
+                    {% for num in paginator.page_range %}
+                        <li class="page-item {% if page_obj.number == num %}active{% endif %}">
+                            <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                        </li>
+                    {% endfor %}
+                    {% if page_obj.has_next %}
+                        <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}">Next</a></li>
+                    {% endif %}
+                </ul>
+            {% endif %}
+        </div>
+    </div>
+    <div class="right-page">
+        <h2>Explore More</h2>
+        <p>Discover more threads or start a new discussion. This is your space to connect and share.</p>
+        {% if user.is_premium_user or user.is_highest_user %}
+            <a href="{% url 'journal:create_thread' %}" class="btn btn-register">Start a New Thread</a>
+        {% else %}
+            <p>You need to upgrade to Premium to create a thread.</p>
+        {% endif %}
+    </div>
+    <div class="binding"></div>
+</div>
+{% endblock %}

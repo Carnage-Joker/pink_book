@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 {% extends 'base.html' %}
 {% load custom_filters %}
 {% load static %}
@@ -21,3 +22,15 @@
 </ul>
 {% endif %}
 {% endblock %}
+=======
+{% extends "base.html" %}
+{%load static%}
+{% block content %}
+<h1>{{ reasource.title }}</h1>
+<p>{{ reasource.content }}</p>
+{% for reasource in reasources %}
+    <p>{{ reasource.author }}: {{ reasource.content }}</p>
+{% endfor %}
+<a href="{% url 'journal:create_reasource_comment_view' post.id %}">Add Comment</a>
+{% endblock %}
+>>>>>>> bc61eea2aedc4e423bc10c64ed6a584fcf87a9cc
