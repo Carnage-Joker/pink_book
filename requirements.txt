@@ -25,7 +25,7 @@ huggingface-hub==0.23.3  # Access Hugging Face models
 # HTTP and API clients
 requests==2.32.3  # HTTP client for making requests
 httpx==0.26.0  # Async HTTP client for advanced usage
-aiohttp==3.9.1  # Async HTTP client for use with async features
+aiohttp==3.10.2  # Async HTTP client for use with async features
 
 # Utilities and development tools
 black==23.12.1  # Code formatter
