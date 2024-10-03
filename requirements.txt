@@ -28,7 +28,7 @@ httpx==0.26.0  # Async HTTP client for advanced usage
 aiohttp==3.10.2  # Async HTTP client for use with async features
 
 # Utilities and development tools
-black==23.12.1  # Code formatter
+black==24.3.0  # Code formatter
 flake8==7.0.0  # Linter for Python
 isort==5.13.2  # Sorts imports in Python files
 mypy-extensions==1.0.0  # Static type checking
