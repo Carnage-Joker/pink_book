@@ -12,7 +12,7 @@ black==24.3.0
 blinker==1.8.2
 cachetools==5.4.0
 celery==5.3.6
-certifi==2023.11.17
+certifi==2024.7.4
 cffi==1.16.0
 channels==4.1.0
 chardet==5.2.0
@@ -86,7 +86,7 @@ openai==0.28.0
 packaging==24.1
 pandas==2.1.4
 pathspec==0.12.1
-pillow==10.2.0
+pillow==10.3.0
 platformdirs==4.2.2
 prompt_toolkit==3.0.47
 proto-plus==1.24.0
