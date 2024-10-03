@@ -40,7 +40,7 @@ virtualenv==20.25.1  # Virtual environment management
 # Security and encryption
 cryptography  # Essential for encryption tasks
 cffi==1.16.0  # C Foreign Function Interface for Python
-certifi==2023.11.17  # SSL certificates
+certifi==2024.7.4  # SSL certificates
 django-fernet-fields  # For encrypted fields in Django models
 
 # Database and ORM
