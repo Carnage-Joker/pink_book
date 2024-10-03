@@ -1,0 +1,25 @@
+#  habit_detail.html
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}{{ object.name }}{% endblock %}
+
+{% block content %}
+<div class="container">
+    <h2>{{ object.name }}</h2>
+    <p>{{ object.description }}</p>
+    <p>Start Date: {{ object.start_date }}</p>
+    <p>End Date: {{ object.end_date }}</p>
+    <p>Frequency: {{ object.frequency }}</p>
+    <p>Goal: {{ object.goal }}</p>
+    <p>Progress: {{ object.progress }}</p>
+    <p>Category: {{ object.category }}</p>
+    <p>Resources:</p>
+    <ul>
+        {% for resource in object.resources.all %}
+        <li>
+            <a href="{% url 'journal:resource_detail' resource.pk %}">{{ resource.title }}</a>
+        </li>
+        {% endfor %}
+    </ul>
+</div>
+{% endblock %}

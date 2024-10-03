@@ -29,21 +29,3 @@
     <div class="binding"></div>
 </div>
 {% endblock %}
-=======
-{% extends 'base.html' %}
-
-{% block content %}
-    <h1>Forum Home</h1>
-    <ul>
-    {% for category in categories %}
-        <li><a href="{% url 'category_detail_view' category.id %}">{{ category.title }}</a></li>
-    {% endfor %}
-    {% if user.is_authenticated %}
-    <a href="{% url 'create_post_view' category.id %}">Create Post</a>
-{% else %}
-    <a href="{% url 'login_view' %}">Log in to create a post</a>
-{% endif %}
-
-    </ul>
-{% endblock content %}
->>>>>>> bc61eea2aedc4e423bc10c64ed6a584fcf87a9cc

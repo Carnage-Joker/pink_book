@@ -9,14 +9,3 @@
         <button type="submit" class="btn btn-primary">Create</button>
     </form>
 {% endblock %}
-=======
-{% extends "base.html" %}
-{% load static %}
-
-{% block content %}
-<form method="post">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <button type="submit">Create Post</button>
-</form>
->>>>>>> bc61eea2aedc4e423bc10c64ed6a584fcf87a9cc

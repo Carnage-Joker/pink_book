@@ -1,0 +1,10 @@
+# invalid_link.html
+{% extends 'base.html' %}
+
+{% block title %}Invalid Link{% endblock %}
+
+{% block content %}
+    <h2>Invalid Link</h2>
+    <p>The link you have used is invalid or has expired. Please request a new link.</p>
+    <a href="{% url 'journal:password_reset' %}">Request a new link</a>
+{% endblock %}

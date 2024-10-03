@@ -34,21 +34,3 @@
     <div class="binding"></div>
 </div>
 {% endblock %}
-=======
-{% extends "base.html" %}
-{% load static %}
-
-{% block content %}
-<div class="logreg-section">
-    <fieldset class="form-group">
-        <legend class="border-bottom mb-4">Join Today</legend>
-        <form method="post" enctype="multipart/form-data">
-            {% csrf_token %}
-            {{ form.as_p }}
-            <button type="submit" class="btn btn-primary">Submit</button>
-        </form>
-    </fieldset>
-</div>
-{% endblock %}
-
->>>>>>> bc61eea2aedc4e423bc10c64ed6a584fcf87a9cc

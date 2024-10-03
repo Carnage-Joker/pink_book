@@ -1,29 +1,24 @@
-<!-- new_entry.html -->
-{% extends 'base.html' %}
+{% extends "base.html" %}
 {% load static %}
-{% block title %}New Entry{% endblock %}
+{% block title %}New Journal Entry{% endblock title %}
+{% block head %}<link rel="stylesheet" href="{% static 'diary-theme.css' %}">{% endblock head %}
 {% block content %}
-<div class="container diary-spread">
-    <!-- Left Page - New Entry Form -->
-    <div class="left-page">
-        <h2>Write a New Entry</h2>
-        <form method="post" enctype="multipart/form-data">
+<div class="new-entry-page">
+    <h2><p>...</p>
+       <p> Empty your tiny head, {{user.sissy_name}}</p></h2>
+    <form method="post">
         {% csrf_token %}
-        {{ form.as_p }}
-        <input type="hidden" name="prompt_text" value="{{ generated_prompt }}">
-        <button type="submit" class="btn btn-register">Save Entry</button>
-        </form>
-            
-        
+       <div class="form-group">
+        <fieldset class="form-group">
+           
+         <p class= "dayinsp">Today's Inspo:</p>
+         <p class= "prompt">{{ dynamic_prompt }}</p>
+          <P>  {{ form.hidden_fields }}</p>
+           <p> {{ form.non_field_errors }}</p>
+            <p>{{ form.as_p }}</p>
+            <button type="submit" class="btn btn-primary">Submit</button>
+        </fieldset>
     </div>
-
-    <!-- Right Page - Prompt and Insight -->
-    <div class="right-page">
-        <h2>Journal Prompt</h2>
-        <div id="generatedText">{{ generated_prompt }}</div> <!-- Display the generated prompt -->
-    </div>
-
-    <!-- Book Binding in the Center -->
-    <div class="binding"></div>
+    </form>
 </div>
-{% endblock %}
+{% endblock content %}

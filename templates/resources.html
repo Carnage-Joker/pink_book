@@ -51,16 +51,3 @@
     <div class="binding"></div>
 </div>
 {% endblock %}
-=======
-{% extends 'base.html' %}
-
-{% block content %}
-    <h1>Resources Page</h1>
-    <ul>
-    {% for resource in resources %}
-        <li><a href="{{ resources.link }}">{{ resource.title }}</a> - {{ resource.description }}</li>
-    {% endfor %}
-    </ul>
-{% endblock %}
-    
->>>>>>> bc61eea2aedc4e423bc10c64ed6a584fcf87a9cc

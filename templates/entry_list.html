@@ -48,24 +48,3 @@
     <div class="binding"></div>
 </div>
 {% endblock %}
-=======
-{% extends "base.html" %}
-{% load static %}
-{% block content %}
-  <h1>Your Journal Entries</h1>
-<div class="diary-page">
-  <ul>
-    {% for entry in entries %}
-      <li>
-        <a href="{% url 'entry_detail_view' entry_id=entry.id %}">{{ entry.title }}</a>
-        <small>Created on {{ entry.timestamp|date:"d M Y" }}</small>
-      </li>
-    {% empty %}
-      <li>No entries found.</li>
-    {% endfor %}
-  </ul>
-
-  <a href="{% url 'new_entry_view' %}">Create New Entry</a>
-</div>
-  {% endblock %}
->>>>>>> bc61eea2aedc4e423bc10c64ed6a584fcf87a9cc
