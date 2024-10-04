@@ -1,55 +1,58 @@
-<<<<<<< HEAD
 {% extends 'base.html' %}
 {% load static %}
-{% block title %}Settings{% endblock %}
+{% block title %}
+  Settings
+{% endblock %}
 {% block content %}
-<div class="container diary-spread">
+  <div class="container diary-spread">
     <!-- Left Page - Settings Form -->
     <div class="left-page">
-        <h2>Oh, you want to tweak your settings? How adventurous! 🎀</h2>
-        
-        <form method="post">
-            {% csrf_token %}
-            {{ form.as_p }}
-            <label for="privacy">Privacy Level:</label>
-            <select id="privacy" name="privacy">
-                <option value="public">Public (Everyone can see you, darling!)</option>
-                <option value="friends">Friends Only (Keep it exclusive, sweetie)</option>
-                <option value="private">Private (Shy, are we? 🙈)</option>
-            </select>
+      <h2>Oh, you want to tweak your settings? How adventurous! 🎀</h2>
 
-            <label for="nsfw">NSFW Content:</label>
-            <p>
-                <input type="checkbox" id="nsfw" name="nsfw"> Blur it for me, please! 🌸
-            </p>
-            <p>
-                <input type="checkbox" id="nsfw" name="nsfw"> I'm an adult, I can handle it! 🍑
-            </p>
+      <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <label for="privacy">Privacy Level:</label>
+        <select id="privacy" name="privacy">
+          <option value="public">Public (Everyone can see you, darling!)</option>
+          <option value="friends">Friends Only (Keep it exclusive, sweetie)</option>
+          <option value="private">Private (Shy, are we? 🙈)</option>
+        </select>
 
-            <label for="email">Email Notifications:</label>
-            <p>
-                <input type="checkbox" id="email" name="email"> I want to receive email notifications
-            </p>
+        <label for="nsfw">NSFW Content:</label>
+        <p>
+          <input type="checkbox" id="nsfw" name="nsfw" />Blur it for me, please! 🌸
+        </p>
+        <p>
+          <input type="checkbox" id="nsfw" name="nsfw" />I'm an adult, I can handle it! 🍑
+        </p>
 
-            <label for="ai_insights">AI Insights:</label>
-            <p>
-                <input type="checkbox" id="ai_insights" name="ai_insights"> I want to receive AI insights
-            </p>
+        <label for="email">Email Notifications:</label>
+        <p>
+          <input type="checkbox" id="email" name="email" />I want to receive email notifications
+        </p>
 
-            <button type="submit" class="btn btn-register">Save Changes</button>
-        </form>
-        
-        <p>Want to change how fabulous you look? <a href="{% url 'journal:profile_settings' %}">Edit Profile</a></p>
+        <label for="ai_insights">AI Insights:</label>
+        <p>
+          <input type="checkbox" id="ai_insights" name="ai_insights" />I want to receive AI insights
+        </p>
+
+        <button type="submit" class="btn btn-register">Save Changes</button>
+      </form>
+
+      <p>
+        Want to change how fabulous you look? <a href="{% url 'journal:profile_settings' %}">Edit Profile</a>
+      </p>
     </div>
 
     <!-- Right Page - Placeholder or Additional Info -->
     <div class="right-page">
-        <h2>Settings Help</h2>
-        <p>Adjust your preferences to control how you interact with the community.</p>
-        <p>Choose your privacy level, manage notifications, and customize your experience.</p>
+      <h2>Settings Help</h2>
+      <p>Adjust your preferences to control how you interact with the community.</p>
+      <p>Choose your privacy level, manage notifications, and customize your experience.</p>
     </div>
 
     <!-- Book Binding in the Center -->
     <div class="binding"></div>
-</div>
+  </div>
 {% endblock %}

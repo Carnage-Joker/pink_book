@@ -1,49 +1,41 @@
-from .utils import (
-    get_average_sentiment, extract_keywords, get_most_common_tags,
-    get_most_common_emotions, get_average_word_count, get_current_streak,
-    get_peak_journaling_time
-)
-from .models import CustomUser, JournalEntry, ToDo, Habit, Quote
-from django.views.generic import TemplateView
-from .models import ResourceCategory, Guide
-from django.views.generic import DetailView
-from django.core.paginator import Paginator
-import json
-import logging
-import random
-from datetime import date
-
-from django.contrib import messages
-from django.contrib.auth import get_user_model, login
-from django.contrib.auth import views as auth_views
-from django.contrib.auth.mixins import LoginRequiredMixin
-from django.contrib.auth.tokens import default_token_generator
-from django.contrib.auth.views import LoginView as AuthLoginView
-from django.http import HttpResponse, HttpResponseForbidden, JsonResponse
-from django.shortcuts import get_object_or_404, redirect, render
-from django.urls import reverse_lazy
-from django.utils.encoding import force_str
-from django.utils.http import urlsafe_base64_decode
-from django.utils.timezone import now
-from django.views import View
-from django.views.decorators.csrf import csrf_exempt
-from django.views.generic import (CreateView, DeleteView, DetailView, FormView,
-                                  ListView, TemplateView, UpdateView)
-
-from .forms import (CommentForm, CustomUserCreationForm, CustomUserLoginForm,
-                    CustomUserUpdateForm, HabitForm, JournalEntryForm,
-                    ProfileSettingsForm, ResendActivationForm, ThemeForm,
-                    ToDoForm)
-from .generate import generate_insight, generate_prompt
-from .models import (ActivityLog, Answer, Billing, BlogPost, Comment,
-                     CustomUser, Faq, Guide, Habit, JournalEntry, Message,
-                     Post, Question, Quote, Resource, ResourceCategory, Task,
-                     TaskCompletion, Thread, ToDo)
+from .utils.utils import generate_task, send_activation_email
 from .utils.ai_utils import (extract_keywords, get_average_sentiment,
                              get_average_word_count, get_current_streak,
                              get_most_common_emotions, get_most_common_tags,
                              get_peak_journaling_time)
-from .utils.utils import generate_task, send_activation_email
+from .models import (ActivityLog, Answer, Billing, BlogPost, Comment,
+                     CustomUser, Faq, Guide, Habit, JournalEntry, Message,
+                     Post, Question, Quote, Resource, ResourceCategory, Task,
+                     TaskCompletion, Thread, ToDo)
+from .generate import generate_insight, generate_prompt
+from .forms import (CommentForm, CustomUserCreationForm, CustomUserLoginForm,
+                    CustomUserUpdateForm, HabitForm, JournalEntryForm,
+                    ProfileSettingsForm, ResendActivationForm, ThemeForm,
+                    ToDoForm)
+from django.views.generic import (CreateView, DeleteView, DetailView, FormView,
+                                  ListView, TemplateView, UpdateView)
+from django.views.decorators.csrf import csrf_exempt
+from django.views import View
+from django.utils.timezone import now
+from django.utils.http import urlsafe_base64_decode
+from django.utils.encoding import force_str
+from django.urls import reverse_lazy
+from django.shortcuts import get_object_or_404, redirect, render
+from django.http import HttpResponse, HttpResponseForbidden, JsonResponse
+from django.contrib.auth.views import LoginView as AuthLoginView
+from django.contrib.auth.tokens import default_token_generator
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.auth import views as auth_views
+from django.contrib.auth import get_user_model, login
+from django.contrib import messages
+from datetime import date
+import random
+import logging
+import json
+from django.core.paginator import Paginator
+
+
+
 
 logger = logging.getLogger(__name__)
 

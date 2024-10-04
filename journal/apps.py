@@ -1,4 +1,3 @@
-<<<<<<< HEAD
 from django.apps import AppConfig
 
 
@@ -11,17 +10,5 @@ class JournalConfig(AppConfig):
 
 
 # Path: journal/signals.py
-=======
-from django.apps import AppConfig
-
-
-
-
-
-class JournalConfig(AppConfig):
-    default_auto_field = "django.db.models.BigAutoField"
-    name = "journal"
-    
-    def ready(self):
-        import journal.signals
->>>>>>> bc61eea2aedc4e423bc10c64ed6a584fcf87a9cc
+# Compare this snippet from manage.py:
+# """Django's command-line utility for administrative tasks."""

@@ -1,27 +1,28 @@
-<<<<<<< HEAD
 {% extends 'base.html' %}
 {% load static %}
-{% block title %}Edit Profile{% endblock %}
+{% block title %}
+  Edit Profile
+{% endblock %}
 {% block content %}
-<div class="container diary-spread">
+  <div class="container diary-spread">
     <!-- Left Page - Profile Edit Form -->
     <div class="left-page">
-        <h2>Edit Profile</h2>
-        <form method="post" class="form-group" enctype="multipart/form-data">
-            {% csrf_token %}
-            {{ form.as_p }}
-            <button type="submit" class="btn btn-register">Update Profile</button>
-        </form>
+      <h2>Edit Profile</h2>
+      <form method="post" class="form-group" enctype="multipart/form-data">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit" class="btn btn-register">Update Profile</button>
+      </form>
     </div>
 
     <!-- Right Page - Placeholder or Additional Info -->
     <div class="right-page">
-        <h2>Profile Tips</h2>
-        <p>Remember to keep your profile updated with your latest details and a fabulous picture!</p>
-        <p>Your profile is the first impression for your friends in our community.</p>
+      <h2>Profile Tips</h2>
+      <p>Remember to keep your profile updated with your latest details and a fabulous picture!</p>
+      <p>Your profile is the first impression for your friends in our community.</p>
     </div>
 
     <!-- Book Binding in the Center -->
     <div class="binding"></div>
-</div>
+  </div>
 {% endblock %}

@@ -15,12 +15,8 @@ STATICFILES_DIRS = [
     BASE_DIR / "static",
 ]
 STATIC_ROOT = BASE_DIR / "staticfiles"
-<<<<<<< HEAD
 HUGGING_FACE_API_KEY = os.getenv('HUGGING_FACE_API_KEY')
 
-=======
-HUGGING_FACE_API_KEY = os
->>>>>>> c41b307046486e5682cb6a038512c446bd1070bd
 # Template directories
 TEMPLATES = [
     {

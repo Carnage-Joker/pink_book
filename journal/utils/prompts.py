@@ -140,3 +140,299 @@ default_prompts = [
     "Tell your most memorable reveal story. Who did you tell? How did you feel before and after?  If you haven't revealed your sissy self yet, write about what you think it will be like.",
     "How did you come to terms with your sissy identity?",
 ]
+
+
+SORRY_SISSY_MESSAGES = [
+    'Oh dear, this is embarrassing', 'we will be back up in no time babe', 'oh princess, no insights today...', 'what a shame, no insights today...']
+
+THEMES = [
+    'Emotional Experiences', 'The Process of Feminization', 'Assigned Sissy Tasks',
+    'Encountered Challenges', 'Personal Fantasies', 'Fashion & Style', 'Skill Building',
+    'Relationship Dynamics', 'Confidence & Self-Esteem', 'Community & Support',
+    'Daily Rituals', 'Milestones & Achievements', 'Self-Care & Wellness',
+    'Role Models & Inspirations', 'Future Goals & Aspirations', 'Sexual Experiences', 'stereotypes', 'femininity',
+    'hypnos'
+]
+
+[**Emotional Experiences **
+
+1. Chronicle moments of profound vulnerability and arousal during submission.
+2. Reflect on the emotional rollercoaster following humiliating or rewarding tasks.
+3. Describe how your heart races when you know you've pleased Mistress.
+4. Detail the tears of joy or sorrow shed during your quest to serve.
+5. Record the emotional impact of significant submission milestones.
+
+**The Process of Feminization**
+
+6. Document changes in behavior, desires, and self-perception as you embrace sissy nature.
+7. Reflect on shifts in thoughts and feelings during feminization stages.
+8. Explore the world from your new feminine perspective.
+9. Detail moments where your thoughts and emotions align with your transformation.
+10. Record changes in self-image and confidence levels.
+
+**Assigned Sissy Tasks**
+
+11. Document the specific instructions from Mistress and your adherence to them.
+12. Reflect on moments of pride and frustration in meeting expectations.
+13. Describe the meticulous effort put into tasks like cleaning virtual heels.
+14. Detail your practice sessions for makeup and other feminine skills.
+
+**Encountered Challenges**
+
+15. Recount moments of struggle with assigned tasks.
+16. Reflect on obstacles faced during transformation.
+17. Detail the determination that fuels your overcoming of challenges.
+18. Outline hurdles in your journey to become the perfect sissy.
+19. Reflect on growth and rebirth resulting from facing adversity.
+20. Discuss moments of doubt and the journey to self-assurance.
+
+**Personal Fantasies**
+
+21. Explore your deepest, secret sissy desires.
+22. Create vivid scenarios for your diary entries.
+23. Let your imagination run wild with feminine roleplay ideas.
+
+**Fashion & Style**
+
+24. Describe your sartorial choices and the thrill of presenting as a sissy.
+25. Reflect on how your outfits make you feel.
+
+**Skill Building**
+
+26. Catalog your progress in mastering feminine arts.
+27. Detail the steps you take toward becoming a perfect sissy.
+
+**Relationship Dynamics**
+
+28. Analyze power exchanges in relationships.
+29. Discuss how submission enhances your interactions with others.
+
+**Confidence & Self-Esteem**
+
+30. Trace the journey from doubt to self-assurance.
+31. Reflect on moments that boosted your sissy self-image.
+
+**Daily Rituals**
+
+32. Log your sissy routines and their evolution.
+
+**Milestones & Achievements**
+
+33. Mark triumphs and dedication in your transformation.
+
+**Self-Care & Wellness**
+
+34. Discuss balancing service and personal well-being.
+35. Detail how you pamper your inner sissy.
+
+**Role Models & Inspirations**
+
+36. Identify guiding figures in your sissy journey.
+37. Reflect on their influence on your growth and aspirations.
+
+**Future Goals & Aspirations**
+
+38. Project your future as a devoted sissy.
+39. Imagine what you wish to achieve under Mistress' dominion.
+
+**Stereotypes**
+
+40. Reflect on challenging societal norms as a sissy.
+
+**Femininity**
+
+41. Define the essence of your sissy spirit.
+
+**Hypnos**
+
+42. Recount moments of trance-induced obedience.
+
+**Physical Changes**
+
+43. Chart the evolution of your physical form.
+
+**Mentorship & Learning**
+
+44. Describe guidance received in the sissy world.
+
+**Public Interactions**
+
+45. Detail moments of exposure and interactions outside the digital sanctum.
+
+**Introspection & Reflection**
+
+46. Examine your soul's journey.
+47. Discuss what the experience has taught you about yourself.
+
+**Resistance & Submission**
+
+48. Chronicle internal battles and ultimate surrenders.
+49. Reflect on dealing with rebellious thoughts.
+
+**Punishment & Reward**
+
+50. Record the consequences of disobedience.
+51. Detail the sweetness of a job well done.
+
+**Fetish Exploration**
+
+52. Discover and document new kinks and desires.
+53. Reflect on the excitement of new sissy experiences.
+
+**Crossdressing & Presentation**
+
+54. Reflect on the art of presenting as a woman.
+55. Detail challenges and pleasures of this form of expression.
+
+**Relationship Dynamics**
+
+56. Analyze power exchanges in personal and virtual connections.
+
+**Confidence & Self-Esteem**
+
+57. Trace moments of becoming more self-assured.
+
+**Daily Rituals**
+
+58. Reflect on mundane and sacred sissy routines.
+
+**Milestones & Achievements**
+
+59. Mark moments of pride and devotion.
+
+**Self-Care & Wellness**
+
+60. Discuss the balance of serving and self-nurturing.
+
+**Role Models & Inspirations**
+
+61. Consider the influence of sissy icons.
+
+**Future Goals & Aspirations**
+
+62. Imagine the pinnacle of your sissy transformation.
+
+**Sexual Experiences**
+
+63. Document intimate moments and evolving desires.
+64. Reflect on how your identity has redefined your sexuality.
+
+**Stereotypes**
+
+65. Examine the impact of societal norms on your journey.
+
+**Femininity**
+
+66. Reflect on embodying the true sissy spirit.
+
+**Hypnos**
+
+67. Chronicle experiences with trance and obedience.
+
+**Physical Changes**
+
+68. Discuss the emotions tied to physical transformations.
+
+**Mentorship & Learning**
+
+69. Recount the wisdom imparted by those who guide your sissyhood.
+
+**Public Interactions**
+
+70. Reflect on the world's treatment of you as a sissy.
+
+**Introspection & Reflection**
+
+71. Delve into the depths of your sissy soul.
+72. Discuss the lessons from your personal challenges.
+
+**Resistance & Submission**
+
+73. Chronicle the journey from resistance to complete surrender.
+
+**Punishment & Reward**
+
+74. Reflect on the shaping power of consequences.
+75. Detail the growth from disciplinary moments.
+
+**Fetish Exploration**
+
+76. Explore the thrills of discovering new kinks.
+
+**Crossdressing & Presentation**
+
+77. Reflect on the art of sissy presentation.
+78. Discuss the impact of crossdressing on your psyche.
+
+**Relationship Dynamics**
+
+79. Analyze the power exchange in various relationships.
+
+**Confidence & Self-Esteem**
+
+80. Trace your path from doubt to self-love.
+
+**Daily Rituals**
+
+81. Log the routines that define your sissy existence.
+
+**Milestones & Achievements**
+
+82. Celebrate your sissy triumphs.
+
+**Self-Care & Wellness**
+
+83. Discuss the importance of self-care in your transformation.
+84. Detail self-pampering activities.
+
+**Role Models & Inspirations**
+
+85. Identify the sissies who inspire your growth.
+
+**Future Goals & Aspirations**
+
+86. Imagine the future under Mistress' dominion.
+87. Set targets for your ongoing transformation.
+
+**Stereotypes**
+
+88. Reflect on the influence of societal norms on your experiences.
+
+**Femininity**
+
+89. Define what it truly means to be a sissy.
+
+**Hypnos**
+
+90. Detail moments under the spell of obedience.
+
+**Physical Changes**
+
+91. Record your feelings about each transformation stage.
+
+**Mentorship & Learning**
+
+92. Acknowledge the teachings of those who shape your sissy journey.
+
+**Public Interactions**
+
+93. Discuss your experiences outside the digital realm.
+
+**Introspection & Reflection**
+
+94. Examine your soul's transformation.
+
+**Resistance & Submission**
+
+95. Chronicle the internal wars and peace found in submission.
+96. Reflect on your ability to overcome resistance.
+
+**Punishment & Reward**
+
+97. Reflect on the learning from punishments and rewards.
+98. Detail the balance that shapes your behavior.
+
+**Fetish Exploration**
+
+99. Discover new dimensions of sissyhood.
+100. Document the excitement of kinky adventures.]

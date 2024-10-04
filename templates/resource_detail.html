@@ -1,24 +1,25 @@
-<<<<<<< HEAD
 {% extends 'base.html' %}
 {% load custom_filters %}
 {% load static %}
 
-{% block title %}{{ object.title }}{% endblock %}
+{% block title %}
+  {{ object.title }}
+{% endblock %}
 
 {% block content %}
-<h2>{{ object.title }}</h2>
-<p>{{ object.description }}</p>
-<a href="{{ object.link }}" target="_blank" class="resource-link">Visit Link</a>
+  <h2>{{ object.title }}</h2>
+  <p>{{ object.description }}</p>
+  <a href="{{ object.link }}" target="_blank" class="resource-link">Visit Link</a>
 
-{% if object.allow_comments %}
-<h3>Comments</h3>
-<ul class="resource-comments">
-    {% for comment in object.resourcecomment_set.all %}
-    <li>
-        <p>{{ comment.content }}</p>
-        <small>by {{ comment.author.username }} on {{ comment.timestamp }}</small>
-    </li>
-    {% endfor %}
-</ul>
-{% endif %}
+  {% if object.allow_comments %}
+    <h3>Comments</h3>
+    <ul class="resource-comments">
+      {% for comment in object.resourcecomment_set.all %}
+        <li>
+          <p>{{ comment.content }}</p>
+          <small>by {{ comment.author.username }} on {{ comment.timestamp }}</small>
+        </li>
+      {% endfor %}
+    </ul>
+  {% endif %}
 {% endblock %}
