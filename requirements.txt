@@ -133,7 +133,7 @@ transformers==4.41.2
 typing_extensions==4.12.2
 tzdata==2023.4
 uritemplate==4.1.1
-urllib3==2.2.2
+urllib3==2.2.3
 vine==5.1.0
 virtualenv==20.26.6
 wcwidth==0.2.13
