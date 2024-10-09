@@ -29,7 +29,7 @@ dill==0.3.8
 distlib==0.3.8
 distro==1.9.0
 Django==5.1.1
-django-allauth==64.0.0
+django-allauth==65.0.2
 django-cors-headers==4.4.0
 django-crispy-forms==2.1
 django-environ==0.11.2
@@ -93,7 +93,7 @@ proto-plus==1.24.0
 protobuf==5.27.3
 pyarrow==16.1.0
 pyarrow-hotfix==0.6
-pyasn1==0.6.0
+pyasn1==0.6.1
 pyasn1_modules==0.4.0
 pycodestyle==2.11.1
 pycparser==2.22
@@ -105,17 +105,17 @@ pyparsing==3.1.2
 pypng==0.20220715.0
 python-dateutil==2.8.2
 python-dotenv==1.0.1
-pytz==2023.3.post1
+pytz==2024.2
 PyYAML==6.0.1
 qrcode==7.4.2
 redis==5.0.1
 regex==2024.5.15
-reportlab==4.2.2
+reportlab==4.2.5
 requests==2.32.3
 requests-oauthlib==2.0.0
 rich==13.9.1
 rsa==4.9
-safetensors==0.4.3
+safetensors==0.4.5
 sentencepiece==0.2.0
 setuptools==72.1.0
 six==1.16.0
@@ -135,7 +135,7 @@ tzdata==2023.4
 uritemplate==4.1.1
 urllib3==2.2.2
 vine==5.1.0
-virtualenv==20.25.1
+virtualenv==20.26.6
 wcwidth==0.2.13
 websockets==11.0.3
 Werkzeug==3.0.3
