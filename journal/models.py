@@ -3,6 +3,9 @@ import os
 import uuid
 from datetime import date, datetime, timedelta
 from uuid import uuid4
+from django.db import models
+import uuid
+from django.utils import timezone
 
 from dateutil.relativedelta import relativedelta
 from django.conf import settings
@@ -108,6 +111,7 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
     is_staff = models.BooleanField(_('staff status'), default=False)
     is_active = models.BooleanField(default=False)
     is_moderator = models.BooleanField(default=False)
+    subscription_tier = models.CharField(max_length=50, default='free')  # free, basic, premium, moderator, admin
     is_subscriber = models.BooleanField(default=False)
     avatar_body = models.CharField(
         max_length=255, default="/static/virtual_try_on/avatars/body/light/hourglass.png")
@@ -119,6 +123,13 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
         max_length=255, default="/static/virtual_try_on/garmets/skirts/1.png")
     avatar_shoes = models.CharField(
         max_length=255, default="/static/virtual_try_on/garmets/shoes/1.png")
+    groups = models.ManyToManyField(Group, related_name='customuser_groups')
+    user_permissions = models.ManyToManyField(
+        Permission, related_name='customuser_permissions')
+    locked_content = models.JSONField(default=dict)
+    points = models.IntegerField(default=0)
+    badges = models.JSONField(default=dict)
+    level = models.IntegerField(default=1)
 
     objects = CustomUserManager()
 
@@ -129,14 +140,6 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
         verbose_name = _('user')
         verbose_name_plural = _('users')
         db_table = 'custom_user'
-
-    groups = models.ManyToManyField(Group, related_name='customuser_groups')
-    user_permissions = models.ManyToManyField(
-        Permission, related_name='customuser_permissions')
-    locked_content = models.JSONField(default=dict)
-    points = models.IntegerField(default=0)
-    badges = models.JSONField(default=dict)
-    level = models.IntegerField(default=1)
 
     def award_points(self, points):
         self.points += points
@@ -165,7 +168,7 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
         self.save()
 
     def is_premium(self):
-        return self.userprofile.billing.subscription_type in ['premium', 'moderator', 'admin']
+        return self.billing.subscription_type in ['premium', 'moderator', 'admin']
 
     def is_basic_subscriber(self):
         return self.userprofile.billing.subscription_type == 'basic'
@@ -210,7 +213,7 @@ PENALTY_CHOICES = [
 
 
 class Habit(models.Model):
-    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
+    user = models.ForeignKey('CustomUser', on_delete=models.CASCADE)
     name = models.CharField(max_length=255)
     id = models.UUIDField(
         primary_key=True, default=uuid.uuid4, editable=False, unique=True)
@@ -218,35 +221,34 @@ class Habit(models.Model):
     date = models.DateField(default=timezone.now)
     end_date = models.DateField(blank=True, null=True)
     description = models.TextField(blank=True, null=True)
-    increment_counter = models.IntegerField(
-        default=0)  # Ensure this field is defined
+    increment_counter = models.IntegerField(default=0)
     reward = models.CharField(
         max_length=50, choices=REWARD_CHOICES, null=True, blank=True)
     penalty = models.CharField(
         max_length=50, choices=PENALTY_CHOICES, null=True, blank=True)
     timestamp = models.DateTimeField(default=timezone.now)
-    reminder_frequency = models.CharField(max_length=10, choices=[
-        ('daily', 'Daily'),
-        ('weekly', 'Weekly'),
-        ('monthly', 'Monthly'),
-        ('yearly', 'Yearly'),
-        ('none', 'None')
-    ], default='daily')
-    category = models.CharField(max_length=50, choices=[
-        ('fashion_goals', 'Fashion Goals'),
-        ('behavioral_goals', 'Behavioral Goals'),
-        ('sissification_tasks', 'Sissification Tasks'),
-        ('performance_tasks', 'Performance Tasks'),
-        ('chastity_goals', 'Chastity Goals'),
-        ('self_care', 'Self care'),
-        ('domme_appreciation', 'Domme Appreciation'),
-        ('orders', 'Orders')
-    ], default='sissification_tasks')
-    last_reset_date = models.DateField()
-    
+    reminder_frequency = models.CharField(
+        max_length=10,
+        choices=[('daily', 'Daily'), ('weekly', 'Weekly'), ('monthly',
+                                                            'Monthly'), ('yearly', 'Yearly'), ('none', 'None')],
+        default='daily'
+    )
+    category = models.CharField(
+        max_length=50,
+        choices=[('fashion_goals', 'Fashion Goals'), ('behavioral_goals', 'Behavioral Goals'), ('sissification_tasks', 'Sissification Tasks'),
+                 ('performance_tasks', 'Performance Tasks'), ('chastity_goals',
+                                                              'Chastity Goals'), ('self_care', 'Self care'),
+                 ('domme_appreciation', 'Domme Appreciation'), ('orders', 'Orders')],
+        default='sissification_tasks'
+    )
+    last_reset_date = models.DateField(
+        blank=True, null=True, default=timezone.now)  # Use timezone.now
+
     def check_reset_needed(self):
-        now = timezone.now().date()
-        if self.reminder_frequency == 'daily' and self.last_reset_date.date() < now:
+        now_date = timezone.now().date()
+        if not self.last_reset_date:
+            self.last_reset_date = now_date
+        if self.reminder_frequency == 'daily' and self.last_reset_date < now_date:
             self.reset_count()
 
     def increment_count(self):
@@ -255,7 +257,7 @@ class Habit(models.Model):
 
     def reset_count(self):
         self.increment_counter = 0
-        self.last_reset_date = timezone.now()
+        self.last_reset_date = timezone.now().date()
         self.save()
 
     def get_insights(self):
@@ -416,7 +418,7 @@ class Task(models.Model):
 class JournalEntry(models.Model):
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
-        related_name='journal_entries',
+        related_name='entries',
         on_delete=models.CASCADE)
     title = models.CharField(max_length=200)
     content = models.TextField()
@@ -438,6 +440,15 @@ class JournalEntry(models.Model):
     def get_last_5_entries(user):
         return JournalEntry.objects.filter(user=user).order_by('-id')[:5]
 
+    def save(self, *args, **kwargs):
+        sentiment, polarity, subjectivity = get_sentiment(self.content)
+        self.sentiment = sentiment
+        self.polarity = polarity
+        self.subjectivity = subjectivity
+        super().save(*args, **kwargs)
+
+        
+class JournalAnalyzer:
     @staticmethod
     def calculate_average_sentiment(user):
         entries = JournalEntry.get_last_5_entries(user)
@@ -473,14 +484,6 @@ class JournalEntry(models.Model):
 
         total_subjectivity = sum(entry.subjectivity for entry in entries)
         return total_subjectivity / len(entries)
-
-    def save(self, *args, **kwargs):
-        self.sentiment, self.polarity, self.subjectivity = get_sentiment(
-            self.content)
-        super().save(*args, **kwargs)
-
-    def get_absolute_url(self):
-        return reverse('journal:entry_detail', kwargs={'pk': self.pk})
 
 
 class TaskCompletion(models.Model):
@@ -519,7 +522,8 @@ class Thread(models.Model):
 
 class UserProfile(models.Model):
     user = models.OneToOneField(
-        CustomUser, on_delete=models.CASCADE)
+        CustomUser, on_delete=models.CASCADE, related_name='userprofile')
+    sissy_name = models.CharField(max_length=255, blank=True, null=True)
     PRIVACY_CHOICES = [
         ('public', 'Public Darling 💋'),
         ('friends', 'Just for Friends 🎀'),

@@ -128,7 +128,7 @@ DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 
 # Internationalization settings
 LANGUAGE_CODE = 'en-us'
-TIME_ZONE = get_current_timezone()
+TIME_ZONE = 'Australia/Sydney'
 USE_I18N = True
 USE_TZ = True
 MEDIA_URL = '/media/'

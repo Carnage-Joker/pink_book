@@ -1,35 +1,38 @@
-{% extends "base.html" %}
+{% extends 'base.html' %}
 {% load static %}
-{% block title %}Glam Goals{% endblock %}
+{% block title %}
+  Glam Goals
+{% endblock %}
 {% block content %}
-<div class="container diary-spread">
+  <div class="container">
     <!-- Left Page - Sissy Goals List -->
-    <div class="left-page">
-        <h1 style="color: hotpink;">Glam Goals</h1>
-        <ul>
-           {% for habit in habits %}
-    <li id="habit-{{ habit.id }}" class="habit-item">
-        <div class="progress-container">
-            <div class="progress-bar" style="inline-size: {{ habit.progress }}%;"></div>
-            <button class="update-progress-button btn btn-register" data-id="{{ habit.id }}">Update Progress</button>
-        </div>
-        {{ habit.name }} - Count: <span id="habit-count-{{ habit.id }}">{{ habit.increment_counter }}</span>
-        <button class="increment-counter-button btn btn-register" data-id="{{ habit.id }}">+1</button>
-        <div id="insight-{{ habit.id }}" class="habit-insight">{{ habit.get_insights }}</div> <!-- New line for insight -->
-    </li>
-{% endfor %}
-
-        </ul>
+    <div class="cute-card">
+      <h1 class="pink-title">Glam Goals</h1>
+      <ul>
+        {% for habit in habits %}
+          <li id="habit-{{ habit.id }}" class="habit-item">
+            <div class="progress-container">
+              <div class="progress-bar" style="inline-size: {{ habit.progress }}%;"></div>
+              <button class="update-progress-button btn btn-register" data-id="{{ habit.id }}">Update Progress</button>
+            </div>
+            <p>
+              {{ habit.name }} - Count: <span id="habit-count-{{ habit.id }}">{{ habit.increment_counter }}</span>
+            </p>
+            <button class="increment-counter-button btn btn-register" data-id="{{ habit.id }}">+1</button>
+            <div id="insight-{{ habit.id }}" class="habit-insight">{{ habit.get_insights }}</div> <!-- Insights -->
+          </li>
+        {% endfor %}
+      </ul>
     </div>
 
-    <!-- Right Page - Placeholder or Additional Info -->
-    <div class="right-page">
-        <h2>Achieve Your Goals</h2>
-        <p>Stay committed to your goals and track your progress regularly.</p>
-        <p>Each step forward is a step towards a better you!</p>
+    <!-- Right Page - Motivation Section -->
+    <div class="cute-card">
+      <h2>Achieve Your Goals</h2>
+      <p>Stay committed to your goals and track your progress regularly.</p>
+      <p>Each step forward is a step towards a better you, darling!</p>
     </div>
 
     <!-- Book Binding in the Center -->
     <div class="binding"></div>
-</div>
+  </div>
 {% endblock %}

@@ -1,229 +1,326 @@
-# Generating a CSS file content for a diary-themed stylesheet with a pink,
-feminine aesthetic,
-inspired by Phill's project ' The Pink Book'
-
-diary_theme_css="" "
-
-
-/* General Styles */
-body {
-    background-color: #ffedf3;
-    /* Soft pink background */
-    color: #4a4a4a;
-    font-family: 'Comic Sans MS', cursive, sans-serif;
-    margin: 0;
-    padding: 0;
-    line-height: 1.6;
+/* Container for layout */
+.container {
+    display: flex;
+    justify-content: center;
+    align-items: flex-start;
+    padding: 2rem;
+    max-width: 1000px;
+    margin: 0 auto;
+    flex-wrap: wrap;
 }
 
+/* Card Style without images for background and border */
+.cute-card {
+    background: linear-gradient(to bottom right, #fff0f5, #ffe6f2);
+    /* Soft, subtle pink background */
+    border-radius: 15px;
+    padding: 1.5rem;
+    margin-bottom: 2rem;
+    box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+    border: 3px solid transparent;
+    background-clip: padding-box;
+    position: relative;
+    transition: all 0.3s ease;
+    width: 100%;
+    max-width: 600px;
+}
+
+/* Pretty, Girly Border */
+.cute-card {
+    border-image: linear-gradient(to right, #ff99cc, #ff66b3, #ff99cc) 1;
+    /* Gradient border to give a girly look */
+}
+
+/* Subtle Decorative Background (using gradient for effect inside card) */
+.cute-card:before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: radial-gradient(circle, rgba(255, 204, 255, 0.2), rgba(255, 153, 204, 0.05));
+    /* Subtle, divine and sexy effect */
+    z-index: -1;
+    border-radius: 15px;
+}
+
+/* Card Hover Effect */
+.cute-card:hover {
+    border-color: #ff3399;
+    /* Bright pink on hover */
+    box-shadow: 0 0 20px rgba(255, 51, 153, 0.5);
+    /* Add a sexy glow effect on hover */
+}
+
+/* Titles and Headings */
+.pink-title,
 h1,
 h2,
-h3,
-h4,
-h5,
-h6 {
-    color: #d9236a;
-    /* Rich pink for headings */
-    font-weight: bold;
-}
-
-a {
-    color: #d9236a;
-    /* Pink for links */
-    text-decoration: none;
-}
-
-a:hover {
-    color: #ff69b4;
-    /* Bright pink on hover */
-    text-decoration: underline;
-}
-
-/* Navbar */
-.navbar {
-    background-color: #ff69b4;
-    padding: 1rem;
-}
-
-.navbar a {
-    color: white;
-    font-weight: bold;
-    transition: color 0.3s;
-}
-
-.navbar a:hover {
-    color: #ffe6f1;
+h3 {
+    font-family: 'Dancing Script', cursive;
+    font-size: 2.5rem;
+    color: #ff0066;
+    text-align: center;
+    margin-bottom: 1rem;
+    text-shadow: 2px 2px #ffb3cc;
 }
 
 /* Buttons */
-.btn {
-    background-color: #ff69b4;
-    color: white;
+.btn-register,
+button {
+    background: linear-gradient(to right, #ff66b3, #ff3399);
+    color: #fff;
+    font-weight: bold;
+    font-size: 1.1rem;
     border: none;
-    padding: 10px 20px;
-    border-radius: 5px;
+    border-radius: 25px;
+    padding: 0.5rem 1.5rem;
     cursor: pointer;
-    transition: background-color 0.3s, transform 0.2s;
-}
-
-.btn:hover {
-    background-color: #d9236a;
-    transform: scale(1.05);
-}
-
-.btn-secondary {
-    background-color: #ffb6c1;
-    color: #4a4a4a;
-}
-
-.btn-secondary:hover {
-    background-color: #ffa6b6;
-}
-
-/* Card Styles */
-.card {
-    background: #ffffff;
-    border: 2px solid #ffe6f1;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    border-radius: 10px;
-    padding: 15px;
-    margin-bottom: 20px;
-}
-
-.card-title {
-    color: #d9236a;
-    font-weight: bold;
-}
-
-.card-body {
-    padding: 10px;
-}
-
-/* Form Styles */
-form {
-    background: #ffffff;
-    border: 2px solid #ffe6f1;
-    border-radius: 10px;
-    padding: 20px;
-    margin-bottom: 20px;
-}
-
-.form-control {
-    border: 1px solid #d9236a;
-    border-radius: 5px;
-    padding: 10px;
-    font-family: 'Comic Sans MS', cursive, sans-serif;
-}
-
-.form-label {
-    font-weight: bold;
-    color: #d9236a;
-}
-
-textarea.form-control {
-    resize: none;
-}
-
-input[type="checkbox"] {
-    accent-color: #ff69b4;
-}
-
-/* Speech Bubble for Messages */
-.speech-bubble {
-    position: fixed;
-    bottom: 20px;
-    right: 20px;
-    max-width: 300px;
-    padding: 10px 20px;
-    background: #ff69b4;
-    color: white;
-    border-radius: 15px;
-    display: none;
-    box-shadow: 0px 5px 15px rgba(0, 0, 0, 0.2);
-}
-
-.speech-bubble.show {
-    display: block;
-    animation: fadeIn 0.5s ease-in-out;
-}
-
-/* Animations */
-@keyframes fadeIn {
-    from {
-        opacity: 0;
-        transform: translateY(20px);
-    }
-
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-/* List Group */
-.list-group-item {
-    background: #ffe6f1;
-    border: 1px solid #ffb6c1;
-    border-radius: 5px;
-    margin-bottom: 10px;
-}
-
-.list-group-item:hover {
-    background: #ffd6e7;
-}
-
-/* Pagination */
-.pagination .page-link {
-    color: #d9236a;
-}
-
-.pagination .page-item.active .page-link {
-    background-color: #ff69b4;
-    border-color: #ff69b4;
-    color: white;
-}
-
-/* Footer */
-footer {
-    background-color: #ff69b4;
-    color: white;
-    padding: 20px;
-    text-align: center;
-    margin-top: 30px;
-    border-top-left-radius: 15px;
-    border-top-right-radius: 15px;
-}
-
-/* Utility Classes */
-.mt-3 {
+    transition: 0.3s ease;
+    text-shadow: 1px 1px rgba(0, 0, 0, 0.2);
     margin-top: 1rem;
 }
 
-.mb-3 {
+.btn-register:hover,
+button:hover {
+    background: linear-gradient(to right, #ff3399, #ff66b3);
+    box-shadow: 0px 0px 10px rgba(255, 105, 180, 0.7);
+}
+
+/* Links */
+.pink-link,
+a {
+    color: #ff3399;
+    font-weight: bold;
+    text-decoration: none;
+    transition: 0.2s;
+}
+
+.pink-link:hover,
+a:hover {
+    text-decoration: underline;
+    text-shadow: 1px 1px #ffccff;
+}
+
+/* Responsive adjustments for smaller screens */
+@media (max-width: 768px) {
+    .cute-card {
+        width: 90%;
+    }
+}
+/* Input Fields */
+input[type="text"],
+textarea,
+select {
+    width: calc(100% - 20px);
+    padding: 10px;
     margin-bottom: 1rem;
+    border-radius: 10px;
+    border: 2px solid #ffb3cc;
+    background: rgba(255, 255, 255, 0.5);
+    /* Transparent input background */
+    font-family: 'Quicksand', sans-serif;
+    font-size: 1rem;
+    color: #5c004d;
 }
 
-.mt-4 {
-    margin-top: 1.5rem;
+input[type="text"]:focus,
+textarea:focus,
+select:focus {
+    border-color: #ff3399;
+    outline: none;
+    box-shadow: 0 0 10px rgba(255, 182, 193, 0.5);
 }
 
-.mb-4 {
-    margin-bottom: 1.5rem;
+/* Post-it Note Links */
+.post-it-notes {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 1rem;
+    padding: 1rem 0;
 }
 
-.text-center {
+.post-it-notes a {
+    display: inline-block;
+    background: #ffccff;
+    color: #ff3399;
     text-align: center;
+    padding: 1rem;
+    width: 120px;
+    font-family: 'Gloria Hallelujah', cursive;
+    font-weight: bold;
+    font-size: 1rem;
+    text-decoration: none;
+    box-shadow: 3px 3px 8px rgba(0, 0, 0, 0.1);
+    border: 3px solid #ff99cc;
+    border-radius: 8px;
+    transition: transform 0.3s, box-shadow 0.3s;
+    position: relative;
+    overflow: hidden;
 }
 
-.neon-glow {
-    text-shadow: 0 0 5px #ff69b4, 0 0 10px #ff69b4, 0 0 15px #ff69b4, 0 0 20px #d9236a, 0 0 30px #d9236a;
+.post-it-notes a:hover {
+    transform: translateY(-5px);
+    box-shadow: 5px 5px 12px rgba(255, 105, 180, 0.5);
 }
 
-.bg-steel {
-    background-color: #ffedf3;
+/* Panic Button */
+.panic-button {
+    background: linear-gradient(to right, #444444, #222222);
+    color: #fff;
+    font-weight: bold;
+    border: none;
+    border-radius: 25px;
+    padding: 0.5rem 1rem;
+    position: fixed;
+    top: 1rem;
+    right: 1rem;
+    cursor: pointer;
+    z-index: 1000;
 }
 
-.bg-pink {
-    background-color: #ff69b4;
+.panic-button:hover {
+    background: linear-gradient(to right, #222222, #444444);
 }
 
+/* Panic Mode Styles */
+.neutral {
+    filter: grayscale(0.8) blur(2px);
+    font-size: 85%;
+}
+
+body.neutral {
+    background: linear-gradient(to bottom right, #ddd, #bbb);
+    color: #333;
+}
+
+.card.neutral {
+    background: rgba(240, 240, 240, 0.9);
+    border: 3px solid #999;
+}
+
+.pink-title.neutral {
+    color: #333;
+    text-shadow: none;
+}
+
+.btn-register.neutral {
+    background: #777;
+    color: #f3f3f3;
+}
+
+.pink-link.neutral {
+    color: #333;
+}
+
+/* static/css/styles.css */
+
+.toast-container {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 1000;
+}
+
+.toast {
+    background-color: #333;
+    color: #fff;
+    padding: 10px 20px;
+    margin-bottom: 10px;
+    border-radius: 5px;
+    opacity: 0.9;
+    transition: opacity 0.5s ease;
+}
+
+.toast-success {
+    background-color: #4caf50;
+}
+
+.toast-error {
+    background-color: #f44336;
+}
+
+.toast-info {
+    background-color: #2196f3;
+}
+
+/* Neutral mode styles */
+.neutral .card {
+    background-color: #f0f0f0;
+    color: #333;
+}
+
+.neutral img {
+    filter: blur(5px);
+}
+
+/* Add any additional styles as needed */
+.toast {
+    opacity: 1;
+    transition: opacity 0.5s ease, transform 0.5s ease;
+    transform: translateY(0);
+}
+
+.toast.fade-out {
+    opacity: 0;
+    transform: translateY(-20px);
+}
+
+@media (max-width: 600px) {
+    .toast-container {
+        top: 10px;
+        right: 10px;
+        left: 10px;
+        /* Center the toast container for small screens */
+    }
+
+    .toast {
+        width: 100%;
+        max-width: unset;
+        box-sizing: border-box;
+    }
+}
+
+.neutral a,
+.neutral button {
+    color: #666 !important;
+    /* Make links and buttons less obvious */
+    background-color: #ccc !important;
+    /* Muted button colors */
+    border-color: #bbb;
+}
+
+.neutral h1,
+.neutral h2,
+.neutral h3 {
+    color: #444 !important;
+}
+
+.neutral .post-it-note {
+    /* If you're using post-it note styling elsewhere */
+    background-color: #ddd !important;
+    color: #555 !important;
+}
+
+.neutral .card {
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.neutral img {
+    transition: filter 0.3s ease;
+}
+
+.toast .close-btn {
+    margin-left: 10px;
+    background: none;
+    border: none;
+    color: #fff;
+    font-size: 16px;
+    cursor: pointer;
+}
+
+.toast .close-btn:hover {
+    color: #ddd;
+}

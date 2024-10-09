@@ -1,12 +1,26 @@
 {% extends 'base.html' %}
 {% block title %}
-  Create Post
+  Create a New Post
 {% endblock %}
 {% block content %}
-  <h2>Create a New Post</h2>
-  <form method="post">
-    {% csrf_token %}
-    {{ form.as_p }}
-    <button type="submit" class="btn btn-primary">Create</button>
-  </form>
+  <div class="container">
+    <!-- Left Page - Create Post Form -->
+    <div class="cute-card">
+      <h2 class="pink-title">Create a New Post</h2>
+      <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit" class="btn btn-register">Create Post</button>
+      </form>
+    </div>
+
+    <!-- Right Page - Post Tips -->
+    <div class="cute-card">
+      <h2>Share Your Thoughts</h2>
+      <p>Whether it's a question, idea, or story, feel free to share it here with our fabulous community!</p>
+    </div>
+
+    <!-- Book Binding in the Center -->
+    <div class="binding"></div>
+  </div>
 {% endblock %}

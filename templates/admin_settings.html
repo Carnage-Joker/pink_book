@@ -1,28 +1,38 @@
-{% extends "base.html" %}
+{% extends 'base.html' %}
 {% load static %}
-
-{% block title %}Admin Settings{% endblock %}
+{% block title %}
+  Admin Settings
+{% endblock %}
 {% block content %}
-<div class="container">
-    <h2>Welcome to Pink Diary, {{ user.username }}</h2>
-    <!--admin settings here-->
-    <div class="row">
-        <div class="col-md-6">
-            <h3>Change Password</h3>
-            <form method="post">
-                {% csrf_token %}
-                {{ form.as_p }}
-                <button type="submit" class="btn btn-primary">Change Password</button>
-            </form>
-        </div>
-        <div class="col-md-6">
-            <h3>Change Email</h3>
-            <form method="post">
-                {% csrf_token %}
-                {{ email_form.as_p }}
-                <button type="submit" class="btn btn-primary">Change Email</button>
-            </form>
-        </div>
-        
-</div>
+  <div class="container">
+    <!-- Left Page - Admin Settings -->
+    <div class="cute-card">
+      <h2 class="pink-title">Welcome to Pink Diary, {{ user.username }}</h2>
+      <p>Manage settings and ensure the community remains fabulous and safe!</p>
+
+      <!-- Change Password Section -->
+      <div class="admin-section">
+        <h3>Change Password</h3>
+        <form method="post">
+          {% csrf_token %}
+          {{ form.as_p }}
+          <button type="submit" class="btn btn-register">Change Password</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Right Page - Additional Admin Settings -->
+    <div class="cute-card">
+      <!-- Change Email Section -->
+      <h3>Change Email</h3>
+      <form method="post">
+        {% csrf_token %}
+        {{ email_form.as_p }}
+        <button type="submit" class="btn btn-register">Change Email</button>
+      </form>
+    </div>
+
+    <!-- Book Binding in the Center -->
+    <div class="binding"></div>
+  </div>
 {% endblock %}

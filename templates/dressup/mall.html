@@ -1,18 +1,22 @@
-{% extends 'base.html' %}
+{% extends "base.html" %}
 {% block content %}
-<div class="mall">
-    <h1>Premium Items</h1>
-    <div class="items">
-        {% for item in items %}
-        <div class="item">
-            <img src="{{ item.image.url }}" alt="{{ item.name }}">
-            <p>{{ item.name }}</p>
-            <p>${{ item.price }}</p>
-            <form method="post" action="{% url 'purchase_item' item.id %}">
-                {% csrf_token %}
-                <button type="submit">Purchase</button>
-            </form>
-        </div>
+<div class="container">
+    <h1 class="text-center">Sissy Mall - Choose Your Photoshoot Location</h1>
+    <div class="location-gallery">
+        {% for location in locations %}
+            <div class="location-card">
+                <img src="{{ location.image.url }}" alt="{{ location.name }}">
+                <h2>{{ location.name }}</h2>
+                <p>{{ location.description }}</p>
+                {% if location.is_premium and user.billing.subscription_status != 'premium' %}
+                    <button class="btn btn-premium">Premium Only</button>
+                {% else %}
+                    <form method="post" action="{% url 'mall' location.id %}">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-register">Select Location</button>
+                    </form>
+                {% endif %}
+            </div>
         {% endfor %}
     </div>
 </div>

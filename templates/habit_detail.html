@@ -1,25 +1,51 @@
-#  habit_detail.html
 {% extends 'base.html' %}
 {% load static %}
-{% block title %}{{ object.name }}{% endblock %}
+{% block title %}
+  {{ object.name }}
+{% endblock %}
 
 {% block content %}
-<div class="container">
-    <h2>{{ object.name }}</h2>
-    <p>{{ object.description }}</p>
-    <p>Start Date: {{ object.start_date }}</p>
-    <p>End Date: {{ object.end_date }}</p>
-    <p>Frequency: {{ object.frequency }}</p>
-    <p>Goal: {{ object.goal }}</p>
-    <p>Progress: {{ object.progress }}</p>
-    <p>Category: {{ object.category }}</p>
-    <p>Resources:</p>
-    <ul>
+  <div class="container">
+    <!-- Left Page - Habit Details -->
+    <div class="cute-card">
+      <h2 class="pink-title">{{ object.name }}</h2>
+      <p class="pink-description">{{ object.description }}</p>
+      <p>
+        <strong>Start Date:</strong> {{ object.start_date }}
+      </p>
+      <p>
+        <strong>End Date:</strong> {{ object.end_date }}
+      </p>
+      <p>
+        <strong>Frequency:</strong> {{ object.frequency }}
+      </p>
+      <p>
+        <strong>Goal:</strong> {{ object.goal }}
+      </p>
+      <p>
+        <strong>Progress:</strong> {{ object.progress }}
+      </p>
+      <p>
+        <strong>Category:</strong> {{ object.category }}
+      </p>
+
+      <h3>Related Resources</h3>
+      <ul class="resource-list">
         {% for resource in object.resources.all %}
-        <li>
-            <a href="{% url 'journal:resource_detail' resource.pk %}">{{ resource.title }}</a>
-        </li>
+          <li>
+            <a href="{% url 'journal:resource_detail' resource.pk %}" class="pink-link">{{ resource.title }}</a>
+          </li>
         {% endfor %}
-    </ul>
-</div>
+      </ul>
+    </div>
+
+    <!-- Right Page - Motivation and Tips -->
+    <div class="cute-card">
+      <h2>Stay Motivated!</h2>
+      <p>Track your progress and remember, every small step brings you closer to your fabulous goals!</p>
+    </div>
+
+    <!-- Book Binding in the Center -->
+    <div class="binding"></div>
+  </div>
 {% endblock %}

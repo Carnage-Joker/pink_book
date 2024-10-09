@@ -1,10 +1,24 @@
 {% extends 'base.html' %}
 
-{% block title %}Activation Email Sent - Sissy Diary{% endblock %}
+{% block title %}
+  Activation Email Sent - Sissy Diary
+{% endblock %}
 
 {% block content %}
-<div class="container">
-    <h2>Activation Email Sent</h2>
-    <p>A new activation link has been sent to your email address. Please check your inbox.</p>
-</div>
+  <div class="container">
+    <!-- Left Page - Activation Email Sent Confirmation -->
+    <div class="cute-card">
+      <h2>Activation Email Sent</h2>
+      <p>A new activation link has been sent to your email address. Please check your inbox and get ready to start your fabulous journey! 💖✨</p>
+    </div>
+
+    <!-- Right Page - Info -->
+    <div class="cute-card">
+      <h2>Check Your Inbox</h2>
+      <p>Look for our email and click the link to activate your account. If you don't see it, be sure to check your spam folder.</p>
+    </div>
+
+    <!-- Book Binding in the Center -->
+    <div class="binding"></div>
+  </div>
 {% endblock %}

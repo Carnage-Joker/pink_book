@@ -1,26 +1,43 @@
 {% extends 'base.html' %}
 {% load static %}
-{% block title %}{% if object %}Edit{% else %}Create{% endif %} To-Do Item{% endblock %}
+{% block title %}
+  {% if object %}
+    Edit
+  {% else %}
+    Create
+  {% endif %}To-Do Item
+{% endblock %}
 {% block content %}
-<div class="container diary-spread">
+  <div class="container">
     <!-- Left Page - To-Do Form -->
-    <div class="left-page">
-        <h2>{% if object %}Edit{% else %}Create{% endif %} To-Do Item</h2>
-        <form method="post">
-            {% csrf_token %}
-            {{ form.as_p }}
-            <button type="submit" class="btn btn-register">{% if object %}Update{% else %}Create{% endif %} To-Do</button>
-        </form>
+    <div class="cute-card">
+      <h2 class="pink-title">
+        {% if object %}
+          Edit
+        {% else %}
+          Create
+        {% endif %}To-Do Item
+      </h2>
+      <form method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit" class="btn btn-register">
+          {% if object %}
+            Update
+          {% else %}
+            Create
+          {% endif %}To-Do
+        </button>
+      </form>
     </div>
 
-    <!-- Right Page - Placeholder or Additional Info -->
-    <div class="right-page">
-        <h2>Manage Your Tasks</h2>
-        <p>Fill out the form to add a new task or update an existing one.</p>
-        <p>Keep your tasks organized and easy to track.</p>
+    <!-- Right Page - Motivation Section -->
+    <div class="cute-card">
+      <h2>Manage Your Tasks</h2>
+      <p>Fill out the form to add a new task or update an existing one. Keep your tasks organized and make progress towards your goals, sweetheart! 🌟</p>
     </div>
 
     <!-- Book Binding in the Center -->
     <div class="binding"></div>
-</div>
+  </div>
 {% endblock %}

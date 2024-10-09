@@ -1,13 +1,29 @@
-<!-- guide_list.html -->
 {% extends 'base.html' %}
 {% load static %}
-{% block title %}Guides{% endblock %}
-{% block content %}
-<h1>Guides</h1>
-<ul>
-    {% for guide in guides %}
-    <li><a href="{% url 'journal:guide_detail' guide.pk %}">{{ guide.title }}</a></li>
-    {% endfor %}
-</ul>
+{% block title %}
+  Guides
 {% endblock %}
+{% block content %}
+  <div class="container">
+    <!-- Left Page - List of Guides -->
+    <div class="cute-card">
+      <h2 class="pink-title">All Guides</h2>
+      <ul class="guide-list">
+        {% for guide in guides %}
+          <li>
+            <a href="{% url 'journal:guide_detail' guide.pk %}" class="pink-link">{{ guide.title }}</a>
+          </li>
+        {% endfor %}
+      </ul>
+    </div>
 
+    <!-- Right Page - Featured Guide -->
+    <div class="cute-card">
+      <h2>Featured Guide</h2>
+      <p>Check out our featured guide and discover new insights into becoming your most fabulous self!</p>
+    </div>
+
+    <!-- Book Binding in the Center -->
+    <div class="binding"></div>
+  </div>
+{% endblock %}

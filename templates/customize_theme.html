@@ -1,27 +1,41 @@
 {% extends 'base.html' %}
 {% load static %}
+{% block title %}
+  Customize Your Theme
+{% endblock %}
 {% block content %}
-<div class="container">
-    <h1>Profile Theme Customization</h1>
-    <p>Customize your profile theme here.</p>
-    <p>Current theme: {{ user.theme }}</p>
-    <p>Choose a theme:</p>
-    <div>
-        <p>Light theme:</p>
-        <img src="{{ url_for('static', filename='images/light_theme.png') }}" alt="Light theme" width="200" height="200">
-    </div>
-    <div>
-        <p>Dark theme:</p>
-        <img src="{{ url_for('static', filename='images/dark_theme.png') }}" alt="Dark theme" width="200" height="200">
-    </div>
-    
-    <form method="post">
-        <label for="theme">Theme:</label>
-        <select name="theme" id="theme">
-            <option value="light">Light</option>
-            <option value="dark">Dark</option>
+  <div class="container">
+    <!-- Left Page - Theme Customization -->
+    <div class="cute-card">
+      <h2 class="pink-title">Profile Theme Customization</h2>
+      <p>Current theme: {{ user.theme }}</p>
+      <p>Choose a theme that matches your fabulousness!</p>
+
+      <form method="post">
+        {% csrf_token %}
+        <label for="theme" class="pink-label">Select a Theme:</label>
+        <select name="theme" id="theme" class="form-control">
+          <option value="light">Light</option>
+          <option value="dark">Dark</option>
         </select>
-        <button type="submit">Save</button>
-    </form>
-</div>
+        <button type="submit" class="btn btn-register">Save Theme</button>
+      </form>
+    </div>
+
+    <!-- Right Page - Theme Previews -->
+    <div class="cute-card">
+      <h2>Theme Previews</h2>
+      <div class="theme-preview">
+        <p>Light Theme:</p>
+        <img src="{% static 'images/light_theme.png' %}" alt="Light theme preview" class="theme-img" />
+      </div>
+      <div class="theme-preview">
+        <p>Dark Theme:</p>
+        <img src="{% static 'images/dark_theme.png' %}" alt="Dark theme preview" class="theme-img" />
+      </div>
+    </div>
+
+    <!-- Book Binding in the Center -->
+    <div class="binding"></div>
+  </div>
 {% endblock %}

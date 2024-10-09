@@ -6,19 +6,29 @@
 
 {% block content %}
 <div class="container">
-    <h1>{{ guide.title }}</h1>
-    <p><strong>Category:</strong> {{ guide.category.name }}</p>
-    <p>{{ guide.description }}</p>
-    
-    <hr>
-    
-    <h2>Content</h2>
-    <div>
-        {{ guide.content|safe }}  <!-- Assuming content might have HTML, hence the use of `|safe` -->
-    </div>
-    
-    <hr>
+    <!-- Left Page - Guide Details -->
+    <div class="cute-card">
+        <h2 class="pink-title">{{ guide.title }}</h2>
+        <p><strong>Category:</strong> {{ guide.category.name }}</p>
+        <p>{{ guide.description }}</p>
 
-    <a href="{% url 'journal:resource_category_detail' guide.category.pk %}">Back to {{ guide.category.name }}</a>
+        <hr>
+
+        <h2>Guide Content</h2>
+        <div class="guide-content">
+            {{ guide.content|safe }}  <!-- Assuming content might have HTML, hence the use of `|safe` -->
+        </div>
+
+        <a href="{% url 'journal:resource_category_detail' guide.category.pk %}" class="btn btn-register">Back to {{ guide.category.name }}</a>
+    </div>
+
+    <!-- Right Page - Related Info -->
+    <div class="cu-"-
+        <h2>Explore More</h2>
+        <p>Find related resources to help you deepen your understanding and progress on your sissy journey.</p>
+    </div>
+
+    <!-- Book Binding in the Center -->
+    <div class="binding"></div>
 </div>
 {% endblock %}

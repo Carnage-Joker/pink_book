@@ -22,6 +22,7 @@ from django.utils.encoding import force_str
 from django.urls import reverse_lazy
 from django.shortcuts import get_object_or_404, redirect, render
 from django.http import HttpResponse, HttpResponseForbidden, JsonResponse
+from django.db.models import Q
 from django.contrib.auth.views import LoginView as AuthLoginView
 from django.contrib.auth.tokens import default_token_generator
 from django.contrib.auth.mixins import LoginRequiredMixin
@@ -32,7 +33,7 @@ from datetime import date
 import random
 import logging
 import json
-from django.core.paginator import Paginator
+
 
 
 
@@ -60,11 +61,11 @@ class RegisterView(View):
     model = CustomUser
     template_name = 'register.html'
     form_class = CustomUserCreationForm
-    success_url = reverse_lazy('journal:login')
-    # redirect_authenticated_user = True
-    # extra_context = {'title': 'Register'}
-    # success_message = "Your account was created successfully. Please check your email to activate your account."
-    # failure_message = "There was an error creating your account. Please try again."
+    success_url = reverse_lazy('journal:welcome')
+    redirect_authenticated_user = True
+    extra_context = {'title': 'Register'}
+    success_message = "Your account was created successfully. Please check your email to activate your account."
+    failure_message = "There was an error creating your account. Please try again."
 
     def get(self, request):
         form = CustomUserCreationForm()
@@ -78,6 +79,8 @@ class RegisterView(View):
             user.save()
             send_activation_email(user, request)
             return redirect('journal:activation_sent')
+            #  automatically redirect from the activation_sent view to the welcome view after 5 seconds
+
         return render(request, 'register.html', {'form': form})
 
 
@@ -133,7 +136,7 @@ class RegistrationSuccessView(TemplateView):
 
     def get(self, request):
         messages.success(request, "Your account was activated successfully. Welcome to the community sis.")
-        return redirect('journal:login')
+        return redirect('journal:welcome')
 
 
 class AboutView(TemplateView):
@@ -306,14 +309,15 @@ class ModeratorListView(LoginRequiredMixin, ListView):
     template_name = "moderators.html"
     context_object_name = 'threads'
 
-    def get_queryset(self):
-        self = self.request.user
-        if self.is_staff:
-            return Thread.objects.all() # Return all threads if user is staff
-        elif self.is_moderator:
-            return Thread.objects.filter(moderators=self) # Return threads where user is a moderator
-        else:
-            return Thread.objects.none() # Return no threads if user is not staff or moderator
+
+def get_queryset(self):
+    user = self.request.user
+    if user.is_staff:
+        return Thread.objects.all()  # Return all threads if user is staff
+    elif user.is_moderator:
+        return Thread.objects.filter(moderators=user)  # Return threads where user is a moderator
+    else:
+        return Thread.objects.none()  # Return no threads if user is not staff or moderator
 
 
 class ThreadListView(ListView):
@@ -408,7 +412,7 @@ class HabitDetailView(LoginRequiredMixin, DetailView):
     model = Habit
     template_name = "habit_detail.html"
 
-    def increment_habit_counter(request, pk):
+    def increment_habit_counter(self, pk):
         habit = get_object_or_404(Habit, pk=pk)
         habit.increment_count()
         return redirect('journal:habit_detail', pk=pk)
@@ -426,7 +430,11 @@ class IncrementHabitCounter(View):
         habit = get_object_or_404(Habit, pk=pk, user=request.user)
         habit.increment_count()
         insight = habit.get_insights()
-        return JsonResponse({'status': 'success', 'new_count': habit.increment_counter, 'insight': insight})
+        return JsonResponse({
+            'status': 'success',
+            'new_count': habit.increment_counter,
+            'insight': insight
+        })
 
 
 @csrf_exempt
@@ -442,26 +450,25 @@ def generate_task_view(request):
 
 @csrf_exempt
 def fail_task_view(request):
-    if request.method == 'POST':
-        user = request.user
-        penalty_type = request.POST.get('penaltyType')
-        points_to_deduct = int(request.POST.get('pointsToDeduct', 0))
-        content_name = request.POST.get('contentName', '')
+    if request.method != 'POST':
+        return JsonResponse({'error': 'Invalid request method'}, status=400)
+    user = request.user
+    penalty_type = request.POST.get('penaltyType')
+    points_to_deduct = int(request.POST.get('pointsToDeduct', 0))
+    content_name = request.POST.get('contentName', '')
 
-        if penalty_type == 'LOCK_CONTENT' and content_name:
-            user.lock_content(content_name)
-            message = f"{user.sissy_name} has failed the task. Content '{
-                content_name}' is now locked."
-        elif penalty_type == 'DEDUCT_POINTS':
-            user.deduct_points(points_to_deduct)
-            message = f"{user.sissy_name} has failed the task. {
-                points_to_deduct} points have been deducted."
-        else:
-            message = "Invalid penalty type."
+    if penalty_type == 'LOCK_CONTENT' and content_name:
+        user.lock_content(content_name)
+        message = f"{user.sissy_name} has failed the task. Content '{
+            content_name}' is now locked."
+    elif penalty_type == 'DEDUCT_POINTS':
+        user.deduct_points(points_to_deduct)
+        message = f"{user.sissy_name} has failed the task. {
+            points_to_deduct} points have been deducted."
+    else:
+        message = "Invalid penalty type."
 
-        return JsonResponse({'message': message})
-
-    return JsonResponse({'error': 'Invalid request method'}, status=400)
+    return JsonResponse({'message': message})
 
 
 class CompleteToDoView(View):
@@ -498,13 +505,15 @@ class CompleteTaskView(View):
             task = Task.objects.get(id=task_id)
 
             if not TaskCompletion.objects.filter(user=request.user, task=task).exists():
-                # Redirect to the journal entry form with the task details
+                # Task completion logic or redirect to journal entry form
                 return redirect('journal:new_entry', task_id=task_id)
             else:
                 return JsonResponse({'status': 'error', 'message': 'Task already completed'}, status=400)
         except Task.DoesNotExist:
             logger.error(f"Task with ID {task_id} does not exist.")
             return JsonResponse({'status': 'error', 'message': 'Task does not exist'}, status=404)
+        except json.JSONDecodeError:
+            return JsonResponse({'status': 'error', 'message': 'Invalid JSON format'}, status=400)
         except Exception as e:
             logger.error(f"Error completing task: {str(e)}")
             return JsonResponse({'status': 'error', 'message': str(e)}, status=500)
@@ -585,7 +594,10 @@ class JournalEntryCreateView(LoginRequiredMixin, CreateView):
         return super().form_valid(form)
 
     def get_success_url(self):
-        return reverse_lazy('journal:entry_detail', kwargs={'pk': self.object.pk})
+        return reverse_lazy(
+            'journal:entry_detail', 
+            kwargs={'pk': self.object.pk}
+        )
 
 
 class JournalEntryDetailView(LoginRequiredMixin, DetailView):
@@ -626,7 +638,10 @@ class JournalEntryUpdateView(LoginRequiredMixin, UpdateView):
     def form_valid(self, form):
         response = super().form_valid(form)
         ActivityLog.objects.create(user=self.request.user,
-                                   action=f"Updated a journal entry: {form.instance.content[:20]}...")
+                                   action=(
+                                       f"Updated a journal entry: "
+                                       f"{form.instance.content[:20]}..."
+                                   ))
         return response
 
 
@@ -642,11 +657,12 @@ class JournalEntryDeleteView(LoginRequiredMixin, DeleteView):
     def delete(self, request, *args, **kwargs):
         # Get the object before it's deleted to log the action
         journal_entry = self.get_object()
-        response = super().delete(request, *args, **kwargs)
         # Log the deletion action
-        ActivityLog.objects.create(user=self.request.user,
-                                   action=f"Deleted a journal entry: {journal_entry.title}")
-        return response
+        ActivityLog.objects.create(
+            user=request.user,
+            action=f"Deleted a journal entry: {journal_entry.title}"
+        )
+        return super().delete(request, *args, **kwargs)
 
 
 class DashboardView(LoginRequiredMixin, TemplateView):
@@ -662,54 +678,50 @@ class DashboardView(LoginRequiredMixin, TemplateView):
         return "No quote available"
 
     def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        user = self.request.user
+            context = {}
+            try:
+                # Fetch recent journal entries, todos, and habits
+                user = self.request.user
+                recent_entries = JournalEntry.objects.filter(
+                                user=user).order_by('-timestamp')[:3]
+                todos = ToDo.objects.filter(user=user).order_by('-timestamp')[:5]  # Changed variable to 'todos'
+                habits = Habit.objects.filter(user=user).order_by('-timestamp')[:5]  # Changed variable to 'habits'
 
-        try:
-            # Fetch recent journal entries, todos, and habits
-            recent_entries = JournalEntry.objects.filter(
-                user=user).order_by('-timestamp')[:3]
-            todos = ToDo.objects.filter(user=user).order_by('-timestamp')[:5]
-            habits = Habit.objects.filter(user=user).order_by('-timestamp')[:5]
+                # Process overdue todos in bulk
+                overdue_todos = todos.filter(
+                    Q(due_date__lt=now().date()) & Q(completed=False)) 
+                overdue_todos.update(processed=True)
 
-            # Process overdue todos
-            for todo in todos:
-                if now().date() > todo.due_date and not todo.completed:
-                    todo.processed = True
-                    todo.save()
+                # Calculate sentiment data
+                sentiment_data = get_average_sentiment(
+                    JournalEntry.objects.filter(user=user))
+                context = super().get_context_data(**kwargs)
 
-            # Calculate sentiment data
-            sentiment_data = get_average_sentiment(
-                JournalEntry.objects.filter(user=user))
+                # Update context with all necessary data
+                context.update({
+                    'user': user,
+                    'points': user.points,
+                    'quote_of_the_day': self.get_quote_of_the_day(),
+                    'todos': todos,  # Make sure 'todos' is passed here
+                    'habits': habits,  # Make sure 'habits' is passed here
+                    'recent_entries': recent_entries,  # Make sure 'recent_entries' is passed here
+                    'frequent_keywords': extract_keywords(recent_entries),
+                    'common_tags': get_most_common_tags(recent_entries),
+                    'most_common_emotions': get_most_common_emotions(recent_entries),
+                    'average_word_count': get_average_word_count(recent_entries),
+                    'current_streak_length': get_current_streak(recent_entries),
+                    'most_active_hour': get_peak_journaling_time(recent_entries),
+                    'entries_with_insights': [entry for entry in recent_entries if entry.insight],
+                    'sentiment_data': sentiment_data,
+                    'polarity': sentiment_data.get('avg_polarity', 0),
+                    'subjectivity': sentiment_data.get('avg_subjectivity', 0),
+                })
+            except Exception as e:
+                context['error'] = "There was an issue loading your dashboard. Please try again later."
+                context['debug_error'] = str(e)  # Optional for development debugging
 
-            # Update context with all necessary data
-            context.update({
-                'user': user,
-                'points': user.points,
-                'quote_of_the_day': self.get_quote_of_the_day(),
-                'todos': todos,
-                'habits': habits,
-                'recent_entries': recent_entries,
-                'frequent_keywords': extract_keywords(recent_entries),
-                'common_tags': get_most_common_tags(recent_entries),
-                'most_common_emotions': get_most_common_emotions(recent_entries),
-                'average_word_count': get_average_word_count(recent_entries),
-                'current_streak_length': get_current_streak(recent_entries),
-                'most_active_hour': get_peak_journaling_time(recent_entries),
-                'entries_with_insights': [entry for entry in recent_entries if entry.insight],
-                'sentiment_data': sentiment_data,
-                'polarity': sentiment_data.get('avg_polarity', 0),
-                'subjectivity': sentiment_data.get('avg_subjectivity', 0),
-            })
-        except Exception as e:
-            # Log the error if needed, and provide user-friendly error messages
-            context['error'] = "There was an issue loading your dashboard. Please try again later."
-            # Optional: for development/debugging
-            context['debug_error'] = str(e)
-
-        return context
-
-
+            return context
+    
 logger = logging.getLogger(__name__)
 
 
@@ -722,8 +734,6 @@ class GuideDetailView(DetailView):
     model = Guide
     template_name = "guide_detail.html"
     context_object_name = 'guide'
-
-
 
 
 class ResourceListView(ListView):

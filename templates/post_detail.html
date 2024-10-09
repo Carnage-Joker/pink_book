@@ -3,31 +3,43 @@
   {{ post.title }}
 {% endblock %}
 {% block content %}
-  <div class="post-detail">
-    <h2>{{ post.title }}</h2>
-    <p>by {{ post.author.sissy_name }} on {{ post.timestamp }}</p>
-    <div class="post-content">{{ post.content }}</div>
-    <hr />
-    <h3>Comments</h3>
-    <div class="list-group">
-      {% for comment in post.comments.all %}
-        <div class="list-group-item">
-          <h5>{{ comment.author.sissy_name }}</h5>
-          <p>{{ comment.content }}</p>
-          <small>{{ comment.timestamp }}</small>
-        </div>
-      {% endfor %}
+  <div class="container">
+    <!-- Left Page - Post Detail -->
+    <div class="cute-card">
+      <h2>{{ post.title }}</h2>
+      <p class="author-info">by {{ post.author.sissy_name }} on {{ post.timestamp }}</p>
+      <div class="post-content">{{ post.content }}</div>
+      <hr />
+      <h3>Comments 💬</h3>
+      <div class="comments-section">
+        {% for comment in post.comments.all %}
+          <div class="comment">
+            <h5>{{ comment.author.sissy_name }}</h5>
+            <p>{{ comment.content }}</p>
+            <small>{{ comment.timestamp }}</small>
+          </div>
+        {% endfor %}
+      </div>
+      {% if user.is_authenticated %}
+        <form method="post" class="comment-form">
+          {% csrf_token %}
+          {{ form.as_p }}
+          <button type="submit" class="btn btn-register">Add Comment</button>
+        </form>
+      {% else %}
+        <p>
+          <a href="{% url 'journal:login' %}">Log in</a> to add a comment, darling.
+        </p>
+      {% endif %}
     </div>
-    {% if user.is_authenticated %}
-      <form method="post">
-        {% csrf_token %}
-        {{ form.as_p }}
-        <button type="submit" class="btn btn-primary">Add Comment</button>
-      </form>
-    {% else %}
-      <p>
-        <a href="{% url 'login' %}">Log in</a> to add a comment.
-      </p>
-    {% endif %}
+
+    <!-- Right Page - Back to Forum -->
+    <div class="cute-card">
+      <h2>Back to the Forum</h2>
+      <a href="{% url 'journal:post_list' %}" class="btn btn-register">Back to Posts</a>
+    </div>
+
+    <!-- Book Binding in the Center -->
+    <div class="binding"></div>
   </div>
 {% endblock %}

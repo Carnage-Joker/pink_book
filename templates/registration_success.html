@@ -1,10 +1,19 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>Registration Success</title>
-</head>
-<body><h1>Account Activated</h1>
-<p>Your account has been successfully activated. You can now log in.</p>
-</body>
-</html>
+{% extends 'base.html' %}
+
+{% block title %}
+  Registration Success
+{% endblock %}
+
+{% block content %}
+  <div class="container">
+    <div class="cute-card">
+      <h1 class="pink-title">Account Activated 🎉</h1>
+      <p>
+        Your account has been successfully activated. You can now <a href="{% url 'journal:login' %}">log in</a> and start journaling, darling!
+      </p>
+    </div>
+
+    <!-- Book Binding in the Center -->
+    <div class="binding"></div>
+  </div>
+{% endblock %}

@@ -1,13 +1,13 @@
-<!-- entry_detail.html -->
 {% extends 'base.html' %}
 {% load static %}
 {% block title %}
   Journal Entry
 {% endblock %}
 {% block content %}
-  <div class="container entry-detail-page">
-    <div class="entry-detail-page-left">
-      <h3>{{ entry.title }}</h3>
+  <div class="container">
+    <!-- Left Page - Entry Details -->
+    <div class="cute-card">
+      <h1 class="pink-title">{{ entry.title }}</h1>
       <p>
         <strong>Theme:</strong> {{ entry.theme }}
       </p>
@@ -19,7 +19,9 @@
       </p> <!-- Display the saved prompt -->
       <div class="entry-content">{{ entry.content|linebreaks }}</div>
     </div>
-    <div class="entry-detail-page-right">
+
+    <!-- Right Page - Additional Media and Back Link -->
+    <div class="cute-card">
       <p>
         <strong>Tags:</strong> {{ entry.tags|join:', ' }}
       </p>
@@ -35,21 +37,17 @@
         <p>
           <strong>Video:</strong>
         </p>
-        <p>
-          <video controls>
-            <source src="{{ entry.video.url }}" type="video/mp4" />
-          </video>
-        </p>
+        <video controls>
+          <source src="{{ entry.video.url }}" type="video/mp4" />
+        </video>
       {% endif %}
       {% if entry.audio %}
         <p>
           <strong>Audio:</strong>
         </p>
-        <p>
-          <audio controls>
-            <source src="{{ entry.audio.url }}" type="audio/mpeg" />
-          </audio>
-        </p>
+        <audio controls>
+          <source src="{{ entry.audio.url }}" type="audio/mpeg" />
+        </audio>
       {% endif %}
       {% if entry.file %}
         <p>
@@ -61,9 +59,7 @@
           <strong>Insight:</strong> {{ insight }}
         </p> <!-- Display the generated insight -->
       {% endif %}
-      <p>
-        <a href="{% url 'journal:entry_list' %}" class="btn btn-secondary">Back to Entry List</a>
-      </p>
+      <a href="{% url 'journal:entry_list' %}" class="btn btn-register">Back to Entry List</a>
     </div>
   </div>
 {% endblock %}

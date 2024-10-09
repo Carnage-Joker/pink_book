@@ -1,25 +1,40 @@
 {% extends 'base.html' %}
-{% load custom_filters %}
-{% load static %}
-
 {% block title %}
-  {{ object.title }}
+  {{ resource.title }}
 {% endblock %}
-
 {% block content %}
-  <h2>{{ object.title }}</h2>
-  <p>{{ object.description }}</p>
-  <a href="{{ object.link }}" target="_blank" class="resource-link">Visit Link</a>
+  <div class="container">
+    <!-- Left Page - Resource Details -->
+    <div class="cute-card">
+      <h2 class="pink-title">{{ resource.title }}</h2>
+      <p class="pink-description">{{ resource.description }}</p>
+      <p>
+        Link: <a href="{{ resource.link }}" target="_blank" class="pink-link">{{ resource.link }}</a>
+      </p>
+      {% if user.is_authenticated %}
+        <a href="{% url 'journal:resource_comment' resource.id %}" class="btn btn-register">Leave a Comment</a>
+      {% else %}
+        <p>
+          <a href="{% url 'journal:login' %}" class="pink-link">Log in</a> to leave a comment!
+        </p>
+      {% endif %}
+    </div>
 
-  {% if object.allow_comments %}
-    <h3>Comments</h3>
-    <ul class="resource-comments">
-      {% for comment in object.resourcecomment_set.all %}
-        <li>
-          <p>{{ comment.content }}</p>
-          <small>by {{ comment.author.username }} on {{ comment.timestamp }}</small>
-        </li>
-      {% endfor %}
-    </ul>
-  {% endif %}
+    <!-- Right Page - Comments Section -->
+    <div class="cute-card">
+      <h2>Comments 💬</h2>
+      <div class="comments-section">
+        {% for comment in resource.comments.all %}
+          <div class="comment">
+            <h5>{{ comment.author.sissy_name }}</h5>
+            <p>{{ comment.content }}</p>
+            <small>{{ comment.timestamp }}</small>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- Book Binding in the Center -->
+    <div class="binding"></div>
+  </div>
 {% endblock %}

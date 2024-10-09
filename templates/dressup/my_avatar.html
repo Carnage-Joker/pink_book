@@ -1,13 +1,15 @@
-<!-- templates/dressup/my_avatar.html -->
-{% extends 'base.html' %}
-
+{% extends "base.html" %}
 {% block content %}
-  <div class="my-avatar">
-    <h1>My Avatar</h1>
-    <div class="avatar-display">
-      <img id="avatar-body" src="{{ avatar.body_image_url }}" alt="Avatar Body" />
-      <img id="avatar-hair" src="{{ avatar.hair_image_url }}" alt="Avatar Hair" />
-      <!-- Add more layers as needed -->
+<div class="container">
+    <h1 class="text-center">Dress Up Your Avatar</h1>
+    <div id="avatar-area" class="avatar-area">
+        <img src="{{ avatar.image.url }}" alt="Your Avatar">
     </div>
-  </div>
+    <div id="clothing-pool" class="clothing-pool">
+        {% for item in clothing_items %}
+            <img id="item-{{ item.id }}" class="clothing-item" src="{{ item.image.url }}" alt="{{ item.name }}" draggable="true">
+        {% endfor %}
+    </div>
+    <button id="reset-button" class="btn btn-reset">Reset Avatar</button>
+</div>
 {% endblock %}

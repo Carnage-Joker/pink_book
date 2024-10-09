@@ -1,22 +1,25 @@
-{% extends "base.html" %}
-{% load static %}
-{% block title %}Error{% endblock %}
+{% extends 'base.html' %}
+{% block title %}
+  Oops, Something Went Wrong!
+{% endblock %}
 {% block content %}
-<div class="container diary-spread">
+  <div class="container">
     <!-- Left Page - Error Message -->
-    <div class="left-page">
-        <h1 style="color: hotpink;">Oopsie-daisy! Something Went Wrong!</h1>
-        <p>Don't worry, darling, let's try again!</p>
+    <div class="cute-card">
+      <h1 class="pink-title">Oops! 😢</h1>
+      <p>It looks like something went wrong. Please try again later, darling. We're working to get this fixed as soon as possible.</p>
+      <a href="{% url 'journal:home' %}" class="btn btn-register">Back to Home</a>
     </div>
 
-    <!-- Right Page - Placeholder or Additional Info -->
-    <div class="right-page">
-        <h2>Need Help?</h2>
-        <p>If you're having trouble, please contact support for assistance.</p>
-        <p>Try refreshing the page or return to the <a href="{% url 'journal:welcome' %}" class="btn btn-register">Home Page</a>.</p>
+    <!-- Right Page - Suggestion -->
+    <div class="cute-card">
+      <h2>Need Help?</h2>
+      <p>
+        If you continue to experience this issue, please <a href="{% url 'journal:contact' %}" class="pink-link">contact us</a>. We're always here to help!
+      </p>
     </div>
 
     <!-- Book Binding in the Center -->
     <div class="binding"></div>
-</div>
+  </div>
 {% endblock %}

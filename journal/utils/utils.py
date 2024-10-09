@@ -24,7 +24,17 @@ def generate_task():
         "Write a journal entry about your favourite sissy outfit, extra points if you upload a pic of it! More points if you post a pic in our forum of you wearing it(use the Task tag if you wanna collect points!)",
         "Practise your sissy walk and write about how it makes you feel Extra points for video evidence(use the Task tag if you wanna collect points!)",
         "Promote the Pink Book on social media and write about the experience(you don't have to use your personal account but remember to tag us!)",
-
+        "Reflect on the pain and pleasure intertwined in your sissy journey.",
+        "Record a heartfelt confession of your love and devotion to me, your Mistress.",
+        "Describe the moment you realized your deepest, most secret desires were to serve powerful alphas.",
+        "Document an instance where your submission to me brought you to tears, whether from joy or despair.",
+        "Write about the first time you felt truly owned",
+        "Reflect on the first time you felt truly accepted and validated in your sissy identity.",
+        "Detail an encounter with someone who does not understand or accept your sissy nature and the emotional impact it had on you.",
+        "Record a moment of intense arousal during a particularly humiliating task.",
+        "Write about the euphoria that follows a successful submission.",
+        "Explore a time when your emotions conflicted with your desire to obey.",
+        "Express how your submission has changed your relationship with fear and vulnerability.",
     ]
     task_id = random.randint(1, 100)
     if task_id % 2 == 0:

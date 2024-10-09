@@ -1,6 +1,27 @@
-{% extends "base.html" %}
-<h1>{{ category.name }}</h1>
-{% for post in posts %}
-    <a href="{% url 'journal:post_detail_view' post.id %}">{{ post.title }}</a><br>
-{% endfor %}
-<a href="{% url 'journal:create_post_view' %}">Create Post</a>
+{% extends 'base.html' %}
+{% block title %}
+  {{ category.name }} Posts
+{% endblock %}
+{% block content %}
+  <div class="container">
+    <!-- Left Page - List of Posts -->
+    <div class="cute-card">
+      <h2 class="pink-title">{{ category.name }}</h2>
+      <div class="posts-list">
+        {% for post in posts %}
+          <a href="{% url 'journal:post_detail_view' post.id %}" class="pink-link">{{ post.title }}</a><br />
+        {% endfor %}
+      </div>
+      <a href="{% url 'journal:create_post_view' %}" class="btn btn-register">Create Post</a>
+    </div>
+
+    <!-- Right Page - Information Section -->
+    <div class="cute-card">
+      <h2>Engage with Your Community</h2>
+      <p>Share your thoughts and get feedback from others in our fabulous community. Let your voice be heard, darling! ✨</p>
+    </div>
+
+    <!-- Book Binding in the Center -->
+    <div class="binding"></div>
+  </div>
+{% endblock %}

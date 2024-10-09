@@ -1,10 +1,16 @@
 {% extends 'base.html' %}
-{% block title %}Avatar Exists{% endblock %}
+{% load static %}
 
 {% block content %}
-<div class="container">
-    <h1>Avatar Already Exists</h1>
-    <p>You already have an avatar. You can dress it up or modify it.</p>
-    <a href="{% url 'dressup:dress_up' %}" class="btn btn-register">Dress Up Your Avatar</a>
-</div>
+  <div class="container avatar-exists-container">
+    <h1 class="title">Welcome Back, {{ user.sissy_name }}!</h1>
+    <p class="description">It looks like you already have an avatar. You can update it, dress it up, or visit the Sissy Mall to find new outfits.</p>
+    <div class="avatar-preview">
+      <img src="{{ avatar.image.url }}" alt="Your Avatar" />
+    </div>
+    <div class="actions">
+      <a href="{% url 'my_avatar' %}" class="btn btn-register">Dress Up</a>
+      <a href="{% url 'mall' %}" class="btn btn-register">Go to the Sissy Mall</a>
+    </div>
+  </div>
 {% endblock %}

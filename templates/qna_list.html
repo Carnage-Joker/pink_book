@@ -1,17 +1,38 @@
-{% extends "base.html" %}
-{% block title %}Q&A{% endblock %}
+{% extends 'base.html' %}
+{% block title %}
+  Q&A Section
+{% endblock %}
 {% block content %}
-<div class="container diary-spread">
-    <div class="left-page">
-        <h1>Q&A</h1>
-        <ul>
-            {% for question in questions %}
-            <li>
-                <h2>{{ question.question }}</h2>
-                <p>{{ question.answer.answer }}</p>
-            </li>
-            {% endfor %}
-        </ul>
+  <div class="container">
+    <!-- Left Page - Q&A Overview -->
+    <div class="cute-card">
+      <h2 class="pink-title">Ask a Question</h2>
+      <p>Have a question? Find answers here or ask your own, darling!</p>
+      <ul class="qna-list">
+        {% for question in questions %}
+          <li>
+            <a href="{% url 'journal:qna_detail' question.pk %}" class="pink-link">{{ question.title }}</a>
+          </li>
+        {% endfor %}
+      </ul>
+      <a href="{% url 'journal:ask_question' %}" class="btn btn-register">Ask a Question</a>
     </div>
-</div>
+
+    <!-- Right Page - Answer Highlights -->
+    <div class="cute-card">
+      <h2>Top Answer</h2>
+      {% if top_answer %}
+        <div class="top-answer card-inner">
+          <p>
+            <strong>{{ top_answer.author.sissy_name }}:</strong> {{ top_answer.content }}
+          </p>
+        </div>
+      {% else %}
+        <p>No answers yet! Be the first to answer a question.</p>
+      {% endif %}
+    </div>
+
+    <!-- Book Binding in the Center -->
+    <div class="binding"></div>
+  </div>
 {% endblock %}

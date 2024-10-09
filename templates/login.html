@@ -1,43 +1,21 @@
-{% extends "base.html" %}
+{% extends 'base.html' %}
 
-
+{% block title %}
+  Log In - Sissy Journal
+{% endblock %}
 {% block content %}
-<div class="logreg-section">
-    <h1>Welcome back, Princess! 🎀</h1>
-    <p>Enter your sissy credentials to access your magical journal.</p>
-    <fieldset class="form-group">
-        <legend class="border-bottom mb-4">Log In Details</legend>
-        <form method="POST">
-            {% csrf_token %}
-            {{ form.as_p }}
-            <div class="form-group">
-                <label for="id_remember">Remember Me</label>
-                <input class="form-control" id="id_remember" name="id_remember" type="checkbox" value="1">
-                <button type="submit" class="btn btn-pink">Log In</button>
-            </div>
-                {% if form.errors %}
-            <ul>
-            {% for field, errors in form.errors.items %}
-                {% for error in errors %}
-                    <li>{{ field }}: {{ error }}</li>
-             {% endfor %}
-             {% endfor %}
-                </ul>
-                {% endif %}
-
-        </form>
-    </fieldset>
-    <div class="border-top pt-3">
-        <small>
-            New around here? <a href="{% url 'journal:register_view' %}">Sign Up</a> and start journaling!
-        </small>
+  <div class="container">
+    <div class="cute-card">
+      <h1>Welcome back, Princess! 🎀</h1>
+      <p>Enter your sissy credentials to access your magical journal.</p>
+      <form method="POST">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit" class="btn btn-register">Log In</button>
+      </form>
+      <small>New around here? <a href="{% url 'journal:register_view' %}">Sign Up</a> and start journaling!</small>
     </div>
-</div>
-{% endblock content %}
 
-    
-    
-        
-
-
-
+    <div class="binding"></div>
+  </div>
+{% endblock %}

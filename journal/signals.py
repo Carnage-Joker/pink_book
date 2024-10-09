@@ -7,6 +7,7 @@ from .models import CustomUser, UserProfile
 
 class Observer:
     def update(self, message):
+        # This method is intentionally left empty to be overridden by subclasses
         pass
 
 

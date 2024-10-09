@@ -1,10 +1,13 @@
-{% extends 'dressup/base.html' %}
+{% extends "base.html" %}
 {% block content %}
-<div class="avatar-creation">
-    <h1>Create Your Avatar</h1>
-    <form method="post">
-        {% csrf_token %}
-        <button type="submit">Create Avatar</button>
-    </form>
+<div class="container">
+    <h1 class="text-center">Create Your Sissy Avatar</h1>
+    <div class="avatar-section">
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            <input type="file" name="avatar_image" class="btn btn-upload">
+            <button type="submit" class="btn btn-register">Create Avatar</button>
+        </form>
+    </div>
 </div>
 {% endblock %}

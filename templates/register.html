@@ -6,11 +6,11 @@
 {% endblock %}
 
 {% block content %}
-  <div class="container diary-spread">
+  <div class="container">
     <!-- Left Page - Registration Form -->
-    <div class="left-page">
+    <div class="cute-card">
       <fieldset class="form-group">
-        <legend class="border-bottom mb-4">Join Today</legend>
+        <legend class="border-bottom mb-4 pink-title">Join Today</legend>
         <form method="post" enctype="multipart/form-data">
           {% csrf_token %}
           {{ form.as_p }}
@@ -20,10 +20,10 @@
     </div>
 
     <!-- Right Page - Additional Information or Welcome Message -->
-    <div class="right-page">
+    <div class="cu-"-
       <h2>Welcome to Your Sissy Journal</h2>
       <p>By joining our community, you will have a personal space to explore, express, and embrace your sissy self. Our features include:</p>
-      <ul>
+      <ul class="pink-list">
         <li>Personalized journal prompts to inspire your writing.</li>
         <li>A habit tracker to help you stay on top of your goals.</li>
         <li>A loving community to share your journey with.</li>

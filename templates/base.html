@@ -1,56 +1,84 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="en">
-{% load static %}
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Sissy Journal{% endblock %}</title>
+    <title>{% block title %}The Pink Book{% endblock %}</title>
+    
+    <!-- Stylesheets -->
     <link rel="stylesheet" href="{% static 'journal/css/diary-theme.css' %}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Pacifico&family=Quicksand:wght@400;500;600&family=Dancing+Script&family=Great+Vibes&family=Gloria+Hallelujah&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+    
     {% block head %}{% endblock %}
 </head>
-<body>
-    
+<body class="sissy-theme">
+    <!-- Header with Neon Accent Underline -->
+    <header class="neon-accent-header">
+        <div class="neon-accent-bottom"></div>
+    </header>
+
+    <!-- Panic Button -->
+    <div class="panic-button" onclick="togglePanicMode()">Panic</div>
+
     <!-- Navigation Tabs (Post-it Notes) -->
     <nav class="post-it-notes">
-        <a href="{% url 'journal:welcome' %}">Home</a>
-        <a href="{% url 'journal:resource_list' %}">Resources</a>
-        <a href="{% url 'journal:dashboard' %}">Dashboard</a>
-        <a href="{% url 'journal:thread_list' %}">Fab Forum</a>
-        <a href="{% url 'journal:blog_list' %}">Blog</a> <!-- Link to Blog List -->
-        <a href="{% url 'journal:entry_list' %}">Journal</a> <!-- Link to Journal List -->
+        <a href="{% url 'journal:welcome' %}" class="post-it">Home</a>
+        <a href="{% url 'journal:resource_list' %}" class="post-it">Resources</a>
+        <a href="{% url 'journal:dashboard' %}" class="post-it">Dashboard</a>
+        <a href="{% url 'journal:thread_list' %}" class="post-it">Fab Forum</a>
+        <a href="{% url 'journal:blog_list' %}" class="post-it">Blog</a>
+        <a href="{% url 'journal:entry_list' %}" class="post-it">Journal</a>
     </nav>
 
-<!-- Main Content -->
-<div class="content">
-    {% block content %}
-    {% endblock %}
-</div>
-   <script src="{% static 'journal/scripts/scripts.js' %}"></script>
-    {% block scripts %}{% endblock %}
-</body> 
-<footer>
-        <p>&copy; 2024 Sissy Diary</p>
-    
-<div class="footer">
-    <nav class="footer-nav">
-        <a href="{% url 'journal:about' %}">About Us</a>
-        <a href="{% url 'journal:contact' %}">Contact</a>
-        <a href="{% url 'journal:privacy_policy' %}">Privacy Policy</a>
-        <a href="{% url 'journal:terms_of_service' %}">Terms of Service</a>
-        <a href="{% url 'journal:faq' %}">FAQ</a>
-        <a href="{% url 'journal:feedback' %}">Feedback</a>
-        <a href="{% url 'journal:logout' %}">Logout</a>
-    </nav>
-</div>
-</footer>
- 
- 
-    <div id="toast-container"></div>
+    <!-- Main Content -->
+<div class="container my-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8 decorative-border">
+        
+            {% block content %}
+            {% endblock %}
+        </div>
+    </div>
+
+    <!-- Footer with Neon Accent Top -->
+    <footer class="footer mt-5">
+        <div class="neon-accent-top"></div>
+        <div class="container">
+            <nav class="footer-nav">
+                <a href="{% url 'journal:about' %}"><i class="fas fa-info-circle sparkle-icon"></i> About Us</a>
+                <a href="{% url 'journal:contact' %}"><i class="fas fa-envelope sparkle-icon"></i> Contact</a>
+                <a href="{% url 'journal:privacy_policy' %}"><i class="fas fa-user-secret sparkle-icon"></i> Privacy Policy</a>
+                <a href="{% url 'journal:terms_of_service' %}"><i class="fas fa-file-contract sparkle-icon"></i> Terms of Service</a>
+                <a href="{% url 'journal:faq' %}"><i class="fas fa-question-circle sparkle-icon"></i> FAQ</a>
+                <a href="{% url 'journal:feedback' %}"><i class="fas fa-comment-dots sparkle-icon"></i> Feedback</a>
+                <a href="{% url 'journal:logout' %}"><i class="fas fa-sign-out-alt sparkle-icon"></i> Logout</a>
+            </nav>
+            <p class="footer-text">&copy; 2024 The Pink Book. Be the best version of yourself.</p>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
     <script src="{% static 'journal/scripts/scripts.js' %}"></script>
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script>
+        function togglePanicMode() {
+            const body = document.body;
+            body.classList.toggle('neutral');
+            document.querySelectorAll('img').forEach(image => {
+                image.style.filter = body.classList.contains('neutral') ? 'blur(5px)' : 'none';
+            });
 
+            const panicButton = document.querySelector('.panic-button');
+            panicButton.classList.toggle('panic-active');
+        }
+    </script>
+    {% block scripts %}{% endblock %}
+</body>
 </html>

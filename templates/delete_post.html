@@ -1,11 +1,24 @@
-{% extends "base.html" %}
-{% block title %}Delete Post{% endblock %}
+{% extends 'base.html' %}
+{% block title %}
+  Delete Post
+{% endblock %}
 {% block content %}
-    <h2>Delete Post</h2>
-    <p>Are you sure you want to delete this post?</p>
-    <form method="post">
+  <div class="container">
+    <!-- Left Page - Delete Confirmation -->
+    <div class="cute-card">
+      <h2 class="pink-title">Delete Post</h2>
+      <p>Are you sure you want to delete this post?</p>
+      <form method="post">
         {% csrf_token %}
-        <button type="submit" class="btn btn-danger">Delete</button>
-        <a href="{% url 'post_detail' object.pk %}" class="btn btn-secondary">Cancel</a>
-    </form>
+        <button type="submit" class="btn btn-register">Delete Post</button>
+        <a href="{% url 'journal:post_detail' object.pk %}" class="btn btn-register">Cancel</a>
+      </form>
+    </div>
+
+    <!-- Right Page - Friendly Reminder -->
+    <div class="cute-card">
+      <h2>Think Twice, Darling!</h2>
+      <p>Remember, once it's gone, it's gone! Make sure you're ready to say goodbye to your post forever.</p>
+    </div>
+  </div>
 {% endblock %}

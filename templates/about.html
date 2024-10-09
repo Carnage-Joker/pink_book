@@ -1,24 +1,23 @@
-<data value="">d 1</data>
 {% extends 'base.html' %}
 {% load static %}
 {% block title %}
   About The Pink Book
 {% endblock %}
 {% block content %}
-  <div class="container diary-spread">
+  <div class="container diary-spread my-5">
     <!-- Left Page - About Information -->
-    <div class="left-page">
-      <h1>About The Pink Book</h1>
-      <img src="{% static 'media/pinkbooklogo.jpg' %}" alt="The Pink Book Logo" class="pink-logo" />
+    <div class="left-page cute-border">
+      <h1 class="neon-accent-bottom">About The Pink Book</h1>
+      <img src="{% static 'media/pinkbooklogo.jpg' %}" alt="The Pink Book Logo" class="pink-logo mb-4" />
       <p>Welcome to The Pink Book, a safe space for Sissies to be themselves and learn about themselves without prejudice. Our interactive journal is designed with love, embracing a teenage girly style that's unapologetically pink and cute!</p>
 
-      <h2>Our Mission</h2>
+      <h2 class="neon-accent-bottom mt-4">Our Mission</h2>
       <p>We are committed to providing a supportive environment for Sissies, encouraging self-exploration, self-acceptance, and growth. Embrace your inner sissy and join our loving community!</p>
     </div>
 
     <!-- Right Page - Meet the Team and Contact Information -->
-    <div class="right-page">
-      <h2>Meet the Team</h2>
+    <div class="right-page cute-border">
+      <h2 class="neon-accent-bottom">Meet the Team</h2>
       <p>Get to know the passionate individuals behind The Pink Book:</p>
       <ul>
         <li>
@@ -29,9 +28,10 @@
         </li>
       </ul>
 
-      <h2>Contact Us</h2>
+      <h2 class="neon-accent-bottom mt-4">Contact Us</h2>
       <p>
-        If you have any questions or would like to get in touch, please contact us at <a href="mailto:info@thepinkbook.com">info@thepinkbook.com</a>.
+        If you have any questions or would like to get in touch, please contact us at 
+        <a href="mailto:info@thepinkbook.com" class="contact-link">info@thepinkbook.com</a>.
       </p>
     </div>
 

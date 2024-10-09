@@ -1,22 +1,35 @@
-<!-- templates/resend_activation.html -->
-<!DOCTYPE html>
-<html>
-<head>
-    <title>Resend Activation Email</title>
-</head>
-<body>
-    <h1>Resend Activation Email</h1>
-    <form method="post">
+{% extends 'base.html' %}
+
+{% block title %}
+  Resend Activation Email
+{% endblock %}
+
+{% block content %}
+  <div class="container">
+    <!-- Left Page - Resend Activation Form -->
+    <div class="cute-card">
+      <h2>Resend Activation Email</h2>
+      <form method="post">
         {% csrf_token %}
         <label for="email">Email:</label>
-        <input type="email" id="email" name="email" required>
-        <button type="submit">Resend Activation Email</button>
-    </form>
-    {% if message %}
-        <p>{{ message }}</p>
-    {% endif %}
-    {% if error %}
-        <p>{{ error }}</p>
-    {% endif %}
-</body>
-</html>
+        <input type="email" id="email" name="email" class="form-control" required />
+        <button type="submit" class="btn btn-register">Resend Activation Email</button>
+      </form>
+      {% if message %}
+        <p class="success-message">{{ message }}</p>
+      {% endif %}
+      {% if error %}
+        <p class="error-message">{{ error }}</p>
+      {% endif %}
+    </div>
+
+    <!-- Right Page - Info -->
+    <div class="cute-card">
+      <h2>Having Trouble?</h2>
+      <p>If you haven't received your activation email, enter your email address above, and we'll send it again.</p>
+    </div>
+
+    <!-- Book Binding in the Center -->
+    <div class="binding"></div>
+  </div>
+{% endblock %}

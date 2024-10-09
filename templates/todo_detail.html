@@ -1,25 +1,26 @@
 {% extends 'base.html' %}
 {% load static %}
-{% block title %}To-Do Details{% endblock %}
+{% block title %}
+  To-Do Details
+{% endblock %}
 {% block content %}
-<div class="container diary-spread">
+  <div clclass="cute-card">
     <!-- Left Page - To-Do Details -->
-    <div class="left-page">
-        <h2>{{ object.task }}</h2>
-        <p>{{ object.description }}</p>
-        <p>Due date: {{ object.due_date }}</p>
-        <p>Completed: {{ object.completed }}</p>
-        <a href="{% url 'journal:todo_update' object.pk %}" class="btn btn-register">Edit</a>
+    <div class="cute-card">
+      <h2 class="pink-title">{{ object.task }}</h2>
+      <p class="task-details">{{ object.description }}</p>
+      <p>Due Date: {{ object.due_date }}</p>
+      <p>Completed: {{ object.completed }}</p>
+      <a href="{% url 'journal:todo_update' object.pk %}" class="btn btn-register">Edit Task</a>
     </div>
 
-    <!-- Right Page - Placeholder or Additional Info -->
-    <div class="right-page">
-        <h2>Task Details</h2>
-        <p>Review the details of your task and update as needed.</p>
-        <p>Stay organized and keep track of your progress.</p>
+    <!-- Right Page - Motivation Section -->
+    <div class="cute-card">
+      <h2>Task Details</h2>
+      <p>Review the details of your task and update as needed. Stay organized and keep track of your progress, darling!</p>
     </div>
 
     <!-- Book Binding in the Center -->
     <div class="binding"></div>
-</div>
+  </div>
 {% endblock %}

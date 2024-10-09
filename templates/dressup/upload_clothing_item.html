@@ -1,21 +1,14 @@
-<!-- dressup/templates/dressup/upload_clothing_item.html -->
-{% extends 'dressup/base.html' %}
+{% extends "base.html" %}
 {% load static %}
 
-{% block title %}
-  Upload Clothing Item
-{% endblock %}
-
 {% block content %}
-  <div class="container">
-    <h1>Upload Clothing Item</h1>
+<div class="container upload-clothing-container">
+    <h1 class="title">Upload Your Clothing Item</h1>
     <form method="post" enctype="multipart/form-data">
-      {% csrf_token %}
-      <div class="form-group">
-        <label for="file">Choose a file:</label>
-        <input type="file" id="file" name="file" accept="image/*" />
-      </div>
-      <button type="submit" class="submit-button">Upload</button>
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit" class="btn btn-register">Upload</button>
     </form>
-  </div>
+    <p class="cta">Once uploaded, your clothing item will be reviewed before it becomes available in the Sissy Mall.</p>
+</div>
 {% endblock %}

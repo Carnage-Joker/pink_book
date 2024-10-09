@@ -1,5 +1,5 @@
+from .models import Avatar, ClothingItem, FavoriteOutfit, PhotoshootLocation, Item, PurchasedItem
 from django.contrib import admin
-from .models import Item, PurchasedItem, Avatar
 
 
 @admin.register(Avatar)
@@ -10,7 +10,7 @@ class AvatarAdmin(admin.ModelAdmin):
 
 @admin.register(Item)
 class ItemAdmin(admin.ModelAdmin):
-    list_display = ('category', 'name', 'price', 'premium')
+    list_display = ('category', 'name', 'price', 'is_premium')
     search_fields = ('category', 'name')
     list_filter = ('category',)
 
@@ -19,3 +19,22 @@ class ItemAdmin(admin.ModelAdmin):
 class PurchasedItemAdmin(admin.ModelAdmin):
     list_display = ('user', 'item')
     search_fields = ('user__username', 'item__name')
+
+
+@admin.register(ClothingItem)
+class ClothingItemAdmin(admin.ModelAdmin):
+    list_display = ('name', 'type', 'is_premium')
+    list_filter = ('type', 'is_premium')
+    search_fields = ('name',)
+
+
+@admin.register(FavoriteOutfit)
+class FavoriteOutfitAdmin(admin.ModelAdmin):
+    list_display = ('user', 'outfit_name')
+    filter_horizontal = ('clothing_items',)
+
+
+@admin.register(PhotoshootLocation)
+class PhotoshootLocationAdmin(admin.ModelAdmin):
+    list_display = ('name', 'is_premium')
+    search_fields = ('name',)

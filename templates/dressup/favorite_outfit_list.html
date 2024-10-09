@@ -1,19 +1,19 @@
-<!-- templates/dressup/favorite_outfits_list.html -->
-{% extends 'base.html' %}
+{% extends "base.html" %}
+{% load static %}
 
 {% block content %}
-  <div class="favorites-list">
-    <h1>My Favorite Outfits</h1>
-    <ul>
-      {% for favorite in favorites %}
-        <li>
-          <a href="{% url 'premium_outfit_detail' favorite.outfit.pk %}">
-            <img src="{{ favorite.outfit.get_image_url }}" alt="{{ favorite.outfit.name }}" />
-            <h2>{{ favorite.outfit.name }}</h2>
-            <span>${{ favorite.outfit.price }}</span>
-          </a>
-        </li>
-      {% endfor %}
-    </ul>
-  </div>
+<div class="container favorite-outfit-list-container">
+    <h1 class="title">Your Favorite Outfits</h1>
+    <div class="outfit-grid">
+        {% for outfit in favorite_outfits %}
+            <div class="outfit-card">
+                <img src="{{ outfit.image.url }}" alt="{{ outfit.name }}">
+                <h3>{{ outfit.name }}</h3>
+                <p class="description">{{ outfit.description }}</p>
+            </div>
+        {% endfor %}
+    </div>
+    <p class="cta">Want to add more favorite outfits? Go to the Sissy Mall to explore more!</p>
+    <a href="{% url 'mall' %}" class="btn btn-register">Go to the Sissy Mall</a>
+</div>
 {% endblock %}

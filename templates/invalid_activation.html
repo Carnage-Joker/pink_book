@@ -1,12 +1,17 @@
-#  failed activation
 {% extends 'base.html' %}
 
-{% block title %}Invalid Activation - Sissy Diary{% endblock %}
+{% block title %}
+  Invalid Activation - Sissy Diary
+{% endblock %}
 
 {% block content %}
-<div class="container">
-    <h2>Invalid Activation</h2>
-    <p>The activation link you have used is invalid or has expired. Please request a new link.</p>
-    <a href="{% url 'journal:resend_activation' %}">Request a new link</a>
-</div>
+  <div class="container">
+    <div class="cute-card">
+      <h2>Invalid Activation</h2>
+      <p>The activation link you have used is invalid or has expired, sweetheart. Please request a new one.</p>
+      <a href="{% url 'journal:resend_activation' %}" class="btn btn-register">Request a new link</a>
+    </div>
+
+    <div class="binding"></div>
+  </div>
 {% endblock %}
