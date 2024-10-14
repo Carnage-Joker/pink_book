@@ -138,6 +138,6 @@ vine==5.1.0
 virtualenv==20.26.6
 wcwidth==0.2.13
 websockets==11.0.3
-Werkzeug==3.0.3
+Werkzeug==3.0.4
 xxhash==3.4.1
 yarl==1.9.4
