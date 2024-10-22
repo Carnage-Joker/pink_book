@@ -1,5 +1,4 @@
-{% extends 'base.html' %}
-{% block title %}Dashboard{% endblock %}
+{% extends "base.html" %}
 {% block content %}
 {% load static %}
 
@@ -13,14 +12,20 @@
             <!-- Default image when no profile picture is set -->
             <img src="{% static 'default-profile-pic.jpg' %}" alt="Profile Picture">
         </div>
-    {% endif %}
-    <h2>Welcome, {{ user.sissy_name }}!</h2>
 
-    <!-- Edit Profile and Settings Links -->
-    <div class="profile-links">
-        <a href="{% url 'update_profile_view' %}" class="edit-link">Edit Profile</a>
-        <span>|</span>
-        <a href="{% url 'profile_settings_view' %}" class="settings-link">Settings</a>
+    <!-- Card for Insights -->
+    <div class="cute-card">
+        <h2 class="pink-title">Your Insights</h2>
+        <p>Get a summary of your progress and performance. Stay motivated, darling!</p>
+        <ul>
+            <li>Habit Consistency: {{ insights.habit_consistency }}%</li>
+            <li>Weekly Reflection Count: {{ insights.weekly_reflection_count }}</li>
+            <li>Chores Completed: {{ insights.chores_completed }}</li>
+            <li>Average Sentiment: {{ insights.avg_sentiment }}</li>
+            <li>Most Common Tags: {{ insights.most_common_tags }}</li>
+            <li>Current Journaling Streak: {{ insights.current_streak }} days</li>
+            <li>Peak Journaling Time: {{ insights.peak_journaling_time }}:00</li>
+        </ul>
     </div>
 
     <div class="recent-entries">
