@@ -36,10 +36,8 @@
     <!-- Right Page - Back to Forum -->
     <div class="cute-card">
       <h2>Back to the Forum</h2>
-      <a href="{% url 'journal:post_list' %}" class="btn btn-register">Back to Posts</a>
+        <a href="{% url 'journal:posts' thread_id=post.thread_id %}" class="btn btn-register">Back to Posts</a>
     </div>
 
-    <!-- Book Binding in the Center -->
-    <div class="binding"></div>
-  </div>
+
 {% endblock %}

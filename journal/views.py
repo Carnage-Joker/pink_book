@@ -1,3 +1,5 @@
+from django.shortcuts import render
+from django.core.paginator import Paginator
 from .utils.utils import generate_task, send_activation_email
 from .utils.ai_utils import (extract_keywords, get_average_sentiment,
                              get_average_word_count, get_current_streak,
@@ -34,10 +36,6 @@ import random
 import logging
 import json
 
-
-
-
-
 logger = logging.getLogger(__name__)
 
 
@@ -46,7 +44,6 @@ User = get_user_model()
 
 class SafeMixin:
     """Mixin to add error handling and logging."""
-
     def dispatch(self, request, *args, **kwargs):
         try:
             return super().dispatch(request, *args, **kwargs)
@@ -309,15 +306,14 @@ class ModeratorListView(LoginRequiredMixin, ListView):
     template_name = "moderators.html"
     context_object_name = 'threads'
 
-
-def get_queryset(self):
-    user = self.request.user
-    if user.is_staff:
-        return Thread.objects.all()  # Return all threads if user is staff
-    elif user.is_moderator:
-        return Thread.objects.filter(moderators=user)  # Return threads where user is a moderator
-    else:
-        return Thread.objects.none()  # Return no threads if user is not staff or moderator
+    def get_queryset(self):
+        user = self.request.user
+        if user.is_staff:  # type: ignore
+            return Thread.objects.all()  # Return all threads if user is staff
+        elif user.is_moderator:
+            return Thread.objects.filter(moderators=user)  # Return threads where user is a moderator
+        else:
+            return Thread.objects.none()  # Return no threads if user is not staff or moderator
 
 
 class ThreadListView(ListView):
@@ -425,15 +421,18 @@ class HabitDetailView(LoginRequiredMixin, DetailView):
         return context
 
 
-class IncrementHabitCounter(View):
+class IncrementHabitCounterView(LoginRequiredMixin, View):
     def post(self, request, pk):
         habit = get_object_or_404(Habit, pk=pk, user=request.user)
         habit.increment_count()
-        insight = habit.get_insights()
+        current_streak = habit.get_current_streak()
+        longest_streak = habit.get_longest_streak()
+
         return JsonResponse({
             'status': 'success',
             'new_count': habit.increment_counter,
-            'insight': insight
+            'current_streak': current_streak,
+            'longest_streak': longest_streak
         })
 
 
@@ -563,12 +562,20 @@ class JournalEntryCreateView(LoginRequiredMixin, CreateView):
         context = super().get_context_data(**kwargs)
         # Generate a new prompt when the user accesses the new entry page
         context['generated_prompt'] = generate_prompt()
+
+        if task_id := self.kwargs.get('task_id'):
+            context['task'] = Task.objects.get(pk=task_id)
+
         return context
 
     def form_valid(self, form):
         form.instance.user = self.request.user
-        form.instance.prompt_text = self.get_context_data(
-        )['generated_prompt']  # Save the generated prompt
+
+        if task_id := self.kwargs.get('task_id'):
+            form.instance.task = Task.objects.get(pk=task_id)
+
+        # Set the prompt text from context (which is already generated)
+        form.instance.prompt_text = self.get_context_data()['generated_prompt']
 
         # Save the form but don't commit to the database yet
         journal_entry = form.save(commit=False)
@@ -584,10 +591,8 @@ class JournalEntryCreateView(LoginRequiredMixin, CreateView):
         # Save the journal entry
         journal_entry.save()
 
-        # Save tags
+        # Save the tags (many-to-many relationships)
         form.save_m2m()
-
-        self.object = journal_entry
 
         messages.success(
             self.request, "Journal entry created successfully with insights.")
@@ -595,7 +600,7 @@ class JournalEntryCreateView(LoginRequiredMixin, CreateView):
 
     def get_success_url(self):
         return reverse_lazy(
-            'journal:entry_detail', 
+            'journal:entry_detail',
             kwargs={'pk': self.object.pk}
         )
 
@@ -611,6 +616,8 @@ class JournalEntryDetailView(LoginRequiredMixin, DetailView):
         # Pass the prompt to the context
         context['prompt_text'] = entry.prompt_text
         context['insight'] = entry.insight  # Pass the insight to the context
+        if entry.task:
+            context['task'] = entry.task
         return context
 
 
@@ -678,111 +685,100 @@ class DashboardView(LoginRequiredMixin, TemplateView):
         return "No quote available"
 
     def get_context_data(self, **kwargs):
-            context = {}
-            try:
-                # Fetch recent journal entries, todos, and habits
-                user = self.request.user
-                recent_entries = JournalEntry.objects.filter(
-                                user=user).order_by('-timestamp')[:3]
-                todos = ToDo.objects.filter(user=user).order_by('-timestamp')[:5]  # Changed variable to 'todos'
-                habits = Habit.objects.filter(user=user).order_by('-timestamp')[:5]  # Changed variable to 'habits'
+        context = super().get_context_data(**kwargs)
+        user = self.request.user
 
-                # Process overdue todos in bulk
-                overdue_todos = todos.filter(
-                    Q(due_date__lt=now().date()) & Q(completed=False)) 
-                overdue_todos.update(processed=True)
+        # Fetch necessary data before slicing
+        recent_entries = JournalEntry.objects.filter(
+            user=user).order_by('-timestamp')[:3]
+        todos = ToDo.objects.filter(user=user).order_by(
+            '-timestamp')  # Do not slice yet
+        habits = Habit.objects.filter(user=user).order_by('-timestamp')[:5]
 
-                # Calculate sentiment data
-                sentiment_data = get_average_sentiment(
-                    JournalEntry.objects.filter(user=user))
-                context = super().get_context_data(**kwargs)
+        # Process overdue todos (filter before slicing)
+        overdue_todos = todos.filter(
+            Q(due_date__lt=now().date()) & Q(completed=False))
+        overdue_todos.update(processed=True)
 
-                # Update context with all necessary data
-                context.update({
-                    'user': user,
-                    'points': user.points,
-                    'quote_of_the_day': self.get_quote_of_the_day(),
-                    'todos': todos,  # Make sure 'todos' is passed here
-                    'habits': habits,  # Make sure 'habits' is passed here
-                    'recent_entries': recent_entries,  # Make sure 'recent_entries' is passed here
-                    'frequent_keywords': extract_keywords(recent_entries),
-                    'common_tags': get_most_common_tags(recent_entries),
-                    'most_common_emotions': get_most_common_emotions(recent_entries),
-                    'average_word_count': get_average_word_count(recent_entries),
-                    'current_streak_length': get_current_streak(recent_entries),
-                    'most_active_hour': get_peak_journaling_time(recent_entries),
-                    'entries_with_insights': [entry for entry in recent_entries if entry.insight],
-                    'sentiment_data': sentiment_data,
-                    'polarity': sentiment_data.get('avg_polarity', 0),
-                    'subjectivity': sentiment_data.get('avg_subjectivity', 0),
-                })
-            except Exception as e:
-                context['error'] = "There was an issue loading your dashboard. Please try again later."
-                context['debug_error'] = str(e)  # Optional for development debugging
+        # Slice todos after filtering
+        todos = todos[:5]  # Now apply the slice after all filtering is done
 
-            return context
-    
+        # Calculate sentiment data
+        sentiment_data = get_average_sentiment(recent_entries)
+
+        context.update({
+            'user': user,
+            'points': user.points,
+            'quote_of_the_day': self.get_quote_of_the_day(),
+            'todos': todos,
+            'habits': habits,
+            'recent_entries': recent_entries,
+            'frequent_keywords': extract_keywords(recent_entries),
+            'common_tags': get_most_common_tags(recent_entries),
+            'most_common_emotions': get_most_common_emotions(recent_entries),
+            'average_word_count': get_average_word_count(recent_entries),
+            'current_streak_length': get_current_streak(recent_entries),
+            'most_active_hour': get_peak_journaling_time(recent_entries),
+            'sentiment_data': sentiment_data,
+            'polarity': sentiment_data.get('avg_polarity', 0),
+            'subjectivity': sentiment_data.get('avg_subjectivity', 0),
+        })
+        return context
+
+
 logger = logging.getLogger(__name__)
 
+
+# Guide List View
 
 def guide_list(request):
     guides = Guide.objects.all()
     return render(request, 'journal/guide_list.html', {'guides': guides})
 
+# Guide Detail View
+
 
 class GuideDetailView(DetailView):
     model = Guide
-    template_name = "guide_detail.html"
+    template_name = "journal/guide_detail.html"
     context_object_name = 'guide'
+
+# Resource List View (Listing Resources by Category)
 
 
 class ResourceListView(ListView):
     model = ResourceCategory
-    template_name = "resource_category_detail.html"
-    # Optional, for clarity in the template
-    context_object_name = "resource_category"
+    # More specific name for clarity
+    template_name = "journal/resources.html"
+    context_object_name = "categories"  # Consistent naming convention for categories
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-
-        # Retrieve all ResourceCategories
-        context["journal_categories"] = ResourceCategory.objects.all()
-
-        # Retrieve Guides, optionally filtering by the current ResourceCategory
         guides = Guide.objects.all()
 
-        # Pagination
-        paginator = Paginator(guides, 5)  # Show 5 guides per page
+        # Pagination: 5 guides per page
+        paginator = Paginator(guides, 5)
         page_number = self.request.GET.get('page')
         page_obj = paginator.get_page(page_number)
 
-        context["journal_guides"] = page_obj
-        context["is_paginated"] = page_obj.has_other_pages()
-        context["paginator"] = paginator
-
+        context["guides"] = page_obj
         return context
 
+# Resource Category Detail View (Show Resources of Selected Category)
 
-class ResourceCategoryView(ListView):
-    model = ResourceCategory  # The primary model for this view
-    template_name = "resource_category_detail.html"
-    paginate = 10
 
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
+class ResourceCategoryView(DetailView):
+    model = ResourceCategory
+    template_name = "journal/resource_category_detail.html"
+    context_object_name = 'category'
 
-        # Get all ResourceCategories for display
-        context["journal_categories"] = ResourceCategory.objects.all()
-
-        # Get all Guides, or you can filter them if needed
-        context["journal_guides"] = Guide.objects.all()
-
-        return context
+# Resource Detail View (Show Detailed Info for a Single Resource)
 
 
 class ResourceDetailView(DetailView):
     model = Resource
-    template_name = "resource_detail.html"
+    template_name = "journal/resource_detail.html"
+    context_object_name = 'resource'
 
 
 class QuestionCreateView(LoginRequiredMixin, CreateView):

@@ -8,12 +8,7 @@
     <div class="cute-card">
       <h1>Forum Posts</h1>
       <div class="list-group posts-list">
-        {% for post in posts %}
-          <a href="{% url 'journal:post_detail' post.pk %}" class="list-group-item list-group-item-action">
-            <h5 class="mb-1">{{ post.title }}</h5>
-            <small>by {{ post.author.sissy_name }} on {{ post.timestamp }}</small>
-          </a>
-        {% endfor %}
+      
       </div>
 
       <!-- Pagination Controls -->

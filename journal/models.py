@@ -1,11 +1,9 @@
 
+from math import e
 import os
 import uuid
 from datetime import date, datetime, timedelta
 from uuid import uuid4
-from django.db import models
-import uuid
-from django.utils import timezone
 
 from dateutil.relativedelta import relativedelta
 from django.conf import settings
@@ -24,11 +22,11 @@ from .utils.ai_utils import get_sentiment
 
 
 def default_due_date():
-    return datetime.now().date() + timedelta(days=1)
+    return timezone.now().date() + timedelta(days=1)
 
 
 def current_timestamp():
-    return datetime.now()
+    return timezone.now()
 
 
 def profile_pic_upload_path(instance, filename):
@@ -50,6 +48,7 @@ class CustomUserManager(BaseUserManager):
     def create_superuser(self, email, password=None, **extra_fields):
         extra_fields.setdefault('is_staff', True)
         extra_fields.setdefault('is_superuser', True)
+        extra_fields.setdefault('is_active', True)
 
         if extra_fields.get('is_staff') is not True:
             raise ValueError('Superuser must have is_staff=True.')
@@ -153,7 +152,7 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
     def add_badge(self, badge_name):
         badges = self.badges
         if badge_name not in badges:
-            badges[badge_name] = datetime.now().strftime('%Y-%m-%d')
+            badges[badge_name] = timezone.now().strftime('%Y-%m-%d')
             self.badges = badges
             self.save()
 
@@ -168,10 +167,10 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
         self.save()
 
     def is_premium(self):
-        return self.billing.subscription_type in ['premium', 'moderator', 'admin']
+        return self.subscription_tier in ['premium', 'moderator', 'admin']
 
     def is_basic_subscriber(self):
-        return self.userprofile.billing.subscription_type == 'basic'
+        return self.subscription_tier == 'basic'
 
     def is_moderator_or_admin(self):
         return self.is_moderator or self.is_staff or self.is_superuser
@@ -243,23 +242,51 @@ class Habit(models.Model):
     )
     last_reset_date = models.DateField(
         blank=True, null=True, default=timezone.now)  # Use timezone.now
+    longest_streak_days = models.IntegerField(
+        default=0)  # To store the longest streak
 
     def check_reset_needed(self):
-        now_date = timezone.now().date()
-        if not self.last_reset_date:
-            self.last_reset_date = now_date
-        if self.reminder_frequency == 'daily' and self.last_reset_date < now_date:
+        today = timezone.now().date()  # Ensure 'today' is a date object
+        if self.last_reset_date is None or self.last_reset_date.date() < today:
             self.reset_count()
-
-    def increment_count(self):
-        self.increment_counter += 1
-        self.save()
 
     def reset_count(self):
         self.increment_counter = 0
-        self.last_reset_date = timezone.now().date()
+        self.last_reset_date = timezone.now().date()  # Make sure it's stored as a date
+        self.save()                 
+    
+    def get_current_streak(self):
+        today = timezone.now().date()
+
+        if not self.last_reset_date:
+            return 0
+
+        if self.last_reset_date == today:
+            streak_days = (today - self.start_date).days
+        else:
+            streak_days = 0  # Streak is broken if not tracked today
+
+        return streak_days
+
+    def get_longest_streak(self):
+        # Assume the longest streak is stored in `longest_streak_days` field.
+        # If not, you could also calculate it similarly to `get_current_streak`.
+        return self.longest_streak_days
+
+    def update_streaks(self):
+        # Call this method whenever a habit is tracked to update the streaks.
+        current_streak = self.get_current_streak()
+
+        if current_streak > self.longest_streak_days:
+            self.longest_streak_days = current_streak
+
         self.save()
 
+    def increment_count(self):
+        self.increment_counter += 1
+        self.update_streaks()  # Call this to update streaks whenever the count is incremented
+        self.save()
+    
     def get_insights(self):
         if self.increment_counter == 0:
             return "You haven't started this habit yet."
@@ -362,6 +389,14 @@ class Resource(models.Model):
     link = models.URLField()
     timestamp = models.DateTimeField(auto_now_add=True)
     allow_comments = models.BooleanField(default=True)
+    category = models.CharField(max_length=50, choices=[  # Add more categories as needed
+        ('fashion', 'Fashion'),
+        ('beauty', 'Beauty'),
+        ('health', 'Health'),
+        ('fitness', 'Fitness'),
+        ('lifestyle', 'Lifestyle'),
+        ('other', 'Other')
+    ], default='other')
 
 
 class BlogPost(models.Model):

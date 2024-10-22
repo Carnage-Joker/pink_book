@@ -1,0 +1,34 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}New Journal Entry{% endblock %}
+{% block head %}{% endblock head %}
+{% block content %}
+<div class="container">
+    <!-- Left Page - New Journal Entry Form -->
+    <div class="cute-card">
+        <h2 class="pink-title">Yay!! You completed {{ task.task_id }}{{ user.sissy_name }}!!</h2>
+        <p class="dayinsp">OMG Tell me everyhing</p>
+       
+        <form method="post">
+            {% csrf_token %}
+            <fieldset class="form-group">
+                {{ form.hidden_fields }}
+                {{ form.non_field_errors }}
+                {{ form.as_p }}
+                <button type="submit" class="btn btn-register">Submit</button>
+            </fieldset>
+        </form>
+    </div>
+
+    <!-- Right Page - Tips and Encouragement -->
+    <div class="cute card">
+        <h2>Tips for Your Entry</h2>
+        <p>This is your chance to explain or discuss how it felt to perform the task. Was it easy? Did you hate it? Did it scare your sissy ass straight(pfft yeah right LOL) 💖</p>
+        <p>Its also your evidence for the points system</p> 
+        <p>It's specific to the task generated and checked by our staff to award points so no names or addresses or otherwise</p>
+        <p> Points will be deducted and fair warning, they will be harshly judged, the staff may be sissies, but sisters don't waste sisters time right girls?</p>
+        <p> So stay on topic sissy! </p>
+    </div>
+
+</div>
+{% endblock %}

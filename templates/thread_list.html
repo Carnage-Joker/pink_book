@@ -13,7 +13,7 @@
         {% for thread in threads %}
           <ul>
             <li>
-              <a href="{% url 'journal:post_list' thread.pk %}" class="pink-link"><h5 class="mb-1">{{ thread.title }}</h5></a>
+              <a href="{% url 'journal:posts' thread.pk %}" class="pink-link"><h5 class="mb-1">{{ thread.title }}</h5></a>
             </li>
           </ul>
         {% endfor %}
@@ -47,8 +47,4 @@
       <h2>Explore More</h2>
       <p>Discover more threads or start a new discussion. This is your space to connect and share with fellow sissies.</p>
     </div>
-
-    <!-- Book Binding in the Center -->
-    <div class="binding"></div>
-  </div>
 {% endblock %}

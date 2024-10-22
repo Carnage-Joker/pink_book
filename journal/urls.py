@@ -12,7 +12,7 @@ from .views import (
     GuideDetailView, ActivityLogListView, BillingView, qna_list, qna_detail,
     MessageListView, CustomLoginView, ModeratorListView, ForumCreateView,
     ForumDeleteView, PostListView, ThreadListView, FeatureListView, BlogListView,
-    blog_detail, IncrementHabitCounter, CompleteTaskView, privacy_policy,
+    blog_detail, IncrementHabitCounterView, CompleteTaskView, privacy_policy,
     terms_of_service, ResendActivationView, RegistrationSuccessView,
     ActivateAccountView, activation_sent, FaqView, FeedbackView, BlogDetailView
 )
@@ -48,9 +48,9 @@ urlpatterns = [
          name='customize_theme'),
 
     # Journal
-    path('journal/entry/create/<int:task_id>/',
-         JournalEntryCreateView.as_view(), name='new_entry'),
     path('journal/entry/create/', JournalEntryCreateView.as_view(), name='new_entry'),
+    path('journal/entry/create/<int:task_id>/',
+         JournalEntryCreateView.as_view(), name='new_entry_with_task'),
     path('journal/list/', JournalEntryListView.as_view(),
          name='entry_list'),  # Fixed missing slash
     path('journal/entry/<int:pk>/',
@@ -63,7 +63,7 @@ urlpatterns = [
     # Forum
     path('forum/', ThreadListView.as_view(), name='thread_list'),
     path('forum/posts/<int:thread_id>/',
-         PostListView.as_view(), name='post_list'),
+         PostListView.as_view(), name='posts'),
     path('forum/create/', ForumCreateView.as_view(), name='create_post'),
     path('forum/<int:pk>/', ForumPostDetailView.as_view(), name='post_detail'),
     path('forum/<int:pk>/delete/', ForumDeleteView.as_view(), name='post_delete'),
@@ -72,10 +72,10 @@ urlpatterns = [
     # Habit Tracker
     path('habits/', HabitListView.as_view(), name='habit_list'),
     path('habits/create/', HabitCreateView.as_view(), name='habit_form'),
-    path('habits/<int:pk>/', HabitDetailView.as_view(), name='habit_detail'),
-    path('habits/<int:pk>/update/', HabitUpdateView.as_view(), name='habit_update'),
-    path('increment-habit-counter/<int:pk>/',
-         IncrementHabitCounter.as_view(), name='increment_habit_counter'),
+    path('habits/<uuid:pk>/', HabitDetailView.as_view(), name='habit_detail'),
+    path('habits/<uuid:pk>/update/', HabitUpdateView.as_view(), name='habit_update'),
+    path('habits/<uuid:pk>/increment/',
+         IncrementHabitCounterView.as_view(), name='habit_increment'),
 
     # To-Do List
     path('todos/', ToDoListView.as_view(), name='todo_list'),
@@ -84,22 +84,21 @@ urlpatterns = [
     path('todos/<int:pk>/', ToDoDetailView.as_view(), name='todo_detail'),
     path('generate-task/', generate_task_view, name='generate_task'),
     path('fail-task/', fail_task_view, name='fail_task'),
-    path('complete-todo/<int:todo_id>/',
-         CompleteToDoView.as_view(), name='complete_todo'),
+    path('complete-todo/<int:todo_id>/', CompleteToDoView.as_view(), name='complete_todo'),
     path('complete-task/', CompleteTaskView.as_view(), name='complete_task'),
 
-    # Resources
     path('guide/<int:pk>/', GuideDetailView.as_view(), name='guide_detail'),
-    path('resources/', ResourceListView.as_view(), name='resource_list'),
-    path('resources/<int:pk>/', ResourceCategoryView.as_view(),
-         name='resource_category_detail'),
+    path('resources/', ResourceListView.as_view(), name='resources'),
+    path('resources/<int:pk>/', ResourceCategoryView.as_view(), name='resource_category'),
     path('resource/<int:pk>/', ResourceDetailView.as_view(), name='resource_detail'),
+    
 
     # Blog
     path('blog/', BlogListView.as_view(), name='blog_list'),
     path('blog/<int:pk>/', BlogDetailView.as_view(), name='blog_detail'),
 
     # Contact and FAQ
+
     path('contact/', ContactView.as_view(), name='contact'),
     path('qna/', qna_list, name='qna_list'),
     path('qna/<int:pk>/', qna_detail, name='qna_detail'),

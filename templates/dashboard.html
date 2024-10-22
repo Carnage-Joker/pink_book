@@ -2,9 +2,15 @@
 {% block title %}Dashboard{% endblock %}
 {% block content %}
 <div class="container">
+    <div class="points-display" id="points-display">Points: {{ user.points }}</div>
+    <div class="cute-card">
+        <h2 class="pink-title
     <!-- Card for User Overview -->
     <div class="cute-card">
         <h2 class="pink-title">Welcome, {{ user.sissy_name }}!</h2>
+        {% for quote in quotes %}
+            <p>{{ quotes.quote }} - {{ quotes.author }}</p>
+        {% endfor %}
         <p>Manage your profile and check out your recent activities here.</p>
         <a href="{% url 'journal:profile_update' %}" class="btn btn-register">Edit Profile</a>
         <a href="{% url 'journal:profile_settings' %}" class="btn btn-register">Settings</a>
@@ -40,23 +46,29 @@
         </ul>
         <a href="{% url 'journal:create_todo' %}" class="btn btn-register">Add To-Do</a>
     </div>
+<!-- In your habit detail or list template -->
+<div class="cute-card">
+    <h2 class="pink-title">Your Glam Goals</h2>
+    <ul>
+        {% for habit in habits %}
+            <li>
+                <span>{{ habit.name }} - Streak: <span id="habit-count-{{ habit.id }}">{{ habit.streak }}
+                    <div class="progress">
+                        <div class="progress-bar" role="progressbar" style="width: 50%" aria-valuenow="50" aria-valuemin="0" aria-valuemax="100">
+                                            50% Complete
+  </div>
+</div>
 
-    <!-- Card for Habit List -->
-    <div class="cute-card">
-        <h2 class="pink-title">Your Habits</h2>
-        <ul>
-            {% for habit in habits %}  <!-- Match with 'habits' passed from the view -->
-                <li>
-                    <a href="{% url 'journal:habit_detail' habit.id %}">{{ habit.name }}</a> - {{ habit.streak }} day streak 
-                    <button class="btn btn-small">+1</button>
-                    <button class="btn btn-small">-1</button>
-                </li>
-            {% empty %}
-                <p>No habits tracked yet. Start building consistency!</p>
-            {% endfor %}
-        </ul>
-        <a href="{% url 'journal:habit_form' %}" class="btn btn-register">Add A Glam Goal!</a>
-    </div>
+            </li>
+        {% empty %}
+            <p>No habits tracked yet. Start building consistency!</p>
+        {% endfor %}
+    </ul>
+</div>
+
+<!-- Include the habit increment JavaScript handler -->
+
+</div>
 
     <!-- Card for Journal Entries -->
     <div class="cute-card">
@@ -70,7 +82,41 @@
                 <p>No journal entries yet. Start writing today, Unleash all your built-up tension!</p>
             {% endfor %}
         </ul>
-        <a href="{% url 'journal:new_entry' %}" class="btn btn-register">Write in your journal</a>
+<a href="{% url 'journal:new_entry' %}" class="btn btn-register">Create New Entry</a>
+<!-- Or with task_id -->
+
     </div>
 </div>
+<!-- Generate Task Card -->
+<div class="cute-card">
+    <h2 class="pink-title">Generate a New Task</h2>
+    <button id="generate-task" class="btn btn-register">Generate Task</button>
+    <div id="task-result">  <!-- Display generated task here -->
+        <!-- This will be filled by JavaScript after generating a task -->
+    </div>
+</div>
+
+
+
+
+
+<!-- Display list of To-Do items -->
+<div class="cute-card">
+    <h2 class="pink-title">Your To-Do List</h2>
+    <ul>
+        {% for todo in todos %}
+            <li id="todo-{{ todo.id }}">
+                <input type="checkbox" class="todo-checkbox" data-id="{{ todo.id }}" { % if todo.completed % } checked { % endif % }>
+                <span>{{ todo.name }}</span>
+            </li>
+        {% empty %}
+            <p>No tasks available!</p>
+        {% endfor %}
+    </ul>
+</div>
+
+
+<script>
+    
+</script>
 {% endblock %}

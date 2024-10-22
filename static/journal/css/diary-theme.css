@@ -1,72 +1,81 @@
-/* Container for layout */
+/* Grid Layout for Dashboard Cards */
 .container {
-    display: flex;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1.5rem;
     justify-content: center;
     align-items: flex-start;
     padding: 2rem;
-    max-width: 1000px;
+    max-width: 85%;
     margin: 0 auto;
-    flex-wrap: wrap;
 }
 
-/* Card Style without images for background and border */
+/* Card Style with Enhanced Border and Sketch Decorations */
 .cute-card {
-    background: linear-gradient(to bottom right, #fff0f5, #ffe6f2);
-    /* Soft, subtle pink background */
-    border-radius: 15px;
+    background: linear-gradient(to bottom right, #fc8ac1, hsl(300, 100%, 54%));
+    border-radius: 5%;
+    /* Softer corners for a smoother look */
     padding: 1.5rem;
-    margin-bottom: 2rem;
-    box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
-    border: 3px solid transparent;
-    background-clip: padding-box;
     position: relative;
+    box-shadow: 0 0 1% rgba(0, 0, 0, 0.1);
+    border: 3% solid transparent;
+    background-clip: padding-box;
     transition: all 0.3s ease;
-    width: 100%;
-    max-width: 600px;
+    inline-size: 100%;
 }
 
-/* Pretty, Girly Border */
-.cute-card {
-    border-image: linear-gradient(to right, #ff99cc, #ff66b3, #ff99cc) 1;
-    /* Gradient border to give a girly look */
-}
-
-/* Subtle Decorative Background (using gradient for effect inside card) */
+/* Border with Sketch Flowers, Diamonds, and Hearts */
+css
 .cute-card:before {
     content: '';
     position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
+    inset-block-start: 0;
+    inset-inline-start: 0;
+    inset-inline-end: 0;
+    inset-block-end: 0;
+    background: linear-gradient(45deg, #ff99cc, #ff66b3, #ff99cc);
+    border-radius: 20px;
+    -webkit-mask-image: url('/static/images/daffodil_heart_pattern.png');
+    box-sizing: border-box;
+    z-index: 1;
+    opacity: 0.5;
+    /* Subtle overlay with decorative elements */
+}
+
+/* Subtle Decorative Background Inside the Card */
+.cute-card:after {
+    content: '';
+    position: absolute;
+    top: 10px;
+    bottom: 10px;
+    left: 10px;
+    right: 10px;
     background: radial-gradient(circle, rgba(255, 204, 255, 0.2), rgba(255, 153, 204, 0.05));
-    /* Subtle, divine and sexy effect */
+    border-radius: 20px;
     z-index: -1;
-    border-radius: 15px;
 }
 
 /* Card Hover Effect */
 .cute-card:hover {
     border-color: #ff3399;
-    /* Bright pink on hover */
-    box-shadow: 0 0 20px rgba(255, 51, 153, 0.5);
-    /* Add a sexy glow effect on hover */
+    box-shadow: 0 0 25px rgba(255, 51, 153, 0.6);
+    /* Brighter hover effect */
 }
 
-/* Titles and Headings */
+/* Title and Text Styling */
 .pink-title,
 h1,
 h2,
 h3 {
     font-family: 'Dancing Script', cursive;
-    font-size: 2.5rem;
+    font-size: 2.2rem;
     color: #ff0066;
     text-align: center;
     margin-bottom: 1rem;
-    text-shadow: 2px 2px #ffb3cc;
+    text-shadow: 1px 1px #ffb3cc;
 }
 
-/* Buttons */
+/* Buttons Styling */
 .btn-register,
 button {
     background: linear-gradient(to right, #ff66b3, #ff3399);
@@ -74,21 +83,16 @@ button {
     font-weight: bold;
     font-size: 1.1rem;
     border: none;
-    border-radius: 25px;
-    padding: 0.5rem 1.5rem;
+    border-radius: 30px;
+    /* Rounder buttons */
+    padding: 0.6rem 1.8rem;
     cursor: pointer;
     transition: 0.3s ease;
     text-shadow: 1px 1px rgba(0, 0, 0, 0.2);
     margin-top: 1rem;
 }
 
-.btn-register:hover,
-button:hover {
-    background: linear-gradient(to right, #ff3399, #ff66b3);
-    box-shadow: 0px 0px 10px rgba(255, 105, 180, 0.7);
-}
-
-/* Links */
+/* Links Styling */
 .pink-link,
 a {
     color: #ff3399;
@@ -97,18 +101,18 @@ a {
     transition: 0.2s;
 }
 
-.pink-link:hover,
-a:hover {
-    text-decoration: underline;
-    text-shadow: 1px 1px #ffccff;
-}
-
-/* Responsive adjustments for smaller screens */
+/* Responsive Adjustments for Grid */
 @media (max-width: 768px) {
+    .container {
+        grid-template-columns: 1fr;
+        /* Stack cards on smaller screens */
+    }
+
     .cute-card {
-        width: 90%;
+        margin: 0 auto;
     }
 }
+
 /* Input Fields */
 input[type="text"],
 textarea,
@@ -119,7 +123,6 @@ select {
     border-radius: 10px;
     border: 2px solid #ffb3cc;
     background: rgba(255, 255, 255, 0.5);
-    /* Transparent input background */
     font-family: 'Quicksand', sans-serif;
     font-size: 1rem;
     color: #5c004d;
@@ -133,6 +136,37 @@ select:focus {
     box-shadow: 0 0 10px rgba(255, 182, 193, 0.5);
 }
 
+/* Panic Button */
+.panic-button {
+    background: linear-gradient(to right, #444444, #222222);
+    color: #fff;
+    font-weight: bold;
+    border: none;
+    border-radius: 30px;
+    padding: 0.6rem 1.2rem;
+    position: fixed;
+    top: 1rem;
+    right: 1rem;
+    cursor: pointer;
+    z-index: 1000;
+}
+
+/* Neutral Mode Styles */
+.neutral .cute-card {
+    background-color: #f0f0f0;
+    color: #333;
+}
+
+.neutral h1,
+.neutral h2,
+.neutral h3 {
+    color: #444 !important;
+}
+
+.neutral .btn-register {
+    background: #777;
+    color: #f3f3f3;
+}
 /* Post-it Note Links */
 .post-it-notes {
     display: flex;

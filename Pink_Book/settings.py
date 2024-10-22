@@ -1,5 +1,6 @@
 import os
 from pathlib import Path
+from token import OP
 from django.utils.timezone import get_current_timezone
 from dotenv import load_dotenv
 
@@ -16,6 +17,7 @@ STATICFILES_DIRS = [
 ]
 STATIC_ROOT = BASE_DIR / "staticfiles"
 HUGGING_FACE_API_KEY = os.getenv('HUGGING_FACE_API_KEY')
+OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
 
 # Template directories
 TEMPLATES = [
