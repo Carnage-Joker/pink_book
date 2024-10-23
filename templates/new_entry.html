@@ -1,30 +1,24 @@
 {% extends "base.html" %}
 {% load static %}
-{% block title %}New Journal Entry{% endblock %}
-{% block head %}{% endblock head %}
+{% block title %}New Journal Entry{% endblock title %}
+{% block head %}<link rel="stylesheet" href="{% static 'diary-theme.css' %}">{% endblock head %}
 {% block content %}
-<div class="container">
-    <!-- Left Page - New Journal Entry Form -->
-    <div class="cute-card">
-        <h2 class="pink-title">Empty your tiny head, {{ user.sissy_name }}</h2>
-        <p class="dayinsp">Today's Inspo:</p>
-        <p class="prompt">{{ dynamic_prompt }}</p>
-        <form method="post">
-            {% csrf_token %}
-            <fieldset class="form-group">
-                {{ form.hidden_fields }}
-                {{ form.non_field_errors }}
-                {{ form.as_p }}
-                <button type="submit" class="btn btn-register">Submit</button>
-            </fieldset>
-        </form>
+<div class="new-entry-page">
+    <h2><p>...</p>
+       <p> Empty your tiny head, {{user.sissy_name}}</p></h2>
+    <form method="post">
+        {% csrf_token %}
+       <div class="form-group">
+        <fieldset class="form-group">
+           
+         <p class= "dayinsp">Today's Inspo:</p>
+         <p class= "prompt">{{ dynamic_prompt }}</p>
+          <P>  {{ form.hidden_fields }}</p>
+           <p> {{ form.non_field_errors }}</p>
+            <p>{{ form.as_p }}</p>
+            <button type="submit" class="btn btn-primary">Submit</button>
+        </fieldset>
     </div>
-
-    <!-- Right Page - Tips and Encouragement -->
-    <div class="cute card">
-        <h2>Tips for Your Entry</h2>
-        <p>Write whatever comes to mind, darling. This journal is your safe space to be as fabulous and honest as you want! 💖</p>
-    </div>
-
+    </form>
 </div>
-{% endblock %}
+{% endblock content %}
