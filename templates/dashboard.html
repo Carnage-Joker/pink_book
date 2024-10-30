@@ -2,8 +2,7 @@
 {% block content %}
 {% load static %}
 
-<div class="container">
-    <div class="cute-card">
+<div class="dashboard-page">
         {% if user.profile_picture %}
         <div class="profile-picture">
             <img src="{{ user.profile_picture.url }}" alt="Profile Picture">
@@ -18,9 +17,9 @@
 
     <!-- Edit Profile and Settings Links -->
     <div class="profile-links">
-        <a href="{% url 'journal:profile_update' %}" class="edit-link">Edit Profile</a>
+        <a href="{% url 'update_profile_view' %}" class="edit-link">Edit Profile</a>
         <span>|</span>
-        <a href="{% url 'journal:profile_settings' %}" class="settings-link">Settings</a>
+        <a href="{% url 'profile_settings_view' %}" class="settings-link">Settings</a>
     </div>
 
     <div class="recent-entries">
@@ -37,7 +36,7 @@
         <div class="dashboard-details-right">
            
         </div>
-        <a href="{% url 'journal:new_entry' %}" class="btn btn-primary">New Entry</a>
+        <a href="{% url 'new_entry_view' %}" class="btn btn-primary">New Entry</a>
     </div>
     
    
@@ -54,7 +53,7 @@
             <li><strong>General feels:</strong>  
                 {% if avg_polarity > 0 %}  Happy feels Yayyyy!
                 {% elif avg_polarity == 0 %} Got the Meh feels....
-                {% elif avg_polarity < 0 %} OMG babe, I'm literally crying rivers 😭
+                {% elif avg_polarity < 0 %} OMG babe, I got a sissy shoulder to cry on
                 {% endif %} 
             </li>
             <li><strong>Girly Guage:</strong>  
