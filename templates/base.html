@@ -19,6 +19,7 @@
 <body class="sissy-theme">
     <!-- Header with Neon Accent Underline -->
     <header class="neon-accent-header">
+        <h1>The Pink Book</h1>
         <div class="neon-accent-bottom"></div>
     </header>
 
@@ -35,31 +36,32 @@
         <a href="{% url 'journal:entry_list' %}" class="post-it">Journal</a>
     </nav>
 
-    <!-- Main Content -->
+    <!-- Main Content Container -->
     <div class="container my-5">
         <div class="row justify-content-center">
             <div class="col-md-8 decorative-border">
-<div class="footer-nav"> <!-- Changed <nav> to <div> to match closing tag -->
-    {% block content %}
-    {% endblock %}
-</div>
-<!-- Removed extra closing tags -->
-<!-- Footer with Neon Accent Top -->
-<footer class="footer mt-5">
-    <div class="neon-accent-top"></div>
-    <div class="container">
-        <nav class="footer-nav">
-            <a href="{% url 'journal:about' %}"><i class="fas fa-info-circle sparkle-icon"></i> About Us</a>
-            <a href="{% url 'journal:contact' %}"><i class="fas fa-envelope sparkle-icon"></i> Contact</a>
-            <a href="{% url 'journal:privacy_policy' %}"><i class="fas fa-user-secret sparkle-icon"></i> Privacy Policy</a>
-            <a href="{% url 'journal:terms_of_service' %}"><i class="fas fa-file-contract sparkle-icon"></i> Terms of Service</a>
-            <a href="{% url 'journal:faq' %}"><i class="fas fa-question-circle sparkle-icon"></i> FAQ</a>
-            <a href="{% url 'journal:feedback' %}"><i class="fas fa-comment-dots sparkle-icon"></i> Feedback</a>
-            <a href="{% url 'journal:logout' %}"><i class="fas fa-sign-out-alt sparkle-icon"></i> Logout</a>
-        </nav>
-        <p class="footer-text">&copy; 2024 The Pink Book. Be the best version of yourself.</p>
+                {% block content %}
+                <!-- Content Goes Here -->
+                {% endblock %}
+            </div>
+        </div>
     </div>
-</footer>
+
+    <!-- Footer with Neon Accent Top -->
+    <footer class="footer mt-5">
+        <div class="neon-accent-top"></div>
+        <div class="container">
+            <nav class="footer-nav">
+                <a href="{% url 'journal:about' %}"><i class="fas fa-info-circle sparkle-icon"></i> About Us</a>
+                <a href="{% url 'journal:contact' %}"><i class="fas fa-envelope sparkle-icon"></i> Contact</a>
+                <a href="{% url 'journal:privacy_policy' %}"><i class="fas fa-user-secret sparkle-icon"></i> Privacy Policy</a>
+                <a href="{% url 'journal:terms_of_service' %}"><i class="fas fa-file-contract sparkle-icon"></i> Terms of Service</a>
+                <a href="{% url 'journal:faq' %}"><i class="fas fa-question-circle sparkle-icon"></i> FAQ</a>
+                <a href="{% url 'journal:feedback' %}"><i class="fas fa-comment-dots sparkle-icon"></i> Feedback</a>
+                <a href="{% url 'journal:logout' %}"><i class="fas fa-sign-out-alt sparkle-icon"></i> Logout</a>
+            </nav>
+            <p class="footer-text">&copy; 2024 The Pink Book. Be the best version of yourself.</p>
+        </div>
     </footer>
 
     <!-- Include External Scripts -->

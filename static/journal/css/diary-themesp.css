@@ -1,0 +1,142 @@
+/* General Styles */
+body {
+    font-family: 'Comic Sans MS', 'Arial', sans-serif;
+    background: linear-gradient(135deg, #ff66b2, #ff99cc);
+    margin: 0;
+    padding: 0;
+    color: #333;
+}
+
+/* Panic Button Styles */
+.panic-button {
+    position: fixed;
+    top: 10px;
+    right: 10px;
+    background-color: #ff3399;
+    color: white;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    z-index: 1000;
+    transition: background-color 0.3s ease-in-out;
+}
+
+.panic-button:hover {
+    background-color: #cc0066;
+}
+
+body.neutral-theme {
+    background: linear-gradient(135deg, #e0e0e0, #b3b3b3);
+    color: #4d4d4d;
+}
+
+body.neutral-theme .panic-button {
+    background-color: #999999;
+}
+
+/* Card Styles */
+.card {
+    background-color: #ffe6f2;
+    border: 2px solid #ff3399;
+    border-radius: 10px;
+    padding: 20px;
+    margin: 20px;
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+    transition: transform 0.3s ease-in-out;
+    position: relative;
+    overflow: hidden;
+    border-image-source: linear-gradient(to right, #ff99cc, #ff66b2);
+    border-image-slice: 1;
+}
+
+.card:hover {
+    transform: translateY(-10px);
+}
+
+.card .card-title {
+    font-size: 24px;
+    color: #ff3399;
+}
+
+.card .card-content {
+    font-size: 16px;
+}
+
+/* Post-it Note Navigation Tabs */
+.nav-tab {
+    display: inline-block;
+    background-color: #ffccff;
+    border: 2px solid #ff99cc;
+    border-radius: 10px;
+    padding: 10px 15px;
+    margin: 5px;
+    text-align: center;
+    transition: all 0.3s ease;
+    color: #ff3399;
+}
+
+.nav-tab:hover {
+    background-color: #ff99cc;
+    border-color: #ff3399;
+    color: white;
+}
+
+/* Footer Styles */
+footer {
+    background-color: #ffe6f2;
+    border-top: 4px solid #ff3399;
+    padding: 10px 0;
+    text-align: center;
+}
+
+footer a {
+    text-decoration: none;
+    color: #ff3399;
+    margin: 0 10px;
+}
+
+footer a:hover {
+    text-decoration: underline;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    .card {
+        margin: 10px;
+        padding: 15px;
+    }
+
+    .nav-tab {
+        padding: 8px 12px;
+    }
+
+    .panic-button {
+        padding: 8px 15px;
+    }
+}
+
+/* Underlines and borders for header/footer */
+header,
+footer {
+    border-bottom: 3px solid #ff66b2;
+}
+
+footer {
+    border-top: 3px solid #ff66b2;
+}
+
+/* Panic button neutral theme */
+body.neutral-theme .card {
+    background-color: #d9d9d9;
+    border-color: #808080;
+}
+
+body.neutral-theme .nav-tab {
+    background-color: #cccccc;
+    color: #4d4d4d;
+}
+
+body.neutral-theme footer {
+    background-color: #cccccc;
+    border-color: #999999;
+}

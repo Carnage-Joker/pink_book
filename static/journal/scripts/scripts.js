@@ -161,6 +161,9 @@ function togglePanicMode() {
         element.style.filter = element.style.filter === 'blur(5px)' ? 'none' : 'blur(5px)';
     });
 }
+document.querySelector('.panic-button').addEventListener('click', function () {
+    document.body.classList.toggle('neutral-theme');
+});
 
 // Initialize Event Listeners on DOM Load
 document.addEventListener('DOMContentLoaded', () => {
