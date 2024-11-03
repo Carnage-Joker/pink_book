@@ -1,33 +1,35 @@
 {% extends 'base.html' %}
-{% block title %}All Resources{% endblock %}
+{% block title %}
+  All Resources
+{% endblock %}
 {% block content %}
-<div class="container">
-    <div class="cute-card">
-        <h2 class="pink-title">All Resources</h2>
-        <p class="pink-description">Explore a variety of fabulous resources to help you on your sissy journey.</p>
-        <ul class="resource-list">
-            {% for category in categories %}
-            <li class="resource-category">
-                <a href="{% url 'journal:resource_category' category.id %}" class="pink-link">{{ category.name }}</a>
-            </li>
-            {% endfor %}
-        </ul>
+  <div class="container">
+    <div class="card">
+      <h2 class="pink-title">All Resources</h2>
+      <p class="pink-description">Explore a variety of fabulous resources to help you on your sissy journey.</p>
+      <ul class="resource-list">
+        {% for category in categories %}
+          <li class="resource-category">
+            <a href="{% url 'journal:resource_category' category.id %}" class="pink-link">{{ category.name }}</a>
+          </li>
+        {% endfor %}
+      </ul>
     </div>
 
     <!-- Featured Resource -->
-    <div class="cute-card">
-        <h2>Featured Resource</h2>
-        <p>Check out our top pick of the week! This resource will help you sparkle even more.</p>
-        {% if featured_resource %}
+    <div class="card">
+      <h2>Featured Resource</h2>
+      <p>Check out our top pick of the week! This resource will help you sparkle even more.</p>
+      {% if featured_resource %}
         <div class="featured-resource card-inner">
-            <h3>{{ featured_resource.title }}</h3>
-            <p>{{ featured_resource.description }}</p>
-            <a href="{{ featured_resource.link }}" class="btn btn-register" target="_blank">Learn More</a>
+          <h3>{{ featured_resource.title }}</h3>
+          <p>{{ featured_resource.description }}</p>
+          <a href="{{ featured_resource.link }}" class="btn btn-register" target="_blank">Learn More</a>
         </div>
-        {% else %}
+      {% else %}
         <p>No featured resource this week, check back soon!</p>
-        {% endif %}
+      {% endif %}
     </div>
     <div class="binding"></div>
-</div>
+  </div>
 {% endblock %}

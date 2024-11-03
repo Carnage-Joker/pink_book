@@ -5,7 +5,7 @@
 {% endblock %}
 {% block content %}
   <div class="container">
-    <div class="cute-card">
+    <div class="card">
       <h1>Welcome back, Princess! 🎀</h1>
       <p>Enter your sissy credentials to access your magical journal.</p>
       <form method="POST">
@@ -13,9 +13,7 @@
         {{ form.as_p }}
         <button type="submit" class="btn btn-register">Log In</button>
       </form>
-      <small>New around here? <a href="{% url 'journal:register_view' %}">Sign Up</a> and start journaling!</small>
+      <small>New around here? <a href="{% url 'journal:register' %}">Sign Up</a> and start journaling!</small>
     </div>
-
-    <div class="binding"></div>
   </div>
 {% endblock %}

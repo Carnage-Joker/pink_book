@@ -3,10 +3,9 @@
 {% block title %}New Journal Entry{% endblock %}
 {% block head %}{% endblock head %}
 {% block content %}
-<div class="container">
-    <!-- Left Page - New Journal Entry Form -->
-    <div class="cute-card">
-        <h2 class="pink-title">Yay!! You completed {{ task.task_id }}{{ user.sissy_name }}!!</h2>
+<div class="container two-column">
+    <div class="column">
+        <div class="card">        <h2 class="pink-title">Yay!! You completed {{ task.task_id }}{{ user.sissy_name }}!!</h2>
         <p class="dayinsp">OMG Tell me everyhing</p>
        
         <form method="post">
@@ -21,7 +20,8 @@
     </div>
 
     <!-- Right Page - Tips and Encouragement -->
-    <div class="cute card">
+    <div class="column">
+        <div class="card">
         <h2>Tips for Your Entry</h2>
         <p>This is your chance to explain or discuss how it felt to perform the task. Was it easy? Did you hate it? Did it scare your sissy ass straight(pfft yeah right LOL) 💖</p>
         <p>Its also your evidence for the points system</p> 

@@ -5,7 +5,7 @@
 {% block content %}
   <div class="container">
     <!-- Left Page - Post Detail -->
-    <div class="cute-card">
+    <div class="card">
       <h2>{{ post.title }}</h2>
       <p class="author-info">by {{ post.author.sissy_name }} on {{ post.timestamp }}</p>
       <div class="post-content">{{ post.content }}</div>
@@ -34,7 +34,7 @@
     </div>
 
     <!-- Right Page - Back to Forum -->
-    <div class="cute-card">
+    <div class="card">
       <h2>Back to the Forum</h2>
         <a href="{% url 'journal:posts' thread_id=post.thread_id %}" class="btn btn-register">Back to Posts</a>
     </div>

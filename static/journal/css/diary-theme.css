@@ -1,4 +1,5 @@
 /* Root Variables for Easy Updates */
+/* Root Variables for Easy Updates */
 :root {
     --primary-bg: linear-gradient(135deg, #ff66b2, #ff99cc);
     --card-bg: #ffe6f2;
@@ -9,11 +10,12 @@
     --border-radius: 10px;
     --font-color: #333;
     --neutral-blur: 5px;
-    --font-family: 'Arial', sans-serif;
+    --font-family: 'Quicksand', sans-serif;
+    --hover-transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 /* Global Styles */
-body {
+body.sissy-theme {
     font-family: var(--font-family);
     background: var(--primary-bg);
     color: var(--font-color);
@@ -26,21 +28,33 @@ h2,
 h3,
 p {
     margin: 0;
-    padding: 10px;
+    padding: 1em;
+    color: var(--font-color);
+}
+
+a {
+    color: var(--primary-color);
+    text-decoration: none;
+}
+
+a:hover {
+    text-decoration: underline;
 }
 
 /* Panic Button */
 .panic-button {
     position: fixed;
-    top: 10px;
-    right: 10px;
+    inset-block-start: 1%;
+    /* Replaces 'top' */
+    inset-inline-end: 1%;
+    /* Replaces 'right' */
     background-color: var(--primary-color);
     color: white;
-    padding: 10px 20px;
+    padding: 0.5em 1em;
     border-radius: var(--border-radius);
     cursor: pointer;
     z-index: 1000;
-    transition: background-color 0.3s ease;
+    transition: var(--hover-transition);
 }
 
 .panic-button:hover {
@@ -67,102 +81,454 @@ body.neutral-theme img {
     background-color: var(--card-bg);
     border: 2px solid var(--primary-color);
     border-radius: var(--border-radius);
-    padding: 20px;
-    margin: 20px;
-    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+    padding: 2%;
+    margin: 2%;
+    box-shadow: 0 0.5em 1em rgba(0, 0, 0, 0.2);
     transition: transform 0.3s ease-in-out;
     position: relative;
     overflow: hidden;
+    width: 100%;
 }
 
-/* Card Decorations */
 .card::before {
     content: '';
     position: absolute;
-    top: 10px;
-    left: 10px;
-    width: 100px;
-    height: 100px;
-    background-image: url('path/to/heart-drawing.png'), url('path/to/bow-drawing.png');
+    inset-block-start: 2%;
+    /* Replaces 'top' */
+    inset-inline-start: 2%;
+    /* Replaces 'left' */
+    width: 10%;
+    height: 10%;
+    background-image: url('/static/journal/media/heart-drawing.png'), url('/static/journal/media/bow-drawing.png');
     background-repeat: no-repeat;
-    background-size: 40px 40px;
+    background-size: 100% 100%;
     opacity: 0.3;
     z-index: 0;
 }
 
 .card:hover {
-    transform: translateY(-5px);
+    transform: translateY(-2%);
 }
 
 /* Card Text */
 .card h2 {
-    font-size: 24px;
+    font-size: 1.5em;
     color: var(--primary-color);
 }
 
 .card p {
-    font-size: 16px;
+    font-size: 1em;
     color: var(--font-color);
 }
 
-/* Navigation Tabs */
-.nav-tab {
+/* Buttons */
+.btn {
     display: inline-block;
+    background-color: var(--primary-color);
+    color: white;
+    padding: 0.5em 1em;
+    border: none;
+    border-radius: var(--border-radius);
+    cursor: pointer;
+    transition: var(--hover-transition);
+    text-align: center;
+    text-decoration: none;
+    font-size: 1em;
+}
+
+.btn:hover {
+    background-color: var(--secondary-color);
+}
+
+.btn-register {
+    background-color: var(--secondary-color);
+}
+
+.btn-register:hover {
+    background-color: var(--primary-color);
+}
+
+/* Links */
+.pink-link {
+    color: var(--primary-color);
+    font-weight: bold;
+    transition: var(--hover-transition);
+}
+
+.pink-link:hover {
+    color: var(--secondary-color);
+}
+
+/* Neon Accent Lines */
+.neon-accent-bottom,
+.neon-accent-top {
+    height: 3px;
+    background: var(--primary-color);
+    box-shadow: 0 0 10px var(--primary-color), 0 0 20px var(--primary-color), 0 0 30px var(--primary-color);
+    margin: 0.5em 0;
+}
+
+.neon-accent-bottom {
+    width: 100%;
+}
+
+.neon-accent-top {
+    width: 100%;
+}
+
+/* Navigation Tabs */
+.post-it-notes {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin: 2% 0;
+}
+
+.post-it {
     background-color: var(--secondary-color);
     color: var(--primary-color);
     border-radius: var(--border-radius);
-    padding: 10px 15px;
-    margin: 5px;
+    padding: 1% 2%;
+    margin: 1%;
     text-align: center;
     cursor: pointer;
-    transition: background-color 0.3s ease;
+    transition: var(--hover-transition);
+    text-decoration: none;
+    font-size: 1em;
 }
 
-.nav-tab:hover {
+.post-it:hover {
     background-color: var(--primary-color);
     color: white;
+    transform: scale(1.05);
 }
 
 /* Footer */
-footer {
+.footer {
     background-color: var(--card-bg);
     color: var(--primary-color);
-    padding: 15px;
+    padding: 2%;
     text-align: center;
 }
 
-footer a {
-    color: var(--primary-color);
-    margin: 0 10px;
-    text-decoration: none;
+.footer-nav {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin-bottom: 1em;
 }
 
-footer a:hover {
+.footer-nav a {
+    color: var(--primary-color);
+    margin: 0 1%;
+    text-decoration: none;
+    font-size: 1em;
+    transition: var(--hover-transition);
+}
+
+.footer-nav a:hover {
+    color: var(--secondary-color);
     text-decoration: underline;
 }
 
-/* Responsive Design */
-@media (max-width: 768px) {
-    .card {
-        margin: 10px;
-        padding: 15px;
-    }
+.footer-text {
+    font-size: 0.9em;
+}
 
-    .nav-tab {
-        padding: 8px 12px;
+/* Contact Link */
+.contact-link {
+    color: var(--primary-color);
+    text-decoration: underline;
+    transition: var(--hover-transition);
+}
+
+.contact-link:hover {
+    color: var(--secondary-color);
+}
+
+/* Resource Category List */
+.resource-category-list {
+    list-style: none;
+    padding: 0;
+}
+
+.resource-category-list li {
+    margin-bottom: 1em;
+}
+
+.resource-category-list .btn {
+    margin-top: 0.5em;
+}
+
+/* Thread and Post Lists */
+.thread-list,
+.post-list {
+    list-style: none;
+    padding: 0;
+}
+
+.thread-list li,
+.post-list li {
+    margin-bottom: 1em;
+}
+
+.thread-list a,
+.post-list a {
+    font-size: 1.2em;
+}
+
+/* Pagination */
+.pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin-top: 1em;
+}
+
+.pagination a.btn {
+    margin: 0 0.5em;
+}
+
+/* Two-Column Layout */
+.two-column {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.two-column .column {
+    flex: 1 1 calc(50% - 2%);
+    margin: 1%;
+}
+
+@media (max-width: 768px) {
+    .two-column .column {
+        flex: 1 1 100%;
+        margin: 1% 0;
+    }
+}
+
+/* Additional Styling for Specific Elements */
+.pink-logo {
+    max-width: 100%;
+    height: auto;
+    display: block;
+    margin: 1em auto;
+}
+
+.decorative-border {
+    border: 2px solid var(--primary-color);
+    border-radius: var(--border-radius);
+    padding: 1em;
+    box-shadow: 0 0.5em 1em rgba(0, 0, 0, 0.1);
+}
+
+.sparkle-icon {
+    color: var(--primary-color);
+    margin-right: 0.5em;
+}
+
+.post-meta {
+    font-size: 0.9em;
+    color: var(--secondary-color);
+    margin-top: 1em;
+}
+
+/* Responsive Grid Layouts */
+.container {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.container .card {
+    flex: 1 1 calc(33.333% - 4%);
+    /* 3 cards per row, adjust margin */
+}
+
+@media (max-width: 1024px) {
+    .container .card {
+        flex: 1 1 calc(50% - 4%);
+        /* 2 cards per row on medium screens */
+    }
+}
+
+@media (max-width: 768px) {
+    .container .card {
+        flex: 1 1 calc(100% - 4%);
+        /* 1 card per row on small screens */
+        margin: 2% 0;
     }
 
     .panic-button {
-        padding: 8px 15px;
+        padding: 0.5em;
     }
 
     h1,
     h2,
     h3 {
-        font-size: 18px;
+        font-size: 1.2em;
     }
 
     p {
-        font-size: 14px;
+        font-size: 1em;
     }
+}
+/* Profile Picture */
+.profile-picture {
+    text-align: center;
+    margin: 1em 0;
+}
+
+.profile-picture img {
+    border-radius: 50%;
+    max-width: 150px;
+    height: auto;
+    border: 3px solid var(--primary-color);
+}
+
+/* Profile Links */
+.profile-links {
+    text-align: center;
+    margin: 1em 0;
+}
+
+.profile-links a {
+    color: var(--primary-color);
+    margin: 0 0.5em;
+    text-decoration: none;
+    transition: var(--hover-transition);
+}
+
+.profile-links a:hover {
+    color: var(--secondary-color);
+    text-decoration: underline;
+}
+
+/* Entry List */
+.entry-list {
+    list-style: none;
+    padding: 0;
+}
+
+.entry-list li {
+    margin-bottom: 0.5em;
+}
+
+.entry-list a {
+    font-size: 1.1em;
+    color: var(--primary-color);
+    text-decoration: none;
+    transition: var(--hover-transition);
+}
+
+.entry-list a:hover {
+    color: var(--secondary-color);
+    text-decoration: underline;
+}
+
+.entry-list small {
+    display: block;
+    color: var(--secondary-color);
+    font-size: 0.9em;
+}
+
+/* To-Do List */
+.todo-list {
+    list-style: none;
+    padding: 0;
+}
+
+.todo-list li {
+    margin-bottom: 0.5em;
+    display: flex;
+    align-items: center;
+}
+
+.todo-checkbox {
+    margin-right: 0.5em;
+}
+
+.todo-list span {
+    flex-grow: 1;
+}
+
+.todo-list small {
+    color: var(--secondary-color);
+    font-size: 0.9em;
+}
+
+/* Habit List */
+.habit-list {
+    list-style: none;
+    padding: 0;
+}
+
+.habit-list li {
+    margin-bottom: 0.5em;
+    display: flex;
+    align-items: center;
+}
+
+.habit-list span {
+    flex-grow: 1;
+}
+
+.btn-small {
+    padding: 0.3em 0.6em;
+    font-size: 0.9em;
+}
+
+/* Insights Section */
+.insights-section {
+    padding: 1em;
+}
+
+.insights-section ul {
+    list-style: none;
+    padding: 0;
+}
+
+.insights-section li {
+    margin-bottom: 0.5em;
+}
+
+/* Quote of the Day */
+.card p {
+    text-align: center;
+    font-style: italic;
+    font-size: 1.1em;
+}
+
+/* Adjustments for h2 in cards */
+.card h2 {
+    text-align: center;
+}
+
+/* General Button Styling */
+.btn {
+    display: inline-block;
+    background-color: var(--primary-color);
+    color: white;
+    padding: 0.5em 1em;
+    border: none;
+    border-radius: var(--border-radius);
+    cursor: pointer;
+    transition: var(--hover-transition);
+    text-align: center;
+    text-decoration: none;
+    font-size: 1em;
+    margin-top: 1em;
+}
+
+.btn:hover {
+    background-color: var(--secondary-color);
+}
+
+.btn-primary {
+    background-color: var(--secondary-color);
+}
+
+.btn-primary:hover {
+    background-color: var(--primary-color);
 }

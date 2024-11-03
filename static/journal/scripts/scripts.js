@@ -1,25 +1,26 @@
 // Utility: Get CSRF Token from Cookie
 function getCSRFToken() {
-    const cookies = document.cookie.split(';');
-    for (const cookie of cookies) {
-        const [name, value] = cookie.trim().split('=');
-        if (name === 'csrftoken') return decodeURIComponent(value);
-    }
-    return null;
+    const name = 'csrftoken';
+    const cookieValue = document.cookie.match('(^|;)\\s*' + name + '\\s*=\\s*([^;]+)');
+    return cookieValue ? cookieValue.pop() : '';
 }
 
 // Utility: Show Toast Notifications
 function showToast(message, type = 'info') {
-    const toastContainer = document.getElementById('toast-container');
-    if (!toastContainer) return;
-
-    const toast = document.createElement('div');
-    toast.classList.add('toast', `toast-${type}`);
-    toast.textContent = message;
-    toastContainer.appendChild(toast);
-
-    setTimeout(() => toastContainer.removeChild(toast), 3000);
+    // Implement toast notification logic if desired
 }
+
+// Panic Mode Toggle
+function togglePanicMode() {
+    document.body.classList.toggle('neutral-theme');
+}
+
+// Initialize Event Listeners on DOM Load
+document.addEventListener('DOMContentLoaded', () => {
+    // Event listeners for your interactive elements
+    const panicButton = document.querySelector('.panic-button');
+    panicButton.addEventListener('click', togglePanicMode);
+});
 
 // Habit: Increment Counter via AJAX
 function incrementHabitCounter(habitId) {

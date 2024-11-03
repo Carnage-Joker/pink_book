@@ -1,3 +1,4 @@
+from django.shortcuts import get_object_or_404
 from django.shortcuts import render
 from django.core.paginator import Paginator
 from .utils.utils import generate_task, send_activation_email
@@ -322,10 +323,17 @@ class ThreadListView(ListView):
     context_object_name = 'threads'
 
 
-class FeatureListView(ListView):
-    # this is for the welcome page to display the different features of the website to draw in subscribers
+class FeatureListView(TemplateView):
     template_name = "feature_list.html"
-    context_object_name = 'features'
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['features'] = [
+            {'title': 'Feature 1', 'description': 'Description 1'},
+            {'title': 'Feature 2', 'description': 'Description 2'},
+            # Add more features as needed
+        ]
+        return context
 
 
 class PostListView(ListView):
@@ -334,8 +342,17 @@ class PostListView(ListView):
     context_object_name = 'posts'
     paginate_by = 10
 
+    def get(self, request, *args, **kwargs):
+        self.thread = get_object_or_404(Thread, id=self.kwargs['thread_id'])
+        return super().get(request, *args, **kwargs)
+
     def get_queryset(self):
-        return Post.objects.filter(thread=self.kwargs['thread_id'])
+        return Post.objects.filter(thread=self.thread)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context['thread'] = self.thread
+        return context
 
 
 class ForumPostDetailView(DetailView):
@@ -688,11 +705,13 @@ class DashboardView(LoginRequiredMixin, TemplateView):
         context = super().get_context_data(**kwargs)
         user = self.request.user
 
+        # ... other context data ...
+        profile = user.profile  # Assuming you have a Profile model linked to User
+
         # Fetch necessary data before slicing
         recent_entries = JournalEntry.objects.filter(
             user=user).order_by('-timestamp')[:3]
-        todos = ToDo.objects.filter(user=user).order_by(
-            '-timestamp')  # Do not slice yet
+        todos = ToDo.objects.filter(user=user).order_by('-timestamp')
         habits = Habit.objects.filter(user=user).order_by('-timestamp')[:5]
 
         # Process overdue todos (filter before slicing)
@@ -701,32 +720,48 @@ class DashboardView(LoginRequiredMixin, TemplateView):
         overdue_todos.update(processed=True)
 
         # Slice todos after filtering
-        todos = todos[:5]  # Now apply the slice after all filtering is done
+        todos = todos[:5]
 
         # Calculate sentiment data
-        sentiment_data = get_average_sentiment(recent_entries)
+        if recent_entries.exists():
+            sentiment_data = get_average_sentiment(recent_entries)
+            avg_polarity = sentiment_data.get('avg_polarity', 0)
+            avg_subjectivity = sentiment_data.get('avg_subjectivity', 0)
+            streak = get_current_streak(recent_entries)
+            frequent_keywords = extract_keywords(recent_entries)
+            common_tags = get_most_common_tags(recent_entries)
+            most_common_emotions = get_most_common_emotions(recent_entries)
+            average_word_count = get_average_word_count(recent_entries)
+            most_active_hour = get_peak_journaling_time(recent_entries)
+        else:
+            avg_polarity = 0
+            avg_subjectivity = 0
+            streak = 0
+            frequent_keywords = []
+            common_tags = []
+            most_common_emotions = []
+            average_word_count = 0
+            most_active_hour = None
 
         context.update({
             'user': user,
-            'points': user.points,
+            'profile': profile,
+            'points': getattr(profile, 'points', 0),
             'quote_of_the_day': self.get_quote_of_the_day(),
             'todos': todos,
             'habits': habits,
-            'recent_entries': recent_entries,
-            'frequent_keywords': extract_keywords(recent_entries),
-            'common_tags': get_most_common_tags(recent_entries),
-            'most_common_emotions': get_most_common_emotions(recent_entries),
-            'average_word_count': get_average_word_count(recent_entries),
-            'current_streak_length': get_current_streak(recent_entries),
-            'most_active_hour': get_peak_journaling_time(recent_entries),
-            'sentiment_data': sentiment_data,
-            'polarity': sentiment_data.get('avg_polarity', 0),
-            'subjectivity': sentiment_data.get('avg_subjectivity', 0),
+            'entries': recent_entries,
+            'frequent_keywords': frequent_keywords,
+            'common_tags': common_tags,
+            'most_common_emotions': most_common_emotions,
+            'average_word_count': average_word_count,
+            'streak': streak,
+            'most_active_hour': most_active_hour,
+            'avg_polarity': avg_polarity,
+            'avg_subjectivity': avg_subjectivity,
+            'entries_with_insights': recent_entries,
         })
         return context
-
-
-logger = logging.getLogger(__name__)
 
 
 # Guide List View

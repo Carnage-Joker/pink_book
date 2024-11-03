@@ -1,6 +1,5 @@
 import os
 from pathlib import Path
-from token import OP
 from django.utils.timezone import get_current_timezone
 from dotenv import load_dotenv
 

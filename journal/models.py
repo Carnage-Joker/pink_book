@@ -377,7 +377,7 @@ class Question(models.Model):
 class Answer(models.Model):
     question = models.OneToOneField(Question, on_delete=models.CASCADE)
     answer = models.TextField()
-    professional = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
+    professional = models.ForeignKey(CustomUser, on_delete=models.CASCADE) ## needs to make sure that only a user that is grouped as a professional can answer
     created_at = models.DateTimeField(auto_now_add=True)
     tags = models.ManyToManyField('Tag', blank=True)
     related_models = GenericRelation(RelatedModel)
@@ -470,6 +470,7 @@ class JournalEntry(models.Model):
     polarity = models.FloatField(null=True, blank=True)
     subjectivity = models.FloatField(null=True, blank=True)
     sentiment = models.CharField(max_length=20, blank=True, null=True)
+    task = models.TextField(blank=True, null=True)
 
     @staticmethod
     def get_last_5_entries(user):
@@ -557,8 +558,7 @@ class Thread(models.Model):
 
 class UserProfile(models.Model):
     user = models.OneToOneField(
-        CustomUser, on_delete=models.CASCADE, related_name='userprofile')
-    sissy_name = models.CharField(max_length=255, blank=True, null=True)
+        CustomUser, on_delete=models.CASCADE, related_name='profile')
     PRIVACY_CHOICES = [
         ('public', 'Public Darling 💋'),
         ('friends', 'Just for Friends 🎀'),

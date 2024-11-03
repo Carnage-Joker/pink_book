@@ -5,15 +5,16 @@
   Forum Threads
 {% endblock %}
 {% block content %}
-  <div clclass="cute-card">
+  <div clclass="card">
     <!-- Left Page - Threads Listing -->
-    <div class="cute-card">
-      <h2 class="pink-title">Forum Threads</h2>
+    <div class="card">
       <div class="list-group">
+        <h2>Threads</h2>
+
         {% for thread in threads %}
           <ul>
             <li>
-              <a href="{% url 'journal:posts' thread.pk %}" class="pink-link"><h5 class="mb-1">{{ thread.title }}</h5></a>
+              <a href="{% url 'journal:posts' thread.id %}" class="pink-link"><h5 class="mb-1">{{ thread.title }}</h5></a>
             </li>
           </ul>
         {% endfor %}
@@ -43,7 +44,7 @@
     </div>
 
     <!-- Right Page - Motivation and Tips -->
-    <div class="cute-card">
+    <div class="card">
       <h2>Explore More</h2>
       <p>Discover more threads or start a new discussion. This is your space to connect and share with fellow sissies.</p>
     </div>
