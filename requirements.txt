@@ -126,7 +126,7 @@ starlette==0.41.2
 sympy==1.12.1
 tbb==2021.12.0
 textblob==0.17.1
-tokenizers==0.19.1
+tokenizers==0.20.1
 torch==2.3.1
 tqdm==4.66.4
 transformers==4.41.2
