@@ -8,7 +8,7 @@ asgiref==3.8.1
 attrs==23.2.0
 axios==0.4.0
 billiard==4.2.0
-black==24.3.0
+black==24.10.0
 blinker==1.8.2
 cachetools==5.4.0
 celery==5.4.0
