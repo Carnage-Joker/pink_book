@@ -84,7 +84,7 @@ numpy==1.26.3
 oauthlib==3.2.2
 openai==0.28.0
 packaging==24.1
-pandas==2.1.4
+pandas==2.2.3
 pathspec==0.12.1
 pillow==10.3.0
 platformdirs==4.3.6
