@@ -7,7 +7,13 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}The Pink Book{% endblock %}</title>
     <link rel="icon" type="image/x-icon" href="{% static 'journal/images/favicon.ico' %}">
-
+{% if messages %}
+  <ul class="messages">
+    {% for message in messages %}
+      <li class="{{ message.tags }}">{{ message }}</li>
+    {% endfor %}
+  </ul>
+{% endif %}
     <!-- Stylesheets -->
     <link rel="stylesheet" href="{% static 'journal/css/diary-theme.css' %}">
     <link rel="preconnect" href="https://fonts.googleapis.com">

@@ -2,14 +2,15 @@ from journal.models import BlogPost, Comment
 from django.contrib.auth import get_user_model
 from django.contrib.contenttypes.models import ContentType
 import os
-import openai
+from openai import OpenAI
+
+client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 import random
 from django.utils import timezone
 from django.core.management.base import BaseCommand
 from journal.models import BlogPost, Comment, Faq, Quote
 
 # Your OpenAI API key
-openai.api_key = os.getenv("OPENAI_API_KEY")
 
 # List of blog topics
 BLOG_TOPICS = [
@@ -68,18 +69,16 @@ class Command(BaseCommand):
 def generate_blog_content(topic):
     prompt = PROMPT_TEMPLATE.format(topic=topic)
     try:
-        response = openai.ChatCompletion.create(
-            model="gpt-4",
-            messages=[
-                {"role": "system", "content": "You are a highly creative and engaging blog writer specializing in sissy lifestyle content. Your style is modern, fun, and catty while being welcoming and inclusive."},
-                {"role": "user", "content": prompt}
-            ],
-            max_tokens=1200,
-            temperature=0.85,  # Increased for more creativity
-            presence_penalty=0.7,  # Encourage unique content
-            frequency_penalty=0.6,  # Reduce repetition
-        )
-        content = response['choices'][0]['message']['content'].strip()
+        response = client.chat.completions.create(model="gpt-4",
+        messages=[
+            {"role": "system", "content": "You are a highly creative and engaging blog writer specializing in sissy lifestyle content. Your style is modern, fun, and catty while being welcoming and inclusive."},
+            {"role": "user", "content": prompt}
+        ],
+        max_tokens=1200,
+        temperature=0.85,  # Increased for more creativity
+        presence_penalty=0.7,  # Encourage unique content
+        frequency_penalty=0.6)
+        content = response.choices[0].message.content.strip()
         return content
     except Exception as e:
         print(f"Error generating content for {topic}: {str(e)}")

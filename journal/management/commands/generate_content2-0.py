@@ -1,11 +1,12 @@
 import os
-import openai
+from openai import OpenAI
+
+client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 import random
 from django.utils import timezone
 from journal.models import BlogPost, Comment, Faq, Quote
 
 from django.core.management.base import BaseCommand
-openai.api_key = os.getenv("OPENAI_API_KEY")
 
 
 class Command(BaseCommand):
@@ -70,16 +71,14 @@ def generate_blog_content(topic):
     prompt = PROMPT_TEMPLATE.format(topic=topic)
     try:
         # Using the ChatCompletion method of GPT-4
-        response = openai.ChatCompletion.create(
-            model="gpt-4",
-            messages=[
-                {"role": "system", "content": "You are a highly creative and engaging blog writer specializing in sissy lifestyle content. Your style is modern, fun, and catty while being welcoming and inclusive."},
-                {"role": "user", "content": prompt}
-            ],
-            max_tokens=1200,
-            temperature=0.85,  # Increased for more creative and varied responses
-        )
-        content = response['choices'][0]['message']['content'].strip()
+        response = client.chat.completions.create(model="gpt-4",
+        messages=[
+            {"role": "system", "content": "You are a highly creative and engaging blog writer specializing in sissy lifestyle content. Your style is modern, fun, and catty while being welcoming and inclusive."},
+            {"role": "user", "content": prompt}
+        ],
+        max_tokens=1200,
+        temperature=0.85)
+        content = response.choices[0].message.content.strip()
         return content
     except Exception as e:
         print(f"Error generating content for {topic}: {str(e)}")

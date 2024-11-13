@@ -4,62 +4,59 @@
   Journal Entry
 {% endblock %}
 {% block content %}
-  <div class="container">
-    <!-- Left Page - Entry Details -->
-    <div class="card">
-      <h1 class="pink-title">{{ entry.title }}</h1>
-      <p>
-        <strong>Theme:</strong> {{ entry.theme }}
-      </p>
-      <p>
+  <div class="two-column">
+    <!-- Left Column - Entry Details -->
+    <div class="column card decorative-border">
+      <h2>{{ entry.title }}</h2>
+      <p class="post-meta">
         <strong>Date:</strong> {{ entry.timestamp }}
       </p>
-      <p>
-        <strong>Prompt:</strong> {{ prompt_text }}
+      <p class="post-meta">
+        <strong>Prompt:</strong> {{ entry.prompt_text }}
       </p> <!-- Display the saved prompt -->
       <div class="entry-content">{{ entry.content|linebreaks }}</div>
     </div>
 
-    <!-- Right Page - Additional Media and Back Link -->
-    <div class="card">
-      <p>
+    <!-- Right Column - Additional Media and Back Link -->
+    <div class="column card decorative-border">
+      <p class="post-meta">
         <strong>Tags:</strong> {{ entry.tags|join:', ' }}
       </p>
       {% if entry.image %}
-        <p>
+        <div class="profile-picture">
           <strong>Image:</strong>
-        </p>
-        <p>
           <img src="{{ entry.image.url }}" alt="{{ entry.title }}" />
-        </p>
+        </div>
       {% endif %}
       {% if entry.video %}
-        <p>
+        <p class="post-meta">
           <strong>Video:</strong>
         </p>
-        <video controls>
+        <video controls class="sparkle-icon">
           <source src="{{ entry.video.url }}" type="video/mp4" />
         </video>
       {% endif %}
       {% if entry.audio %}
-        <p>
-          2222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222222 <strong>Audio:</strong>
+        <p class="post-meta">
+          <strong>Audio:</strong>
         </p>
-        <audio controls>
+        <audio controls class="sparkle-icon">
           <source src="{{ entry.audio.url }}" type="audio/mpeg" />
         </audio>
       {% endif %}
       {% if entry.file %}
-        <p>
-          <strong>File:</strong> <a href="{{ entry.file.url }}" download>Download</a>
+        <p class="post-meta">
+          <strong>File:</strong> <a href="{{ entry.file.url }}" download class="pink-link">Download</a>
         </p>
       {% endif %}
       {% if entry.insight %}
-        <p>
-          <strong>Insight:</strong> {{ insight }}
+        <p class="post-meta">
+          <strong>Insight:</strong> {{ entry.insight }}
         </p> <!-- Display the generated insight -->
       {% endif %}
-      <a href="{% url 'journal:entry_list' %}" class="btn btn-register">Back to Entry List</a>
+      <div class="profile-links">
+        <a href="{% url 'journal:entry_list' %}" class="btn btn-register">Back to Entry List</a>
+      </div>
     </div>
   </div>
 {% endblock %}

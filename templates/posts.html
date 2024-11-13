@@ -1,26 +1,51 @@
 {% extends 'base.html' %}
-{% block title %}
-  {{ category.name }} Posts
-{% endblock %}
+{% load static %}
+{% block title %}Forum Posts{% endblock %}
+
 {% block content %}
-  <div class="container">
-    <!-- Left Page - List of Posts -->
-    <div class="card">
-      <h2 class="pink-title">{{ category.name }}</h2>
-      <div class="posts-list">
-        {% for post in posts %}
-          <a href="{% url 'journal:post_detail' post.id %}" class="pink-link">{{ post.title }}</a><br />
-        {% endfor %}
-      </div>
-      <a href="{% url 'journal:create_post' %}" class="btn btn-register">Create Post</a>
+<div class="two-column">
+    <!-- Left Column - Posts Listing -->
+    <div class="column fluffy-card post-container">
+        <h1 class="forum-title">Forum Posts</h1>
+        <div class="posts-list">
+            {% for post in posts %}
+                <div class="post-card">
+                    <h3 class="post-title">{{ post.title }}</h3>
+                    <p class="post-author">by {{ post.author.sissy_name }}</p>
+                    <a href="{% url 'journal:post_detail' post.id %}" class="btn post-action-btn">Read More</a>
+                </div>
+            {% empty %}
+                <p>No forum posts available. Start a new discussion!</p>
+            {% endfor %}
+        </div>
+
+        <!-- Pagination Controls -->
+        {% if is_paginated %}
+            <div class="pagination-container mt-4">
+                <ul class="pagination">
+                    {% if page_obj.has_previous %}
+                        <li class="page-item"><a class="page-link cute-pagination" href="?page={{ page_obj.previous_page_number }}">Previous</a></li>
+                    {% endif %}
+                    {% for num in paginator.page_range %}
+                        <li class="page-item {% if page_obj.number == num %}active{% endif %}">
+                            <a class="page-link cute-pagination" href="?page={{ num }}">{{ num }}</a>
+                        </li>
+                    {% endfor %}
+                    {% if page_obj.has_next %}
+                        <li class="page-item"><a class="page-link cute-pagination" href="?page={{ page_obj.next_page_number }}">Next</a></li>
+                    {% endif %}
+                </ul>
+            </div>
+        {% endif %}
     </div>
 
-    <!-- Right Page - Information Section -->
-    <div class="card">
-      <h2>Engage with Your Community</h2>
-      <p>Share your thoughts and get feedback from others in our fabulous community. Let your voice be heard, darling! ✨</p>
+    <!-- Right Column - Community Info -->
+    <div class="column fluffy-card info-container">
+        <h2>Join the Conversation</h2>
+        <p>Participate in discussions and exchange ideas with like-minded members. Your thoughts matter!</p>
+        <div class="decorative-corner">
+            <img src="{% static 'journal/images/star-icon.png' %}" alt="star icon">
+        </div>
     </div>
-
-  
-  
+</div>
 {% endblock %}

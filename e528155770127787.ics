@@ -1,0 +1,34 @@
+BEGIN:VCALENDAR
+PRODID:-//Facebook//NONSGML Facebook Events V1.0//EN
+X-PUBLISHED-TTL:PT12H
+X-ORIGINAL-URL:https://www.facebook.com/events/528155770127787/
+VERSION:2.0
+CALSCALE:GREGORIAN
+METHOD:PUBLISH
+BEGIN:VEVENT
+DTSTAMP:20241111T050019Z
+LAST-MODIFIED:20241111T050019Z
+CREATED:20241111T050019Z
+SEQUENCE:0
+ORGANIZER;CN=Phill Fease Jones:MAILTO:chilljones@live.com
+DTSTART:20241112T063000Z
+DTEND:20241112T080000Z
+UID:e528155770127787@facebook.com
+SUMMARY:Dig Deep Fitness Boot Camps
+LOCATION:Stante Clos\, Middleton Grange NSW 
+ 2171\, Australia
+URL:https://www.facebook.com/events/528155770127787/
+DESCRIPTION:Join us at Dig Deep Fitness for ou
+ r boot camp sessions that cater to
+  all fitness levels. We’ve desig
+ ned each session to be beginner-fr
+ iendly with low-impact variations\,
+  so everyone feels comfortable\, co
+ nfident\, and motivated!\n\nhttps://w
+ ww.facebook.com/events/52815577012
+ 7787/
+CLASS:PUBLIC
+STATUS:CONFIRMED
+PARTSTAT:ACCEPTED
+END:VEVENT
+END:VCALENDAR

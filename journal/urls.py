@@ -10,11 +10,11 @@ from .views import (
     ToDoDetailView, ToDoListView, ToDoUpdateView, AboutView, generate_task_view,
     fail_task_view, PasswordResetDoneView, PasswordResetView, CompleteToDoView,
     GuideDetailView, ActivityLogListView, BillingView, qna_list, qna_detail,
-    MessageListView, CustomLoginView, ModeratorListView, ForumCreateView,
-    ForumDeleteView, PostListView, ThreadListView, FeatureListView, BlogListView,
+    MessageListView, CustomLoginView, ModeratorListView,  PostListView, ThreadListView, FeatureListView, BlogListView,
     blog_detail, IncrementHabitCounterView, CompleteTaskView, privacy_policy,
     terms_of_service, ResendActivationView, RegistrationSuccessView,
-    ActivateAccountView, activation_sent, FaqView, FeedbackView, BlogDetailView
+    ActivateAccountView, activation_sent, FaqView, FeedbackView, BlogDetailView,
+    ThreadListView, PostListView, ForumCreateView, ForumPostDetailView, JournalEntryWithTaskView
 )
 
 app_name = 'journal'
@@ -49,8 +49,7 @@ urlpatterns = [
 
     # Journal
     path('journal/entry/create/', JournalEntryCreateView.as_view(), name='new_entry'),
-    path('journal/entry/create/<int:task_id>/',
-         JournalEntryCreateView.as_view(), name='new_entry_with_task'),
+    path('journal/entry/new/task/<int:task_id>/', JournalEntryWithTaskView.as_view(), name='new_entry_with_task'),
     path('journal/list/', JournalEntryListView.as_view(),
          name='entry_list'),  # Fixed missing slash
     path('journal/entry/<int:pk>/',
@@ -60,14 +59,12 @@ urlpatterns = [
     path('journal/entry/<int:pk>/delete/',
          JournalEntryDeleteView.as_view(), name='entry_delete'),
 
-    # Forum
     path('forum/', ThreadListView.as_view(), name='thread_list'),
     path('forum/posts/<int:thread_id>/',
          PostListView.as_view(), name='posts'),
     path('forum/create/', ForumCreateView.as_view(), name='create_post'),
     path('forum/<int:pk>/', ForumPostDetailView.as_view(), name='post_detail'),
-    path('forum/<int:pk>/delete/', ForumDeleteView.as_view(), name='post_delete'),
-    path('forum/moderators/', ModeratorListView.as_view(), name='moderators'),
+    path('moderator/', ModeratorListView.as_view(), name='moderator'),
 
     # Habit Tracker
     path('habits/', HabitListView.as_view(), name='habit_list'),

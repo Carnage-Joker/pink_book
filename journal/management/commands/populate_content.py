@@ -1,5 +1,7 @@
 import os
-import openai
+from openai import OpenAI
+
+client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 import random
 from django.core.management.base import BaseCommand
 from journal.models import BlogPost, Resource, Guide, Question, Answer, Thread, Post, Comment
@@ -7,7 +9,6 @@ from django.contrib.auth import get_user_model
 from django.utils import timezone
 
 # Set up OpenAI API key
-openai.api_key = os.getenv("OPENAI_API_KEY")
 
 User = get_user_model()
 
@@ -35,23 +36,21 @@ class Command(BaseCommand):
 
     def generate_content(self, prompt):
         try:
-            response = openai.ChatCompletion.create(
-                model="gpt-4",
-                messages=[
-                    {
-                        "role": "system",
-                        "content": "You are a helpful assistant that generates content for a sissy lifestyle website called Pink Book."
-                    },
-                    {
-                        "role": "user",
-                        "content": prompt
-                    }
-                ],
-                max_tokens=1024,
-                n=1,
-                temperature=0.7,
-            )
-            content = response.choices[0].message['content'].strip()
+            response = client.chat.completions.create(model="gpt-4",
+            messages=[
+                {
+                    "role": "system",
+                    "content": "You are a helpful assistant that generates content for a sissy lifestyle website called Pink Book."
+                },
+                {
+                    "role": "user",
+                    "content": prompt
+                }
+            ],
+            max_tokens=1024,
+            n=1,
+            temperature=0.7)
+            content = response.choices[0].message.content.strip()
             return content
         except Exception as e:
             self.stdout.write(self.style.ERROR(

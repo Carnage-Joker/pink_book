@@ -4,13 +4,13 @@
 {% block content %}
 <div class="container two-column">
     <div class="column">
-        <div class="card">
+        <div class="fluffy-card">
             <h2>Your Prompt</h2>
             <p>{{ generated_prompt }}</p>
         </div>
     </div>
     <div class="column">
-        <div class="card">
+        <div class="fluffy-card">
             <h2>Write Your Entry</h2>
             <form method="post">
                 {% csrf_token %}

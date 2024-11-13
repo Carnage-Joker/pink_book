@@ -1,12 +1,13 @@
 import os
-import openai
+from openai import OpenAI
+
+client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 import time
 import random
 from django.core.management.base import BaseCommand
 from journal.models import BlogPost
 
 # Set up OpenAI API key
-openai.api_key = os.getenv("OPENAI_API_KEY")
 
 
 class Command(BaseCommand):
@@ -48,22 +49,20 @@ class Command(BaseCommand):
     def generate_blog_post(self):
         theme = random.choice(self.themes)
         try:
-            response = openai.ChatCompletion.create(
-                model="gpt-4",
-                messages=[
-                    {
-                        "role": "system",
-                        "content": "You are a helpful assistant that writes blog posts for a sissy lifestyle website called Pink Book. The posts should be positive, inspiring, and relevant to the sissy community. Do not label the title or content of the post."
-                    },
-                    {
-                        "role": "user",
-                        "content": f"Generate a blog post for a sissy lifestyle website called Pink Book. The theme of the post is '{theme}'. The post should be at least 500 words long and focus on the theme. The tone should be friendly, supportive, and engaging. The post should include tips, advice, or personal anecdotes that resonate with sissies. The post should encourage sissies to embrace their femininity, explore their desires, and connect with others in the community. The post should be written in a casual, conversational style that is easy to read and understand. The post should avoid explicit content, offensive language, but should playfully explore innuendo within a sissy context and themes. The post should be original, creative, and engaging to keep readers interested and inspired."
-                    }
-                ],
-                max_tokens=4800,
-                temperature=0.7,
-            )
-            content = response.choices[0].message['content'].strip()
+            response = client.chat.completions.create(model="gpt-4",
+            messages=[
+                {
+                    "role": "system",
+                    "content": "You are a helpful assistant that writes blog posts for a sissy lifestyle website called Pink Book. The posts should be positive, inspiring, and relevant to the sissy community. Do not label the title or content of the post."
+                },
+                {
+                    "role": "user",
+                    "content": f"Generate a blog post for a sissy lifestyle website called Pink Book. The theme of the post is '{theme}'. The post should be at least 500 words long and focus on the theme. The tone should be friendly, supportive, and engaging. The post should include tips, advice, or personal anecdotes that resonate with sissies. The post should encourage sissies to embrace their femininity, explore their desires, and connect with others in the community. The post should be written in a casual, conversational style that is easy to read and understand. The post should avoid explicit content, offensive language, but should playfully explore innuendo within a sissy context and themes. The post should be original, creative, and engaging to keep readers interested and inspired."
+                }
+            ],
+            max_tokens=4800,
+            temperature=0.7)
+            content = response.choices[0].message.content.strip()
             # Extract the title and content from the response
             title, content = self.extract_title_and_content(content)
             return title, content

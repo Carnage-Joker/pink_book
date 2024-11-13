@@ -1,10 +1,11 @@
 import os
-import openai
+from openai import OpenAI
+
+client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 import random
 from django.core.management.base import BaseCommand
 from journal.models import Guide
 
-openai.api_key = os.getenv("OPENAI_API_KEY")
 
 # Predefined list of topics relevant to sissies
 TOPICS = [
@@ -29,15 +30,13 @@ class Command(BaseCommand):
         topic = random.choice(TOPICS)
 
         # Generate content using OpenAI API
-        response = openai.ChatCompletion.create(
-            model="gpt-4",
-            messages=[
-                {"role": "system", "content": f"You are a knowledgeable and friendly sissy. Write a humanized, detailed, and high-quality guide about '{topic}' in a sissy-like tone."},
-                {"role": "user", "content": f"Generate a guide on the topic: {topic}."},
-            ]
-        )
+        response = client.chat.completions.create(model="gpt-4",
+        messages=[
+            {"role": "system", "content": f"You are a knowledgeable and friendly sissy. Write a humanized, detailed, and high-quality guide about '{topic}' in a sissy-like tone."},
+            {"role": "user", "content": f"Generate a guide on the topic: {topic}."},
+        ])
 
-        content = response['choices'][0]['message']['content']
+        content = response.choices[0].message.content
 
         # Implement a basic quality check
         if len(content) < 100:

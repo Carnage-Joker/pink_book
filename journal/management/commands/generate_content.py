@@ -1,11 +1,12 @@
-import openai
+from openai import OpenAI
+
+client = OpenAI(api_key=settings.OPENAI_API_KEY)
 import random
 from django.core.management.base import BaseCommand
 from journal.models import BlogPost, Comment, Faq, Guide, JournalEntry, Quote, Report, Tag, Thread, Post, CustomUser
 from django.utils import timezone
 from django.conf import settings
 
-openai.api_key = settings.OPENAI_API_KEY
 
 # Predefined unique blog post topics
 TOPICS = [
@@ -43,18 +44,16 @@ SSY_TOPICS = [
 
 
 def generate_text(prompt, max_tokens=400, temperature=0.85):
-    response = openai.ChatCompletion.create(
-        model="gpt-3.5-turbo",
-        messages=[
-            {"role": "system", "content": "You are an assistant that generates engaging and unique content for a sissy-themed lifestyle website. Be flirty, fun, and embrace a bimbo-submissive tone. Make sure the content is creative, interesting, and unique to each prompt."},
-            {"role": "user", "content": prompt},
-        ],
-        max_tokens=max_tokens,
-        n=1,
-        stop=None,
-        temperature=temperature,
-    )
-    return response['choices'][0]['message']['content'].strip()
+    response = client.chat.completions.create(model="gpt-3.5-turbo",
+    messages=[
+        {"role": "system", "content": "You are an assistant that generates engaging and unique content for a sissy-themed lifestyle website. Be flirty, fun, and embrace a bimbo-submissive tone. Make sure the content is creative, interesting, and unique to each prompt."},
+        {"role": "user", "content": prompt},
+    ],
+    max_tokens=max_tokens,
+    n=1,
+    stop=None,
+    temperature=temperature)
+    return response.choices[0].message.content.strip()
 
 # Generate blog post comments that are specific to the post content
 

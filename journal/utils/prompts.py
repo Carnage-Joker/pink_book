@@ -143,7 +143,7 @@ default_prompts = [
 
 
 SORRY_SISSY_MESSAGES = [
-    'Oh dear, this is embarrassing', 'we will be back up in no time babe', 'oh princess, no insights today...', 'what a shame, no insights today...']
+    'Oh dear, this is embarrassing', 'we will be back up in no time babe', 'oh princess, no insights today...', 'what a shame, no insights today...','SISSY!?! What did you do to the server?','Sorry, not sorry sissy']
 
 THEMES = [
     'Emotional Experiences', 'The Process of Feminization', 'Assigned Sissy Tasks',

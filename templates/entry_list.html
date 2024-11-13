@@ -1,53 +1,46 @@
 {% extends 'base.html' %}
 {% load static %}
-{% block title %}
-  Journal Entries
-{% endblock %}
+{% block title %}Your Journal Entries{% endblock %}
+
 {% block content %}
-  <div class="container">
-    <!-- Left Page - Journal Entries List -->
-    <div class="card">
-      <h1 class="pink-title">Your Journal Entries</h1>
-      <ul>
-        {% for entry in page_obj %}
-          <li>
-            <a href="{% url 'journal:entry_detail' entry.pk %}" class="pink-link">{{ entry.title }}</a>
-            <small>Created on {{ entry.timestamp|date:'d M Y' }}</small>
-          </li>
-        {% empty %}
-          <li>No entries found.</li>
-        {% endfor %}
-      </ul>
-      <a href="{% url 'journal:new_entry' %}" class="btn btn-register">Create New Entry</a>
-
-      <!-- Pagination Controls -->
-      <div class="mt-4">
-        {% if is_paginated %}
-          <ul class="pagination">
-            {% if page_obj.has_previous %}
-              <li class="page-item">
-                <a class="page-link" href="?page={{ page_obj.previous_page_number }}">Previous</a>
-              </li>
-            {% endif %}
-            {% for num in paginator.page_range %}
-              <li class="page-item {% if page_obj.number == num %}active{% endif %}">
-                <a class="page-link" href="?page={{ num }}">{{ num }}</a>
-              </li>
+<div class="container">
+    <!-- Journal Entries List -->
+    <div class="fluffy-card">
+        <h1 class="pink-title">Your Journal Entries</h1>
+        <ul>
+            {% for entry in page_obj %}
+            <li>
+                <a href="{% url 'journal:entry_detail' entry.pk %}" class="pink-link">{{ entry.title }}</a>
+                <small>Created on {{ entry.timestamp|date:'d M Y' }}</small>
+            </li>
+            {% empty %}
+            <li>No entries found.</li>
             {% endfor %}
-            {% if page_obj.has_next %}
-              <li class="page-item">
-                <a class="page-link" href="?page={{ page_obj.next_page_number }}">Next</a>
-              </li>
-            {% endif %}
-          </ul>
-        {% endif %}
-      </div>
-    </div>
+        </ul>
+        <a href="{% url 'journal:new_entry' %}" class="btn btn-register">Create New Entry</a>
 
-    <!-- Right Page - Explore More -->
-    <div class="card">
-      <h2>Explore More</h2>
-      <p>Discover more features or add new entries to your journal. This is your personal space to document your journey.</p>
+        <!-- Pagination Controls -->
+        <div class="pagination-container">
+            {% if is_paginated %}
+            <ul class="pagination">
+                {% if page_obj.has_previous %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.previous_page_number }}">Previous</a>
+                </li>
+                {% endif %}
+                {% for num in paginator.page_range %}
+                <li class="page-item {% if page_obj.number == num %}active{% endif %}">
+                    <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+                </li>
+                {% endfor %}
+                {% if page_obj.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="?page={{ page_obj.next_page_number }}">Next</a>
+                </li>
+                {% endif %}
+            </ul>
+            {% endif %}
+        </div>
     </div>
-  </div>
+</div>
 {% endblock %}

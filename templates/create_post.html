@@ -1,11 +1,12 @@
 {% extends 'base.html' %}
+{% load static %}
 {% block title %}
   Create a New Post
 {% endblock %}
 {% block content %}
   <div class="container">
     <!-- Left Page - Create Post Form -->
-    <div class="card">
+    <div class="fluffy-card">
       <h2 class="pink-title">Create a New Post</h2>
       <form method="post">
         {% csrf_token %}
@@ -15,12 +16,9 @@
     </div>
 
     <!-- Right Page - Post Tips -->
-    <div class="card">
+    <div class="fluffy-card">
       <h2>Share Your Thoughts</h2>
       <p>Whether it's a question, idea, or story, feel free to share it here with our fabulous community!</p>
     </div>
 
-    <!-- Book Binding in the Center -->
-    <div class="binding"></div>
-  </div>
 {% endblock %}

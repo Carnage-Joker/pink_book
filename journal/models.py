@@ -1,4 +1,5 @@
 
+from django.contrib.auth import get_user_model
 from math import e
 import os
 import uuid
@@ -19,6 +20,8 @@ from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
 from .utils.ai_utils import get_sentiment
+
+LEVEL_UP_THRESHOLD = 100
 
 
 def default_due_date():
@@ -110,7 +113,14 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
     is_staff = models.BooleanField(_('staff status'), default=False)
     is_active = models.BooleanField(default=False)
     is_moderator = models.BooleanField(default=False)
-    subscription_tier = models.CharField(max_length=50, default='free')  # free, basic, premium, moderator, admin
+    SUB_TIERS = (
+        ('free', _('Free')),
+        ('basic', _('Basic')),
+        ('premium', _('Premium')),
+        ('moderator', _('Moderator')),
+        ('admin', _('Admin')),
+    )
+    subscription_tier = models.CharField(max_length=50, default='free', choices=SUB_TIERS)  # free, basic, premium, moderator, admin
     is_subscriber = models.BooleanField(default=False)
     avatar_body = models.CharField(
         max_length=255, default="/static/virtual_try_on/avatars/body/light/hourglass.png")
@@ -149,18 +159,23 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
         self.points = max(0, self.points - points)
         self.save()
 
-    def add_badge(self, badge_name):
-        badges = self.badges
-        if badge_name not in badges:
-            badges[badge_name] = timezone.now().strftime('%Y-%m-%d')
-            self.badges = badges
+    def check_level_up(self):
+        """Check if the user qualifies for a level up and handle it."""
+        while self.points >= self.level * LEVEL_UP_THRESHOLD:
+            self.level += 1
+            self.award_badge(f'Level {self.level} Achiever')
+            # Optionally: Notify the user of their level up
+
+    def award_badge(self, badge_name):
+        """Award a badge to the user if they don't already have it."""
+        if badge_name not in self.badges:
+            self.badges[badge_name] = now().strftime(
+                '%Y-%m-%d')  # Stores the date badge was earned
             self.save()
 
-    def check_level_up(self):
-        required_points = self.level * 100  # Adjust as needed
-        if self.points >= required_points:
-            self.level += 1
-            self.add_badge(f'Level {self.level} Achieved')
+    def has_badge(self, badge_name):
+        """Check if the user has a specific badge."""
+        return badge_name in self.badges
 
     def lock_content(self, content_name):
         self.locked_content[content_name] = True
@@ -196,7 +211,7 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
 
 REWARD_CHOICES = [
     ('praise', 'Praise'),
-    ('treat', 'Treat'),
+    ('points', 'Points'),
     ('gift', 'Gift'),
     ('privilege', 'Privilege'),
     ('none', 'None')
@@ -206,7 +221,7 @@ PENALTY_CHOICES = [
     ('ignore', 'Ignore'),
     ('punishment', 'Punishment'),
     ('task', 'Task'),
-    ('loss', 'Loss'),
+    ('points_loss', 'Lose Points'),
     ('none', 'None')
 ]
 
@@ -437,17 +452,15 @@ class Moderator(models.Model):
 
 
 class Task(models.Model):
-    title = models.CharField(max_length=255)
-    description = models.TextField(blank=True, null=True)
-    # Points awarded for completing the task
-    points = models.IntegerField(default=10)
-    created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(auto_now=True)
-    completed_by = models.ManyToManyField(
-        CustomUser, through='TaskCompletion', related_name='completed_tasks')
+    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
+    description = models.TextField(null=True, blank=True)
+    points_awarded = models.IntegerField(default=10)
+    points_penalty = models.IntegerField(default=20)
+    completed = models.BooleanField(default=False)
+    task_id = models.IntegerField(null=True, unique=True)
 
     def __str__(self):
-        return self.title
+        return f"Task for {self.user.sissy_name}: {self.description[:50]}"
 
 
 class JournalEntry(models.Model):
@@ -590,14 +603,17 @@ class Comment(models.Model):
 class Post(models.Model):
     title = models.CharField(max_length=200)
     content = models.TextField()
-    author = models.ForeignKey(
-        CustomUser, on_delete=models.CASCADE)
+    author = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
     thread = models.ForeignKey(Thread, on_delete=models.CASCADE)
     timestamp = models.DateTimeField(auto_now_add=True)
     comments = GenericRelation(Comment, related_query_name='post_comments')
 
     def __str__(self):
         return f"Post by {self.author.sissy_name} in {self.thread}"
+
+    def get_absolute_url(self):
+        # Replace 'journal:post_detail' with the actual name of your post detail URL pattern
+        return reverse('journal:post_detail', args=[self.id])
 
 
 class UserFeedback(models.Model):
@@ -651,15 +667,14 @@ class Billing(models.Model):
     def __str__(self):
         return f"{self.user.sissy_name}'s {self.subscription_tier} subscription"
 
-
-def check_subscription_status():
-    for billing in Billing.objects.filter(is_active=True):
-        if billing.end_date < timezone.now().date():
-            billing.is_active = False
-            billing.user.subscription_tier = 'free'
-            billing.user.is_subscriber = False
-            billing.save()
-            billing.user.save()
+    def check_subscription_status():
+        for billing in Billing.objects.filter(is_active=True):
+            if billing.end_date < timezone.now().date():
+                billing.is_active = False
+                billing.user.subscription_tier = 'free'
+                billing.user.is_subscriber = False
+                billing.save()
+                billing.user.save()
 
 
 class Message(models.Model):

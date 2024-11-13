@@ -4,7 +4,7 @@
 {% endblock %}
 {% block content %}
   <div class="container">
-    <div class="card">
+    <div class="fluffy-card">
       <h2 class="pink-title">{{ object.name }}</h2>
       <p>Explore the best resources for {{ object.name|lower }}!</p>
       <ul class="resource-category-list">
@@ -18,7 +18,7 @@
       </ul>
     </div>
     <!-- Spotlight Resource -->
-    <div class="card">
+    <div class="fluffy-card">
       <h2>Spotlight Resource</h2>
       {% if featured %}
         <div class="featured-resource card-inner">

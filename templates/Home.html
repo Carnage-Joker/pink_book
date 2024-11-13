@@ -1,37 +1,41 @@
-{% extends "base.html" %}
+{% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Sissy Journal{% endblock %}
+{% block title %}
+  Sissy Journal
+{% endblock %}
 
 {% block head %}
-<link rel="stylesheet" href="{% static 'main/welcome.css' %}">
+  <link rel="stylesheet" href="{% static 'main/welcome.css' %}" />
 {% endblock %}
 {% block content %}
-<div class="container">
-    <div class="card">
-        <h1 class="welcome-title">Welcome to Your Sissy Journal</h1>
-        <p class="welcome-description">A place to explore, express, and embrace your sissy self. Dive into daily prompts, track habits, and join a loving community.</p>
-        <section class="features">
-            <div class="feature">
-                <h2>AI-Prompted Journal</h2>
-                <p>Receive personalized prompts to inspire your daily writing.</p>
-            </div>
-            <div class="feature">
-                <h2>Habit Tracker</h2>
-                <p>Set and track habits to shape your sissy journey.</p>
-            </div>
-        </section>
+  <div class="container">
+    <div class="fluffy-card">
+      <h1 class="welcome-title">Welcome to Your Sissy Journal</h1>
+      <p class="welcome-description">A place to explore, express, and embrace your sissy self. Dive into daily prompts, track habits, and join a loving community.</p>
+      <section class="features">
+        <div class="feature">
+          <h2>AI-Prompted Journal</h2>
+          <p>Receive personalized prompts to inspire your daily writing.</p>
+        </div>
+        <div class="feature">
+          <h2>Habit Tracker</h2>
+          <p>Set and track habits to shape your sissy journey.</p>
+        </div>
+      </section>
     </div>
 
-    <div class="card">
-        <div class="call-to-action">
-            <h2>Join Today and Start Your Journey</h2>
-            <a href="{% url 'journal:register_view' %}" class="btn btn-register">Register Now</a>
-            <p>Already have an account? <a href="{% url 'journal:login_view' %}">Sign in</a></p>
-        </div>
+    <div class="fluffy-card">
+      <div class="call-to-action">
+        <h2>Join Today and Start Your Journey</h2>
+        <a href="{% url 'journal:register_view' %}" class="btn btn-register">Register Now</a>
+        <p>
+          Already have an account? <a href="{% url 'journal:login_view' %}">Sign in</a>
+        </p>
+      </div>
     </div>
 
     <!-- Book Binding in the Center -->
     <div class="binding"></div>
-</div>
+  </div>
 {% endblock %}

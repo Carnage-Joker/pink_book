@@ -6,7 +6,7 @@
 {% block content %}
   <div class="container">
     <!-- Left Page - Forum Categories -->
-    <div class="card">
+    <div class="fluffy-card">
       <h1>Forum Home</h1>
       <ul>
         {% for category in categories %}
@@ -18,7 +18,7 @@
     </div>
 
     <!-- Right Page - Discussion Invite -->
-    <div class="card">
+    <div class="fluffy-card">
       <h2>Join the Discussion</h2>
       <p>Engage with our community by exploring and contributing to various topics.</p>
       {% if user.is_authenticated %}
