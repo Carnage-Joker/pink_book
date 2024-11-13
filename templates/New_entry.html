@@ -1,24 +1,23 @@
-{% extends "base.html" %}
-{% load static %}
-{% block title %}New Journal Entry{% endblock title %}
-{% block head %}<link rel="stylesheet" href="{% static 'diary-theme.css' %}">{% endblock head %}
+{% extends 'base.html' %}
+{% block title %}New Entry - The Pink Book{% endblock %}
+
 {% block content %}
-<div class="new-entry-page">
-    <h2><p>...</p>
-       <p> Empty your tiny head, {{user.sissy_name}}</p></h2>
+<div class="container two-column">
+    <div class="column">
+        <div class="fluffy-card">
+            <h2>Your Prompt</h2>
+            <p>{{ generated_prompt }}</p>
+        </div>
+    </div>
+    <div class="column">
+        <div class="fluffy-card">
+            <h2>Write Your Entry</h2>
     <form method="post">
         {% csrf_token %}
-       <div class="form-group">
-        <fieldset class="form-group">
-           
-         <p class= "dayinsp">Today's Inspo:</p>
-         <p class= "prompt">{{ dynamic_prompt }}</p>
-          <P>  {{ form.hidden_fields }}</p>
-           <p> {{ form.non_field_errors }}</p>
-            <p>{{ form.as_p }}</p>
-            <button type="submit" class="btn btn-primary">Submit</button>
-        </fieldset>
+                {{ form.as_p }}
+                <button type="submit" class="btn">Submit</button>
+            </form>
+        </div>
     </div>
-    </form>
 </div>
-{% endblock content %}
+{% endblock %}
