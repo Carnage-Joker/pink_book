@@ -2,6 +2,9 @@ import os
 import random
 import openai
 from .utils.prompts import default_prompts  # Ensure this path is correct
+import logging
+
+logger = logging.getLogger(__name__)
 
 # Set your OpenAI API key
 openai.api_key = os.getenv("OPENAI_API_KEY")
@@ -65,3 +68,54 @@ def generate_insight(journal_entry):
         insight = insight[:max_length].rsplit(' ', 1)[0] + '...'
 
     return insight
+
+
+# Set up logging
+logger = logging.getLogger(__name__)
+
+
+# Set up logging
+logger = logging.getLogger(__name__)
+
+
+def check_content_topic_with_openai(entry_content, prompt_topic):
+    """
+    Sends the content of the entry to OpenAI's API to check if it stayed on topic.
+
+    Args:
+        entry_content (str): The content of the journal entry.
+        prompt_topic (str): The topic the user is supposed to write about.
+
+    Returns:
+        bool: True if the content stayed on topic, False otherwise.
+    """
+    try:
+        # Construct the messages for the chat model
+        messages = [
+            {"role": "system", "content": "You are an assistant that checks if content adheres to a given topic."},
+            {"role": "user", "content": (
+                f"Analyze the following journal entry and determine if it adheres to the specified topic:\n\n"
+                f"Topic: {prompt_topic}\n"
+                f"Entry: {entry_content}\n\n"
+                f"Respond with 'Yes' if the entry stays on topic, or 'No' if it does not."
+            )}
+        ]
+
+        # Call the OpenAI ChatCompletion API for analysis
+        response = openai.ChatCompletion.create(
+            model="gpt-4",  # Replace with another model if needed
+            messages=messages,
+            max_tokens=5,
+            temperature=0.2  # Low temperature for consistent output
+        )
+
+        # Extract the response and log it
+        result = response.choices[0].message['content'].strip()
+        logger.info(f"OpenAI response for topic check: {result}")
+
+        # Interpret the response
+        return result.lower() == 'yes'
+
+    except openai.error.OpenAIError as e:
+        logger.error(f"Error while sending content to OpenAI API: {str(e)}")
+        return False

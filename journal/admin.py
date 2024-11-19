@@ -5,7 +5,7 @@ from django.contrib.auth.models import Group
 
 from .models import (BlogPost, Comment, CustomUser, Faq, JournalEntry, Post, Quote,
                      RelatedModel, Report, Tag, Thread, UserFeedback,
-                     UserProfile, Guide)
+                     UserProfile, Habit, Guide)
 
 
 @admin.register(Thread)
@@ -17,6 +17,13 @@ class ThreadAdmin(admin.ModelAdmin):
 class CommentInline(admin.StackedInline):
     model = Comment
     extra = 1
+
+@admin.register(Habit)
+class HabitAdmin(admin.ModelAdmin):
+    list_display = ('name', 'description', 'reward', 'penalty', 'frequency')
+    search_fields = ('name', 'description')
+    list_filter = ('frequency',)
+
 
 
 class CustomUserAdmin(BaseUserAdmin):

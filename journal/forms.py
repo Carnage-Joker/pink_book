@@ -12,14 +12,14 @@ class HabitForm(forms.ModelForm):
     class Meta:
         model = Habit
         fields = ['name', 'description', 'reward',
-                  'penalty', 'reminder_frequency']
+                  'penalty', 'frequency', 'target_count']
 
     def __init__(self, *args, **kwargs):
         super(HabitForm, self).__init__(*args, **kwargs)
         self.helper = FormHelper()
         self.helper.layout = Layout(
             'name',
-            'description', 'reward', 'penalty', 'reminder_frequency',
+            'description', 'reward', 'penalty', 'frequency', 'target_count',
             Submit('submit', 'Save Habit', css_class='btn-primary')
         )
         self.helper.form_method = 'post'
@@ -190,10 +190,13 @@ class ProfileSettingsForm(forms.ModelForm):
 
 
 class JournalEntryForm(forms.ModelForm):
+    generated_prompt = forms.CharField(
+        widget=forms.HiddenInput(), required=False)
+
     class Meta:
         model = JournalEntry
-        fields = ['title', 'content', 'tags',
-                  'image', 'video', 'audio', 'file']
+        fields = ['title', 'content', 'tags', 'image',
+                  'video', 'audio', 'file', 'generated_prompt']
         widgets = {
             'tags': forms.CheckboxSelectMultiple(),
         }
@@ -209,6 +212,7 @@ class JournalEntryForm(forms.ModelForm):
             'video',
             'audio',
             'file',
+            'generated_prompt',
             Submit('submit', 'Post Entry')
         )
 
@@ -216,7 +220,10 @@ class JournalEntryForm(forms.ModelForm):
 class TagForm(forms.ModelForm):
     class Meta:
         model = Tag
-
+        widgets = {
+            'tags': forms.CheckboxSelectMultiple(),
+        }
+        
         fields = ['name', 'description']
 
     def __init__(self, *args, **kwargs):

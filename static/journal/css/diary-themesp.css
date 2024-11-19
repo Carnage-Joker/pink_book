@@ -1,13 +1,84 @@
-/* General Styles */
-body {
-    font-family: 'Comic Sans MS', 'Arial', sans-serif;
-    background: linear-gradient(135deg, #ff66b2, #ff99cc);
-    margin: 0;
-    padding: 0;
-    color: #333;
+/* Importing Google Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&family=Quicksand:wght@400;500;600&display=swap');
+
+/* Root Variables for Easy Updates */
+:root {
+    --primary-bg: linear-gradient(135deg, #fc43a0, #ff99cc);
+    --card-bg: #f7c1db;
+    --primary-color: #ff3399;
+    --secondary-color: #ff99cc;
+    --neutral-bg: #f2f2f2;
+    --neutral-text: #4d4d4d;
+    --border-radius: 30px;
+    --font-color: #333;
+    --font-family-body: 'Quicksand', sans-serif;
+    --font-family-title: 'Dancing Script', cursive;
+    --hover-transition: background-color 0.3s ease, color 0.3s ease;
+    --spacing-small: 0.5rem;
+    --spacing-medium: 1rem;
+    --spacing-large: 2rem;
 }
 
-/* Panic Button Styles */
+/* General Styling */
+body.sissy-theme {
+    font-family: var(--font-family-body);
+    background: var(--primary-bg);
+    color: var(--font-color);
+    margin: 0;
+    padding: 0;
+    overflow-x: hidden;
+}
+
+/* Neutral Theme Overrides */
+body.neutral-theme {
+    --primary-bg: #ffffff;
+    --card-bg: #ffffff;
+    --primary-color: #000000;
+    --secondary-color: #555555;
+    --neutral-bg: #f8f8f8;
+    --neutral-text: #000000;
+    --border-radius: 5px;
+    --font-color: #000000;
+    --font-family-body: Arial, sans-serif;
+    --font-family-title: Arial, sans-serif;
+}
+
+/* Hide Panic Button in Neutral Theme */
+body.neutral-theme .panic-button {
+    display: none;
+}
+
+/* Hide Sissy-Specific Elements */
+body.neutral-theme .sissy-element,
+body.neutral-theme .decorative-corner,
+body.neutral-theme .post-it-notes,
+body.neutral-theme::before,
+body.neutral-theme::after {
+    display: none;
+}
+
+/* Background Decorative Elements */
+body.sissy-theme::before,
+body.sissy-theme::after {
+    content: '❤ ♦';
+    font-size: 3rem;
+    color: rgba(255, 255, 255, 0.2);
+    position: absolute;
+    z-index: 0;
+    animation: float 10s infinite;
+}
+
+body.sissy-theme::before {
+    top: 10%;
+    left: 5%;
+}
+
+body.sissy-theme::after {
+    bottom: 15%;
+    right: 10%;
+}
+
+/* Panic Button Styling */
 .panic-button {
     position: fixed;
     top: 10px;
@@ -15,128 +86,320 @@ body {
     background-color: #ff3399;
     color: white;
     padding: 10px 20px;
-    border-radius: 5px;
+    border-radius: 15px;
     cursor: pointer;
     z-index: 1000;
-    transition: background-color 0.3s ease-in-out;
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.2);
+    transition: background-color 0.3s ease-in-out, transform 0.2s;
+    font-family: var(--font-family-body);
+    font-size: 1em;
 }
 
 .panic-button:hover {
     background-color: #cc0066;
+    transform: scale(1.05);
 }
 
-body.neutral-theme {
-    background: linear-gradient(135deg, #e0e0e0, #b3b3b3);
-    color: #4d4d4d;
+.neutral-bg {
+    background-color: var(--neutral-bg);
 }
 
-body.neutral-theme .panic-button {
-    background-color: #999999;
+.neutral-text {
+    color: var(--neutral-text);
 }
 
-/* Card Styles */
-.card {
-    background-color: #ffe6f2;
-    border: 2px solid #ff3399;
-    border-radius: 10px;
+/* Post-It Note Style Navigation */
+.post-it-notes {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    padding: 10px 0;
+    gap: 10px;
+    background-color: #ff99cc;
+    border-bottom: 4px solid #ff3399;
+}
+
+.post-it {
+    background-color: #ff66b2;
+    color: #ffffff;
+    border-radius: 15px;
+    padding: 10px 20px;
+    box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1);
+    transform: rotate(-3deg);
+    transition: background-color 0.3s ease, transform 0.2s ease;
+    font-family: var(--font-family-title);
+    font-size: 1.2em;
+    text-decoration: none;
+}
+
+.post-it:hover {
+    background-color: #ff3399;
+    transform: rotate(0deg);
+    color: #fff;
+}
+
+/* Fluffy Wavy Card Styling */
+.fluffy-card {
+    width: 80%;
+    max-width: 600px;
     padding: 20px;
-    margin: 20px;
-    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
-    transition: transform 0.3s ease-in-out;
+    background-color: var(--card-bg);
+    font-family: var(--font-family-body);
+    border-radius: var(--border-radius);
+    border: 3px dashed #ff3399;
+    box-shadow: 0 6px 12px rgba(255, 182, 193, 0.5);
     position: relative;
     overflow: hidden;
-    border-image-source: linear-gradient(to right, #ff99cc, #ff66b2);
-    border-image-slice: 1;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    margin: 20px auto;
 }
 
-.card:hover {
-    transform: translateY(-10px);
+.fluffy-card:hover {
+    transform: scale(1.05);
+    box-shadow: 0 10px 20px rgba(255, 182, 193, 0.7);
 }
 
-.card .card-title {
-    font-size: 24px;
-    color: #ff3399;
+/* Grid Layout for Dashboard */
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    grid-template-rows: auto;
+    gap: 20px;
+    padding: 20px;
 }
 
-.card .card-content {
-    font-size: 16px;
+/* Card Layouts */
+.profile-card {
+    grid-column: span 2;
 }
 
-/* Post-it Note Navigation Tabs */
-.nav-tab {
-    display: inline-block;
-    background-color: #ffccff;
-    border: 2px solid #ff99cc;
-    border-radius: 10px;
-    padding: 10px 15px;
-    margin: 5px;
-    text-align: center;
-    transition: all 0.3s ease;
-    color: #ff3399;
+.settings-card {
+    grid-column: span 2;
 }
 
-.nav-tab:hover {
-    background-color: #ff99cc;
-    border-color: #ff3399;
-    color: white;
+.quote-card,
+.todo-card,
+.habits-card,
+.games-card {
+    grid-column: span 1;
 }
 
-/* Footer Styles */
-footer {
-    background-color: #ffe6f2;
+.entries-card,
+.insights-card {
+    grid-column: span 2;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+    .dashboard-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Footer Styling */
+.footer {
+    background-color: var(--card-bg);
     border-top: 4px solid #ff3399;
-    padding: 10px 0;
+    color: var(--primary-color);
+    padding: 20px;
     text-align: center;
+    box-shadow: 0 -4px 10px rgba(0, 0, 0, 0.1);
+    font-size: 1em;
+    margin-top: 20px;
 }
 
-footer a {
+.footer-nav {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px;
+}
+
+.footer-nav a {
+    color: var(--primary-color);
+    margin: 0 5px;
     text-decoration: none;
-    color: #ff3399;
-    margin: 0 10px;
+    font-family: var(--font-family-title);
+    font-size: 1.1em;
+    transition: var(--hover-transition);
 }
 
-footer a:hover {
+.footer-nav a:hover {
+    color: var(--secondary-color);
     text-decoration: underline;
 }
 
-/* Responsive Design */
-@media (max-width: 768px) {
-    .card {
-        margin: 10px;
-        padding: 15px;
+.footer-text {
+    font-size: 0.9em;
+    color: var(--primary-color);
+}
+
+/* General Styling */
+body {
+    background: var(--primary-bg);
+    line-height: 1.6;
+    padding: 0 var(--spacing-medium);
+}
+
+/* Post Containers */
+.post-container {
+    border: 2px solid #ff99cc;
+    border-radius: 15px;
+    box-shadow: 0 4px 10px rgba(255, 153, 204, 0.5);
+    padding: 20px;
+    background-color: #fff;
+    margin-bottom: 20px;
+}
+
+.post-card {
+    background-color: #ffe6f2;
+    border-radius: 20px;
+    padding: 15px;
+    margin-bottom: 15px;
+    box-shadow: 0 3px 6px rgba(255, 182, 193, 0.3);
+    position: relative;
+}
+
+.post-card .post-title {
+    font-family: var(--font-family-title);
+    color: #ff66b2;
+}
+
+.post-card .post-author {
+    font-family: var(--font-family-body);
+    color: #cc6699;
+}
+
+.post-card .post-action-btn {
+    display: inline-block;
+    margin-top: 10px;
+    background-color: #ff99cc;
+    color: #fff;
+    padding: 8px 16px;
+    border-radius: 10px;
+    text-decoration: none;
+    font-weight: bold;
+    transition: background-color 0.3s;
+}
+
+.post-card .post-action-btn:hover {
+    background-color: #ff66b2;
+}
+
+/* Cute Buttons */
+.cute-btn {
+    background-color: #ff99cc;
+    border: none;
+    color: #fff;
+    padding: 10px 20px;
+    border-radius: 15px;
+    font-family: var(--font-family-body);
+    transition: background-color 0.3s, box-shadow 0.3s;
+    font-size: clamp(0.8rem, 2vw, 1rem);
+}
+
+.cute-btn:hover {
+    background-color: #ff66b2;
+    box-shadow: 0 3px 10px rgba(255, 102, 178, 0.4);
+    transform: translateY(-2px);
+}
+
+/* Pagination */
+.cute-pagination {
+    background-color: #ffccdd;
+    color: #fff;
+    padding: 5px 15px;
+    border-radius: 10px;
+    margin: 0 5px;
+    transition: background-color 0.3s;
+}
+
+.cute-pagination:hover {
+    background-color: #ff99cc;
+}
+
+/* Decorative Elements */
+.decorative-corner img {
+    width: 30px;
+    position: absolute;
+    top: -10px;
+    right: -10px;
+}
+
+/* Info Container */
+.info-container {
+    border: 2px solid #ff99cc;
+    border-radius: 15px;
+    box-shadow: 0 4px 10px rgba(255, 153, 204, 0.5);
+    background-color: #fff;
+    padding: 20px;
+    position: relative;
+}
+
+.info-container::after {
+    content: '✨';
+    font-size: 20px;
+    position: absolute;
+    top: -5px;
+    left: -5px;
+    color: #ff99cc;
+}
+
+/* Completed To-Do Items */
+.todo-item.completed {
+    text-decoration: line-through;
+    opacity: 0.6;
+    transition: opacity 0.5s ease-in-out;
+}
+
+/* Toast Notifications */
+.toast {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background-color: #ff99cc;
+    color: #fff;
+    padding: 10px 20px;
+    border-radius: 15px;
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.2);
+    opacity: 1;
+    transition: opacity 0.5s ease-in-out;
+    z-index: 1000;
+}
+
+.toast-success {
+    background-color: #66bb6a;
+}
+
+.toast-error {
+    background-color: #e57373;
+}
+
+.toast-info {
+    background-color: #64b5f6;
+}
+
+.toast.fade-out {
+    opacity: 0;
+}
+
+/* Keyframes for Float Animation */
+@keyframes float {
+    0% {
+        transform: translateY(0);
     }
 
-    .nav-tab {
-        padding: 8px 12px;
+    50% {
+        transform: translateY(-20px);
     }
 
-    .panic-button {
-        padding: 8px 15px;
+    100% {
+        transform: translateY(0);
     }
 }
 
-/* Underlines and borders for header/footer */
-header,
-footer {
-    border-bottom: 3px solid #ff66b2;
-}
-
-footer {
-    border-top: 3px solid #ff66b2;
-}
-
-/* Panic button neutral theme */
-body.neutral-theme .card {
-    background-color: #d9d9d9;
-    border-color: #808080;
-}
-
-body.neutral-theme .nav-tab {
-    background-color: #cccccc;
-    color: #4d4d4d;
-}
-
-body.neutral-theme footer {
-    background-color: #cccccc;
-    border-color: #999999;
+/* Focus States */
+a:focus,
+button:focus {
+    outline: 2px solid var(--secondary-color);
 }

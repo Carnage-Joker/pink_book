@@ -1,5 +1,7 @@
 {% extends 'base.html' %}
 {% load static %}
+{% load custom_filters %}
+
 {% block title %}Dashboard - The Pink Book{% endblock %}
 
 {% block content %}
@@ -13,8 +15,13 @@
                     <img src="{% static 'journal/media/default-profile-pic.jpg' %}" alt="Profile">
                 {% endif %}
             </div>
+            <h2>{{ user.sissy_name }}</h2>
+            <div class="profile-stats">
+                <p><strong>Level:</strong> {{ user.level }}</p>
+                <p><strong>Points:</strong> {{ user.points }}</p>
+                <p><strong>Tasks Completed:</strong> {{ user.tasks_completed }}</p>
         </div>
-
+        </div>
         <!-- Welcome + Settings Links Card -->
         <div class="fluffy-card settings-card">
             <h2>Welcome, {{ user.sissy_name }}!</h2>
@@ -52,19 +59,37 @@
         <div class="fluffy-card habits-card">
             <h2>Your Habits</h2>
             <ul class="habit-list">
-                {% for habit in habits %}
-                    <li>
-                        <span>{{ habit.name }}</span>
-                        <button onclick="incrementHabitCounter({{ habit.id }})" class="btn btn-small">Mark as Done</button>
-                        <small>Streak: {{ habit.streak }}</small>
-                    </li>
-                {% empty %}
-                    <p>You haven't added any habits yet. Start building new habits today!</p>
-                {% endfor %}
+                {% load custom_tags %}
+
+{% for habit in habits %}
+<div class="habit" data-id="{{ habit.id }}">
+    <h3>{{ habit.name }} ({{ habit.frequency|capfirst }})</h3>
+    <div id="icons-{{ habit.id }}" class="icons-container">
+        {% for i in habit.increment_counter|make_range %}
+            <span class="icon">❤️</span>
+        {% endfor %}
+    </div>
+    <p>{{ habit.increment_counter }}/{{ habit.target_count }}</p>
+    {% if habit.is_completed %}
+        <p class="completed-message">Habit target reached for this {{ habit.frequency }}!</p>
+    {% endif %}
+    <button class="cute-btn" onclick="incrementHabit('{{ habit.id }}')">Increment</button>
+</div>
+{% endfor %}
+
+
             </ul>
             <a href="{% url 'journal:habit_form' %}" class="btn">Add New Habit</a>
         </div>
-
+        <div class="fluffy-card games-card">
+                        <h2>Stressed out girls?</h2>
+                        <p>Take a break and try on some cute outfits. You deserve it, babe!</p>
+                        <p>Or, how about a fun game of Truth or Dare? Only if you dare, Sissy! Muhahaha</p>
+                        <div class="game-buttons">
+                            <a href="{% url 'journal:generate_task' %}" class="btn btn-truth">Play Truth</a>
+                            <a href="{% url 'journal:generate_task' %}" class="btn btn-dare">Play Dare</a>
+                        </div>
+            </div>
         <!-- Recent Entries Card -->
         <div class="fluffy-card entries-card">
             <h2>Your Recent Entries</h2>
@@ -121,20 +146,7 @@
             </section>
         </div>
    
-        <div class="fluffy-card games-card">
-            <h2>Stressed out girls?</h2>
-            <p>Take a break and try on some cute outfits You deserve it, babe!</p>
-            <p>Or, how about a fun game of Truth or Dare? But only if you dare Sissy muhahaha</p>
-            <div class="game-buttons">
-                <a href="{% url 'dressup:my_avatar' %}" class="btn">Dress-Up Time!</a>
-                {% if task_id %}
-                 <a href="{% url 'journal:new_entry_with_task' task_id=task_id %}">Create Entry for Task</a>
-                {% else %}
-                     <p>No task available at the moment.</p>
-                {% endif %}
-
-
-            </div>
+           
         </div>
     </div>
 {% endblock %}

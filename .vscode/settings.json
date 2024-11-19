@@ -3,5 +3,6 @@
   "Codegeex.Chat.LanguagePreference": "English",
   "Codegeex.Comment.LanguagePreference": "English",
   "Codegeex.SidebarUI.LanguagePreference": "English",
-  "Codegeex.CompletionModel": "CodeGeeX Pro[Beta]"
+  "Codegeex.CompletionModel": "CodeGeeX Pro[Beta]",
+  "cSpell.words": ["uidb"]
 }

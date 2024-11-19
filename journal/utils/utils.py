@@ -1,4 +1,5 @@
 # In journal/utils.py or a similar utilities file
+from calendar import c
 from django.template.loader import render_to_string
 from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_encode
@@ -6,9 +7,11 @@ from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import send_mail
 from django.urls import reverse
 import random
+from journal.models import Task
+import uuid
 
 
-def generate_task():
+def generate_task(user):
     tasks = [
         {"description": "Write a positive affirmation about yourself. Then stick it to your Dashboard.", "points": 5},
         {"description":
@@ -54,15 +57,19 @@ def generate_task():
         {"description": "Explore a time when your emotions conflicted with your desire to obey.", "points": 10},
         {"description": "Express how your submission has changed your relationship with fear and vulnerability.", "points": 10},
     ]
-    task = random.choice(tasks)
-    task_id = random.randint(1, 100)
-    return task, task_id
+    task_data = random.choice(tasks)
 
+    return Task.objects.create(
+        user=user,
+        description=task_data["description"],
+        points_awarded=task_data["points"],
+        points_penalty=calculate_penalty(task_data["points"]),  # Example: Penalty is half the points awarded
+        
+    )
+    
 
 def calculate_penalty(points):
     return -(points * 2)
-
-
 
 
 def send_activation_email(user, request):
@@ -85,10 +92,16 @@ def fail_task(user):
     user.award_points(-5)  # Adjust points as needed
     return True
 
+
 def complete_journal_entry(user, entry):
     if not entry.completed:
         entry.completed = True
         entry.save()
         user.award_points(10)  # Adjust points as needed
         return True
+    else:
+        points = calculate_penalty(25)
+        user.award_points(points)
     return False
+
+

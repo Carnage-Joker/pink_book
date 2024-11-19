@@ -1,9 +1,10 @@
-
+from django.db import transaction
+from django.db.models import F, Max, Value
 from django.contrib.auth import get_user_model
-from math import e
+import logging
 import os
 import uuid
-from datetime import date, datetime, timedelta
+from datetime import date, timedelta
 from uuid import uuid4
 
 from dateutil.relativedelta import relativedelta
@@ -18,7 +19,10 @@ from django.db import models
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
+from django.utils.timezone import localdate
 
+from .generate import \
+    check_content_topic_with_openai  # Placeholder for AI analysis function
 from .utils.ai_utils import get_sentiment
 
 LEVEL_UP_THRESHOLD = 100
@@ -34,8 +38,8 @@ def current_timestamp():
 
 def profile_pic_upload_path(instance, filename):
     ext = filename.split('.')[-1]
-    filename = f"{uuid4()}.{ext}"
-    return os.path.join('profile_pics', instance.sissy_name, filename)
+    new_filename = f"{uuid4()}.{ext}"
+    return os.path.join('profile_pics', instance.sissy_name, new_filename)
 
 
 class CustomUserManager(BaseUserManager):
@@ -66,13 +70,14 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
     date_of_birth = models.DateField(_('date of birth'), blank=True, null=True)
     sissy_name = models.CharField(max_length=100, unique=True)
     email = models.EmailField(unique=True)
-    date_joined = models.DateTimeField(default=current_timestamp, editable=False)
+    date_joined = models.DateTimeField(
+        default=current_timestamp, editable=False)
     activate_account_token = models.CharField(
         max_length=64, blank=True, null=True)
     location = models.CharField(
         _('location'), max_length=100, blank=True, null=True)
     profile_picture = models.ImageField(
-        _('profile picture'), upload_to='profile_pics', default='default.jpg')
+        _('profile picture'), upload_to=profile_pic_upload_path, default='default.jpg')
 
     PRONOUN_CHOICES = (
         ('he/him', _('he/him')),
@@ -120,7 +125,9 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
         ('moderator', _('Moderator')),
         ('admin', _('Admin')),
     )
-    subscription_tier = models.CharField(max_length=50, default='free', choices=SUB_TIERS)  # free, basic, premium, moderator, admin
+    subscription_tier = models.CharField(
+        max_length=50, default='free', choices=SUB_TIERS
+    )
     is_subscriber = models.BooleanField(default=False)
     avatar_body = models.CharField(
         max_length=255, default="/static/virtual_try_on/avatars/body/light/hourglass.png")
@@ -167,11 +174,10 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
             # Optionally: Notify the user of their level up
 
     def award_badge(self, badge_name):
-        """Award a badge to the user if they don't already have it."""
-        if badge_name not in self.badges:
-            self.badges[badge_name] = now().strftime(
-                '%Y-%m-%d')  # Stores the date badge was earned
-            self.save()
+        """Award a badge to the user."""
+        self.badges[badge_name] = timezone.now().strftime(
+            '%Y-%m-%d')  # Stores the date badge was earned
+        self.save()
 
     def has_badge(self, badge_name):
         """Check if the user has a specific badge."""
@@ -189,7 +195,7 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
 
     def is_moderator_or_admin(self):
         return self.is_moderator or self.is_staff or self.is_superuser
-    
+
     def email_user(self, subject, message, from_email=None, **kwargs):
         send_mail(subject, message, from_email, [self.email], **kwargs)
 
@@ -201,9 +207,9 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
 
     def has_module_perms(self, app_label):
         return self.is_superuser
-    
+
     def save(self, *args, **kwargs):
-        super(CustomUser, self).save(*args, **kwargs)
+        super().save(*args, **kwargs)
 
 # Habit Trackers Models
 # Assuming the models are in journal/models.py
@@ -226,93 +232,107 @@ PENALTY_CHOICES = [
 ]
 
 
+User = get_user_model()
+CATEGORY_CHOICES = [
+    ('sissification_tasks', 'Sissification Tasks'),
+    ('domme_tasks', 'Domme Tasks'),
+    ('punishment_tasks', 'Punishment Tasks'),
+    ('work_tasks', 'Work/Study Tasks'),
+    ('self_care_tasks', 'Self Care Tasks'),
+    ('chore_tasks', 'Chore Tasks'),
+    ('personal_tasks', 'Personal Tasks')
+]
+FREQUENCY_CHOICES = [
+    ('daily', 'Daily'),
+    ('weekly', 'Weekly'),
+    ('monthly', 'Monthly'),
+    ('yearly', 'Yearly')
+]
+
+
 class Habit(models.Model):
-    user = models.ForeignKey('CustomUser', on_delete=models.CASCADE)
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
     name = models.CharField(max_length=255)
-    id = models.UUIDField(
-        primary_key=True, default=uuid.uuid4, editable=False, unique=True)
-    start_date = models.DateField(default=timezone.now)
-    date = models.DateField(default=timezone.now)
+    start_date = models.DateField(default=localdate)
     end_date = models.DateField(blank=True, null=True)
     description = models.TextField(blank=True, null=True)
-    increment_counter = models.IntegerField(default=0)
+    increment_counter = models.PositiveIntegerField(default=0)
     reward = models.CharField(
         max_length=50, choices=REWARD_CHOICES, null=True, blank=True)
     penalty = models.CharField(
         max_length=50, choices=PENALTY_CHOICES, null=True, blank=True)
-    timestamp = models.DateTimeField(default=timezone.now)
-    reminder_frequency = models.CharField(
-        max_length=10,
-        choices=[('daily', 'Daily'), ('weekly', 'Weekly'), ('monthly',
-                                                            'Monthly'), ('yearly', 'Yearly'), ('none', 'None')],
-        default='daily'
-    )
+    timestamp = models.DateTimeField(auto_now_add=True)
     category = models.CharField(
-        max_length=50,
-        choices=[('fashion_goals', 'Fashion Goals'), ('behavioral_goals', 'Behavioral Goals'), ('sissification_tasks', 'Sissification Tasks'),
-                 ('performance_tasks', 'Performance Tasks'), ('chastity_goals',
-                                                              'Chastity Goals'), ('self_care', 'Self care'),
-                 ('domme_appreciation', 'Domme Appreciation'), ('orders', 'Orders')],
-        default='sissification_tasks'
-    )
-    last_reset_date = models.DateField(
-        blank=True, null=True, default=timezone.now)  # Use timezone.now
-    longest_streak_days = models.IntegerField(
-        default=0)  # To store the longest streak
+        max_length=50, choices=CATEGORY_CHOICES, default='sissification_tasks')
+    target_count = models.PositiveIntegerField(
+        default=8)  # Default target count
+    frequency = models.CharField(
+        max_length=10, choices=FREQUENCY_CHOICES, default='daily')
+    increment_counter = models.PositiveIntegerField(default=0)
+    last_reset = models.DateField(blank=True, null=True)
+    longest_streak_days = models.PositiveIntegerField(default=0)
 
-    def check_reset_needed(self):
-        today = timezone.now().date()  # Ensure 'today' is a date object
-        if self.last_reset_date is None or self.last_reset_date.date() < today:
-            self.reset_count()
+    class Meta:
+        ordering = ['-timestamp']
 
-    def reset_count(self):
+    def __str__(self):
+        return self.name
+
+    def is_completed(self):
+        """Check if the habit has reached its target count for the current period."""
+        return self.increment_counter >= self.target_count
+
+    def reset_counter(self):
+        """Reset the counter based on the habit's frequency."""
         self.increment_counter = 0
-        self.last_reset_date = timezone.now().date()  # Make sure it's stored as a date
-        self.save()                 
-    
+        self.last_reset = timezone.now().date()
+        self.save(update_fields=['increment_counter', 'last_reset'])
+
     def get_current_streak(self):
-        today = timezone.now().date()
-
-        if not self.last_reset_date:
-            return 0
-
-        if self.last_reset_date == today:
-            streak_days = (today - self.start_date).days
-        else:
-            streak_days = 0  # Streak is broken if not tracked today
-
-        return streak_days
+        # Implement logic to calculate current streak
+        # Placeholder implementation
+        return self.increment_counter
 
     def get_longest_streak(self):
-        # Assume the longest streak is stored in `longest_streak_days` field.
-        # If not, you could also calculate it similarly to `get_current_streak`.
         return self.longest_streak_days
 
-    def update_streaks(self):
-        # Call this method whenever a habit is tracked to update the streaks.
-        current_streak = self.get_current_streak()
+    def check_reset_needed(self):
+        if self.last_reset is None:
+            return True
+        if self.frequency == 'daily':
+            return self.last_reset < timezone.now().date()
+        elif self.frequency == 'weekly':
+            return self.last_reset < timezone.now().date() - timedelta(days=7)
+        elif self.frequency == 'monthly':
+            return self.last_reset.month != timezone.now().month
+        elif self.frequency == 'yearly':
+            return self.last_reset.year != timezone.now().year
 
+    @transaction.atomic
+    def increment_count(self):
+        self.check_reset_needed()
+        self.increment_counter = F('increment_counter') + 1
+        self.last_reset_date = timezone.now().date()
+        self.save(update_fields=['increment_counter', 'last_reset_date'])
+        self.refresh_from_db(fields=['increment_counter'])
+        self.update_streaks()
+
+    def update_streaks(self):
+        current_streak = self.get_current_streak()
         if current_streak > self.longest_streak_days:
             self.longest_streak_days = current_streak
+            self.save(update_fields=['longest_streak_days'])
+            self.longest_streak_days = current_streak
+            self.save(update_fields=['longest_streak_days'])
 
-        self.save()
-
-    def increment_count(self):
-        self.increment_counter += 1
-        self.update_streaks()  # Call this to update streaks whenever the count is incremented
-        self.save()
-    
     def get_insights(self):
         if self.increment_counter == 0:
             return "You haven't started this habit yet."
-        elif self.increment_counter > 10:
+        elif self.increment_counter > Value(10):
             return f"Great job! You've hit {self.increment_counter} in {self.name}. Keep it up!"
         else:
             return "You're making progress, but there’s room to improve. Try to be more consistent."
-
-    def save(self, *args, **kwargs):
-        self.check_reset_needed()
-        super().save(*args, **kwargs)
 
 
 class ToDo(models.Model):
@@ -392,7 +412,8 @@ class Question(models.Model):
 class Answer(models.Model):
     question = models.OneToOneField(Question, on_delete=models.CASCADE)
     answer = models.TextField()
-    professional = models.ForeignKey(CustomUser, on_delete=models.CASCADE) ## needs to make sure that only a user that is grouped as a professional can answer
+    # needs to make sure that only a user that is grouped as a professional can answer
+    professional = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
     tags = models.ManyToManyField('Tag', blank=True)
     related_models = GenericRelation(RelatedModel)
@@ -457,22 +478,32 @@ class Task(models.Model):
     points_awarded = models.IntegerField(default=10)
     points_penalty = models.IntegerField(default=20)
     completed = models.BooleanField(default=False)
-    task_id = models.IntegerField(null=True, unique=True)
-
+    task_id = models.UUIDField(
+        primary_key=True, default=uuid.uuid4, editable=False)
+    
     def __str__(self):
-        return f"Task for {self.user.sissy_name}: {self.description[:50]}"
+        description_preview = self.description[:
+                                               50] if self.description else "No description"
+        return f"Task for {self.user.sissy_name}: {description_preview}"
+
+
+logger = logging.getLogger(__name__)  # Configuring logger for the module
+
+
+# Set up logging
+logger = logging.getLogger(__name__)
 
 
 class JournalEntry(models.Model):
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         related_name='entries',
-        on_delete=models.CASCADE)
+        on_delete=models.CASCADE
+    )
     title = models.CharField(max_length=200)
     content = models.TextField()
-    # Field to store the generated prompt
+    # Fields to store generated prompt and insight
     prompt_text = models.TextField(blank=True, null=True)
-    # Field to store the generated insight
     insight = models.TextField(blank=True, null=True)
     timestamp = models.DateTimeField(auto_now_add=True)
     tags = models.ManyToManyField('Tag', blank=True)
@@ -484,19 +515,99 @@ class JournalEntry(models.Model):
     subjectivity = models.FloatField(null=True, blank=True)
     sentiment = models.CharField(max_length=20, blank=True, null=True)
     task = models.TextField(blank=True, null=True)
+    points = models.IntegerField(default=0)
 
     @staticmethod
     def get_last_5_entries(user):
+        """Get the last 5 entries for a specific user."""
         return JournalEntry.objects.filter(user=user).order_by('-id')[:5]
 
+    def calculate_points(self):
+        """Calculate the points to award the user based on the journal entry."""
+        points = 0
+
+        if self.is_sissy():
+            points += 10
+        if self.is_good_length():
+            points += 5
+
+        if self.sentiment == 'positive':
+            points += 10
+        elif self.sentiment == 'negative':
+            points -= 10
+
+        # Points for polarity
+        if self.polarity is not None:
+            if self.polarity > 0.5:
+                points += 5
+            elif self.polarity < 0.5:
+                points -= 5
+            
+        if self.subjectivity is not None:
+            if self.subjectivity > 0.5:
+                points += 5
+            elif self.subjectivity < 0.5:
+                points -= 5
+        return points
+    
+    def is_sissy(self):
+        """Determine if the journal entry contains 'sissy' related keywords."""
+        sissy_keywords = ['sissy', 'feminine', 'dress', 'heels', 'makeup', 'lingerie', 'panties', 'skirt', 'stockings', 'bra', 'feminization', 'femme', 'girly', 'sissification', 'sissify', 'sissygasm', 'sissygasms', 'femdom', 'mistress', 'domme', 'dominatrix', 'chastity', 'chaste', 'chastity belt', 'chastity cage', 'chastity device', 'chastity training', 'chastity slave', 'chastity keyholder', 'chastity mistress', 'chastity sissy', 'chastity femdom', 'chastity denial', 'chastity release', 'gay', 'sissy hypno', 'sissy hypnosis', 'sissy trainer', 'sissy training', 'femboy', 'femboi', 'fembois', 'femboys', 'fem', 'femmes', 'femmes', 'femdomme', 'femdommes', 'femdoms', 'femdomme', 'femdommes', 'femdoms']
+        content_lower = self.content.lower()
+        # they should use at least 5 keyword to be considered a sissy
+        return sum(keyword in content_lower for keyword in sissy_keywords) >= 5
+
+    def is_good_length(self):
+        """Determine if the journal entry meets a good length criteria."""
+        word_count = len(self.content.split())
+        # Assuming a good length is more than 100 words
+        return word_count >= 100
+    
+    def analyze_content(self):
+        """Analyze the content using OpenAI API for staying on topic."""
+        if not self.prompt_text:
+            raise ValueError("No prompt text specified for analysis.")
+
+        try:
+            logger.info("Analyzing content for staying on topic...")
+            result = check_content_topic_with_openai(
+                self.content, self.prompt_text)
+            logger.info("Analysis completed successfully.")
+            return result
+        except Exception as e:
+            logger.error(f"Error during content analysis: {e}")
+            return False
+
+    def passes_ai_analysis(self):
+        """Check if the entry passes the AI content analysis."""
+        result = self.analyze_content()
+        logger.debug(f"AI analysis result for entry '{self.title}': {result}")
+        return result
+
     def save(self, *args, **kwargs):
+        """Override save to analyze content and award points."""
+        # Analyze the content for sentiment, polarity, and subjectivity
         sentiment, polarity, subjectivity = get_sentiment(self.content)
         self.sentiment = sentiment
         self.polarity = polarity
         self.subjectivity = subjectivity
+
+        logger.info(
+            f"Saving journal entry for user {self.user}. Sentiment: {self.sentiment}, Polarity: {self.polarity}, Subjectivity: {self.subjectivity}")
+
+        # Save the initial entry
         super().save(*args, **kwargs)
 
-        
+        # Award points and save them separately
+        self.calculate_points()
+        logger.info(
+            f"Awarding {self.points} points to entry titled '{self.title}'")
+        super().save(update_fields=['points'])
+
+    def __str__(self):
+        return f"Journal Entry by {self.user} titled '{self.title}' with {self.points} points"
+
+
 class JournalAnalyzer:
     @staticmethod
     def calculate_average_sentiment(user):
@@ -506,7 +617,7 @@ class JournalAnalyzer:
 
         sentiment_scores = {'positive': 1, 'neutral': 0, 'negative': -1}
         total_score = sum(
-            sentiment_scores[entry.sentiment] for entry in entries)
+            sentiment_scores[entry.sentiment] for entry in entries if entry.sentiment is not None)
         average_score = total_score / len(entries)
 
         if average_score > 0:
@@ -522,7 +633,8 @@ class JournalAnalyzer:
         if not entries:
             return 0.0
 
-        total_polarity = sum(entry.polarity for entry in entries)
+        total_polarity = sum(
+            entry.polarity for entry in entries if entry.polarity is not None)
         return total_polarity / len(entries)
 
     @staticmethod
@@ -531,7 +643,8 @@ class JournalAnalyzer:
         if not entries:
             return 0.0
 
-        total_subjectivity = sum(entry.subjectivity for entry in entries)
+        total_subjectivity = sum(
+            entry.subjectivity for entry in entries if entry.subjectivity is not None)
         return total_subjectivity / len(entries)
 
 
@@ -543,8 +656,8 @@ class TaskCompletion(models.Model):
 
     def __str__(self):
         return f"{self.user} completed {self.task}"
-    
-    
+
+
 class Report(models.Model):
     content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE)
     object_id = models.PositiveIntegerField()
@@ -601,6 +714,7 @@ class Comment(models.Model):
 
 
 class Post(models.Model):
+    id = models.AutoField(primary_key=True)
     title = models.CharField(max_length=200)
     content = models.TextField()
     author = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
@@ -619,7 +733,7 @@ class Post(models.Model):
 class UserFeedback(models.Model):
     user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
     content = models.TextField()
-    timestamp = models.DateTimeField(default=datetime.now())
+    timestamp = models.DateTimeField(default=timezone.now)
 
     def __str__(self):
         return self.content
@@ -659,14 +773,18 @@ class Streak(models.Model):
 
 class Billing(models.Model):
     user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
-    subscription_tier = models.CharField(max_length=50, default='free')  # free, basic, premium, moderator, admin
+    # free, basic, premium, moderator, admin
+    subscription_tier = models.CharField(max_length=50, default='free')
     start_date = models.DateField()
     end_date = models.DateField()
     is_active = models.BooleanField(default=False)
 
     def __str__(self):
-        return f"{self.user.sissy_name}'s {self.subscription_tier} subscription"
+        return (
+            f"{self.user.sissy_name}'s {self.subscription_tier} subscription"
+        )
 
+    @staticmethod
     def check_subscription_status():
         for billing in Billing.objects.filter(is_active=True):
             if billing.end_date < timezone.now().date():
@@ -704,4 +822,3 @@ class Faq(models.Model):
 
     def __str__(self):
         return self.question
-    

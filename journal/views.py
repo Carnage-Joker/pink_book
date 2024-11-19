@@ -1,18 +1,16 @@
-# Standard library imports
-from .models import Task
+# Standard imports
 from django.urls import reverse
-from django.shortcuts import redirect
-from django.views.generic import TemplateView, RedirectView
-from django.views.generic import CreateView
-from django.shortcuts import get_object_or_404
-from .models import JournalEntry, Task
-from .forms import JournalEntryForm
+from django.http import JsonResponse
+from click import prompt
+from django.views.generic import TemplateView
+from django.contrib.auth import login
+from django.views.generic.base import RedirectView
+from django.conf import settings
 import json
 import logging
 import random
 from datetime import date
-
-# Django imports
+from django.core.mail import send_mail
 from django.contrib import messages
 from django.contrib.auth import get_user_model, login
 from django.contrib.auth import views as auth_views
@@ -20,14 +18,11 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.tokens import default_token_generator
 from django.contrib.auth.views import LoginView as AuthLoginView
 from django.core.paginator import Paginator
-from django.db.models import Q
-from django.http import (HttpResponse, HttpResponseForbidden,
-                         HttpResponseRedirect, JsonResponse)
+from django.http import HttpResponse, HttpResponseForbidden, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
-from django.urls import reverse_lazy
+from django.urls import reverse, reverse_lazy
 from django.utils.encoding import force_str
 from django.utils.http import urlsafe_base64_decode
-from django.utils.timezone import now
 from django.views import View
 from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import (CreateView, DeleteView, DetailView, FormView,
@@ -36,19 +31,18 @@ from django.views.generic import (CreateView, DeleteView, DetailView, FormView,
 # Local application imports
 from .forms import (CommentForm, CustomUserCreationForm, CustomUserLoginForm,
                     CustomUserUpdateForm, HabitForm, JournalEntryForm,
-                    ProfileSettingsForm, ResendActivationForm, ThemeForm,
-                    ToDoForm)
+                    ResendActivationForm, ThemeForm, ToDoForm)
+from .generate import generate_insight, generate_prompt
 from .models import (ActivityLog, Answer, Billing, BlogPost, Comment,
                      CustomUser, Faq, Guide, Habit, JournalEntry, Message,
                      Post, Question, Quote, Resource, ResourceCategory, Task,
                      TaskCompletion, Thread, ToDo)
-from .generate import generate_insight, generate_prompt
 from .utils.ai_utils import (extract_keywords, get_average_sentiment,
                              get_average_word_count, get_current_streak,
                              get_most_common_emotions, get_most_common_tags,
                              get_peak_journaling_time)
-from .utils.utils import generate_task, send_activation_email, calculate_penalty
-
+from .utils.utils import (calculate_penalty, generate_task,
+                          send_activation_email)
 
 # Set up the logger
 logger = logging.getLogger(__name__)
@@ -56,67 +50,27 @@ logger = logging.getLogger(__name__)
 User = get_user_model()
 
 
+DASHBOARD_URL = "journal:dashboard"
+
+
 class SafeMixin:
-    """Mixin to add error handling and logging."""
+    """
+    Mixin to safely handle exceptions in views.
+    """
 
     def dispatch(self, request, *args, **kwargs):
         try:
             return super().dispatch(request, *args, **kwargs)
         except Exception as e:
-            logger.error(f"Error in {self.__class__.__name__}: {str(e)}")
+            logger.error(f"An unexpected error occurred: {e}")
             messages.error(
-                request, "An unexpected error occurred. Please try again later."
+                request,
+                "An unexpected error occurred. Please try again later."
             )
-            return redirect("journal:dashboard")
+            return redirect(DASHBOARD_URL)
 
 
-# Authentication and User Management Views
-class RegisterView(View):
-    """View for user registration."""
-
-    template_name = "register.html"
-    form_class = CustomUserCreationForm
-    success_url = reverse_lazy("journal:welcome")
-    extra_context = {"title": "Register"}
-    success_message = (
-        "Your account was created successfully. Please check your email to activate your account."
-    )
-    failure_message = "There was an error creating your account. Please try again."
-
-    def get(self, request):
-        form = self.form_class()
-        return render(request, self.template_name, {"form": form})
-
-    def post(self, request):
-        form = self.form_class(request.POST)
-        if form.is_valid():
-            user = form.save(commit=False)
-            user.is_active = False
-            user.save()
-            send_activation_email(user, request)
-            return redirect("journal:activation_sent")
-        return render(request, self.template_name, {"form": form})
-
-
-class ActivateAccountView(View):
-    """View to activate user account via email link."""
-
-    def get(self, request, uidb64, token):
-        try:
-            uid = force_str(urlsafe_base64_decode(uidb64))
-            user = CustomUser.objects.get(pk=uid)
-        except (TypeError, ValueError, OverflowError, CustomUser.DoesNotExist):
-            user = None
-
-        if user and default_token_generator.check_token(user, token):
-            user.is_active = True
-            user.save()
-            return redirect("journal:registration_success")
-        else:
-            return render(request, "activation_invalid.html")
-
-
-class ResendActivationView(FormView):
+class ResendActivationView(SafeMixin, FormView):
     """View to resend account activation email."""
 
     template_name = "resend_activation.html"
@@ -128,6 +82,15 @@ class ResendActivationView(FormView):
         user = CustomUser.objects.filter(email=email, is_active=False).first()
         if user:
             send_activation_email(user, self.request)
+            messages.success(
+                self.request,
+                "Activation email resent! Please check your email."
+            )
+        else:
+            messages.error(
+                self.request,
+                "No inactive account found with that email."
+            )
         return super().form_valid(form)
 
 
@@ -137,32 +100,97 @@ def activation_sent(request):
 
 
 class RegistrationSuccessView(TemplateView):
-    """View displayed after successful registration and account activation."""
-
     template_name = "registration_success.html"
 
     def send_welcome_email(self, user):
-        subject = "Welcome to the Journal!"
-        message = (
-            f"Hi {user.first_name},\n\n"
-            "Welcome to our community! We're excited to have you join us.\n\n"
-            "If you have any questions or need help getting started, feel free to reach out to us.\n\n"
-            "Best wishes,\n"
-            "The Team"
-        )
-        user.email_user(subject, message)
+        """
+        Send a welcome email to the newly registered user.
 
-    def get(self, request):
-        user = request.user
-        self.send_welcome_email(user)
-        messages.success(
-            request,
-            "Your account was activated successfully. Welcome to the community!",
-        )
-        return redirect("journal:welcome")
+        Args:
+            user (CustomUser): The user who has just registered.
+        """
+        subject = "Welcome to Our Community!"
+        message = "Thank you for registering. We're excited to have you!"
+        from_email = settings.DEFAULT_FROM_EMAIL
+        recipient_list = [user.email]
+        send_mail(subject, message, from_email, recipient_list)
+
+    def get(self, request, *args, **kwargs):
+        # Assume 'registered_user_id' is stored in session during registration
+        user_id = request.session.get('registered_user_id')
+        if user_id:
+            user = CustomUser.objects.get(id=user_id)
+            login(request, user)
+            self.send_welcome_email(user)
+            messages.success(
+                request,
+                "Your account was activated successfully. Welcome to the community!",
+            )
+            # Clear the session data
+            del request.session['registered_user_id']
+        else:
+            messages.error(request, "No user found. Please log in.")
+            return redirect("journal:login")
+        return super().get(request, *args, **kwargs)
 
 
-class CustomLoginView(AuthLoginView, SafeMixin):
+class RegisterView(SafeMixin, FormView):
+    """View to register a new user."""
+
+    template_name = "register.html"
+    form_class = CustomUserCreationForm
+    success_url = reverse_lazy("journal:registration_success")
+
+
+def form_valid(self, form):
+    user = form.save(commit=False)
+    user.is_active = False
+    user.save()
+    send_activation_email(user, self.request)
+    # Store user ID in session
+    self.request.session['registered_user_id'] = user.id
+    messages.success(
+        self.request,
+        "Your account has been created! Please check your email to activate your account."
+    )
+    return redirect(self.success_url)
+
+
+class ActivateAccountView(SafeMixin, View):
+    """View to activate a user account."""
+
+    def get(self, request, uidb64, token):
+        """
+        Activate the user account using the provided UID and token.
+
+        Args:
+            request: The HTTP request.
+            uidb64: The base64-encoded user ID.
+            token: The activation token.
+
+        Returns:
+            The response to redirect the user to the dashboard or an error message.
+        """
+        try:
+            uid = force_str(urlsafe_base64_decode(uidb64))
+            user = CustomUser.objects.get(pk=uid)
+        except (TypeError, ValueError, OverflowError, CustomUser.DoesNotExist) as e:
+            user = None
+            logger.error(f"Activation error: {e}")
+
+        if user is not None and default_token_generator.check_token(user, token):
+            user.is_active = True
+            user.save()
+            messages.success(
+                request, "Your account has been activated successfully."
+            )
+            return redirect(DASHBOARD_URL)
+        else:
+            messages.error(request, "Activation link is invalid!")
+            return redirect("journal:login")
+
+
+class CustomLoginView(SafeMixin, AuthLoginView):
     """Custom login view with additional logging and messaging."""
 
     template_name = "welcome.html"
@@ -170,21 +198,31 @@ class CustomLoginView(AuthLoginView, SafeMixin):
     success_url = reverse_lazy("journal:dashboard")
 
     def form_valid(self, form):
+        """
+        Handle a valid login form submission.
+
+        This method logs in the user and logs the successful login event.
+        """
         user = form.get_user()
         login(self.request, user)
-
-        # Use 'sissy_name' as the identifier
         logger.info(
-            f"User {user.sissy_name} (Email: {
-                user.email}) logged in successfully."
+            f"User {user.username} (Email: {user.email}) logged in successfully."
         )
-        messages.success(self.request, "You have successfully logged in.")
-        return super().form_valid(form)
+        return redirect(self.success_url)
 
     def form_invalid(self, form):
+        """
+        Handle an invalid form submission by logging the error and displaying an error message.
+
+        Args:
+            form: The form instance that was submitted.
+
+        Returns:
+            The response to render the form with errors.
+        """
         logger.warning(f"Failed login attempt with errors: {form.errors}")
         messages.error(
-            self.request, "Login failed. Please check your sissy name and password."
+            self.request, "Login failed. Please check your username and password."
         )
         return super().form_invalid(form)
 
@@ -199,14 +237,12 @@ class CustomLogoutView(auth_views.LogoutView):
         user = request.user
         if user.is_authenticated:
             logger.info(
-                f"User {user.get_full_name()} (Email: {
-                    user.email}) is logging out."
+                f"User {user.get_username()} (Email: {user.email}) is logging out."
             )
             messages.success(request, "You have successfully logged out.")
-            return super().dispatch(request, *args, **kwargs)
         else:
             messages.error(request, "You are not logged in.")
-            return redirect("journal:welcome")
+        return super().dispatch(request, *args, **kwargs)
 
 
 class PasswordResetView(auth_views.PasswordResetView):
@@ -236,6 +272,15 @@ class ProfileView(LoginRequiredMixin, DetailView):
     template_name = "profile.html"
 
     def get_object(self):
+        """
+        Retrieve the current user object.
+
+        This method is used to fetch the user object associated with the current session.
+        It ensures that the profile update view operates on the correct user instance.
+
+        Returns:
+            CustomUser: The user object associated with the current session.
+        """
         return self.request.user
 
 
@@ -259,38 +304,47 @@ class ProfileCustomizeView(LoginRequiredMixin, SafeMixin, UpdateView):
     model = CustomUser
     success_url = reverse_lazy("journal:dashboard")
 
-    def get_object(self):
-        return self.request.user
-
-    def form_valid(self, form):
-        messages.success(
-            self.request, "Your profile has been updated successfully!")
-        return super().form_valid(form)
-
     def form_invalid(self, form):
+        """
+        Handle invalid form submissions.
+
+        Args:
+            form: The form instance that was submitted.
+
+        Returns:
+            The response to render the form with errors.
+        """
         messages.error(
             self.request, "An error occurred while updating your profile. Please try again."
         )
         return super().form_invalid(form)
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        user = self.request.user
+        profile = getattr(user, "profile", None)
+        context["profile"] = profile
+        return context
 
-class ProfileSettingsView(LoginRequiredMixin, TemplateView):
-    """View for user profile settings."""
+    def get_object(self):
+        return self.request.user
+
+
+class ProfileSettingsView(LoginRequiredMixin, SafeMixin, TemplateView):
+    """View to display user profile settings."""
 
     template_name = "profile_settings.html"
-    form_class = ProfileSettingsForm
-    model = CustomUser
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context["form"] = self.form_class(instance=self.request.user)
+        user = self.request.user
+        profile = getattr(user, "profile", None)
+        context["profile"] = profile
         return context
 
 
-# Dashboard and Home Views
 class DashboardView(LoginRequiredMixin, TemplateView):
-    """User dashboard view displaying various statistics and recent activity."""
-
+    """View for the user dashboard."""
     template_name = "dashboard.html"
 
     def get_quote_of_the_day(self):
@@ -305,19 +359,17 @@ class DashboardView(LoginRequiredMixin, TemplateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         user = self.request.user
-        profile = getattr(user, "profile", None)
 
         # Fetch recent data
         recent_entries = JournalEntry.objects.filter(
             user=user).order_by("-timestamp")[:3]
         todos = ToDo.objects.filter(user=user).order_by("-timestamp")[:5]
         habits = Habit.objects.filter(user=user).order_by("-timestamp")[:5]
+        profile = getattr(user, "profile", None)
 
-        # Get the most recent task and check task_id
-        task = Task.objects.filter(user=self.request.user).last()
-        if task:
-            context['task'] = task
-            context['task_id'] = getattr(task, 'task_id', None)
+        # Generate a Truth or Dare task using the provided function
+        # Directly call the function without arguments
+        truth_or_dare_task = generate_task(user)
 
         # Sentiment and journal insights
         if recent_entries.exists():
@@ -354,6 +406,7 @@ class DashboardView(LoginRequiredMixin, TemplateView):
             "habits": habits,
             "entries": recent_entries,
             "entries_with_insights": recent_entries,
+            "truth_or_dare_task": truth_or_dare_task  # Add the task to context
         })
 
         return context
@@ -370,95 +423,102 @@ class HomeView(TemplateView, SafeMixin):
         return context
 
 
-# Journal Entry Views
-
-
 class JournalEntryCreateView(LoginRequiredMixin, CreateView):
-    """View to create a new journal entry."""
-
     model = JournalEntry
-    template_name = "new_entry.html"
     form_class = JournalEntryForm
+    template_name = "new_entry.html"
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-
-        # Only display the generated prompt for context, not to be stored here
-        if "generated_prompt" not in context:
-            context["generated_prompt"] = generate_prompt()
-
+        generated_prompt = generate_prompt()
+        context["generated_prompt"] = generated_prompt
+        # Pre-fill the form's generated_prompt field
+        self.initial.update({'generated_prompt': generated_prompt})
+        context['form'].initial['generated_prompt'] = generated_prompt
         return context
 
     def form_valid(self, form):
-        # Assign the logged-in user to the form instance
         form.instance.user = self.request.user
-        # Generate and save the prompt with the journal entry instance
-        # Generate directly during form submission
-        form.instance.prompt_text = generate_prompt()
-        journal_entry = form.save(commit=False)
+        form.instance.prompt_text = form.cleaned_data.get("generated_prompt")
+        response = super().form_valid(form)
 
-        # Generate and attach the insight for the journal entry content
+        # Generate and attach the insight
         try:
-            insight_text = generate_insight(journal_entry.content)
-            journal_entry.insight = insight_text
+            insight_text = generate_insight(form.instance.content)
+            form.instance.insight = insight_text
+            form.instance.save(update_fields=['insight'])
         except Exception as e:
             messages.error(self.request, f"Error generating insight: {str(e)}")
-            journal_entry.insight = "Insight generation failed."
+            form.instance.insight = "Insight generation failed."
+            form.instance.save(update_fields=['insight'])
 
-        # Save the journal entry to the database
-        journal_entry.save()
-        form.save_m2m()
+        # Award points to the user
+        points_earned = form.instance.calculate_points()
+        self.request.user.points += points_earned
+        self.request.user.save()
 
-        # Award points to the user for creating a journal entry
-        self.request.user.award_points(10)  # Adjust points as needed
+        # Success message
+        if points_earned > 0:
+            messages.success(
+                self.request,
+                f"Journal entry created successfully! You have earned {points_earned} points."
+            )
+        else:
+            messages.warning(
+                self.request,
+                f"Naughty girl, you need to follow instructions to get points. You lost {abs(points_earned)}."
+            )
 
-        messages.success(
-            self.request, "Journal entry created successfully with insights and points awarded."
-        )
-        return super().form_valid(form)
+        return response  # Ensures the correct redirection occurs
 
     def get_success_url(self):
-        return reverse_lazy("journal:entry_detail", kwargs={"pk": self.object.pk})
+        return reverse("journal:entry_detail", kwargs={"pk": self.object.pk})
 
 
 class JournalEntryWithTaskView(LoginRequiredMixin, CreateView):
-    """View for writing a journal entry with a generated task."""
-
     model = JournalEntry
-    template_name = "new_entry_with_task.html"
     form_class = JournalEntryForm
+    template_name = "new_entry_with_task.html"
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        task_id = self.kwargs.get("task_id")
-        if task_id:
+        if task_id := self.kwargs.get("task_id"):
             context["task"] = get_object_or_404(
-                Task, pk=task_id, user=self.request.user)
+                Task, task_id=task_id, user=self.request.user)
         return context
 
     def form_valid(self, form):
-        form.instance.user = self.request.user
         task_id = self.kwargs.get("task_id")
-        if task_id:
-            task = get_object_or_404(Task, pk=task_id, user=self.request.user)
-            form.instance.task = task
-            # Using task description as a prompt
+        if task := get_object_or_404(Task, task_id=task_id, user=self.request.user):
+            # Save the task description as text instead of the Task object
+            form.instance.task = task.description
             form.instance.prompt_text = task.description
+            form.instance.user = self.request.user
 
         journal_entry = form.save(commit=False)
         journal_entry.save()
         form.save_m2m()
+
+        # Analyze content for topic relevance
+        journal_entry.analyze_content()
+
+        # Award or penalize points based on the AI analysis
+        if journal_entry.passes_ai_analysis():
+            self.request.user.points += task.points_awarded
+        else:
+            self.request.user.points -= task.points_penalty  # Deduct points if the task fails
+
+        # Save updated user points
+        self.request.user.save()
 
         messages.success(self.request, "Journal entry created successfully!")
         return super().form_valid(form)
 
-    def get_success_url(self):
-        return reverse_lazy("journal:entry_detail", kwargs={"pk": self.object.pk})
+    def get_success_url(self) -> str:
+        return reverse("journal:entry_detail", kwargs={"pk": self.object.pk})
 
 
 class JournalEntryDetailView(LoginRequiredMixin, DetailView):
-    """View to display a journal entry in detail."""
-
     model = JournalEntry
     template_name = "entry_detail.html"
     context_object_name = "entry"
@@ -469,11 +529,12 @@ class JournalEntryDetailView(LoginRequiredMixin, DetailView):
         # These may already be accessible in the template as entry.prompt_text and entry.insight
         context["prompt_text"] = entry.prompt_text
         context["insight"] = entry.insight
+        context['tags'] = entry.tags.all()
         if entry.task:
             context["task"] = entry.task
         return context
-    
-    
+
+
 class JournalEntryListView(LoginRequiredMixin, ListView):
     """View to list all journal entries of the user."""
 
@@ -511,27 +572,26 @@ class JournalEntryDeleteView(LoginRequiredMixin, DeleteView):
 
     model = JournalEntry
     template_name = "entry_delete.html"
-    success_url = reverse_lazy("journal:entry_list")
 
     def get_queryset(self):
-        return JournalEntry.objects.filter(user=self.request.user)
+        return JournalEntry.objects.filter(user=self.request.user, pk=self.kwargs.get("pk"))
 
     def delete(self, request, *args, **kwargs):
         journal_entry = self.get_object()
         ActivityLog.objects.create(
             user=request.user,
-            action=f"Deleted a journal entry: {journal_entry.title}",
+            action=f"Deleted a journal entry: {journal_entry.title[:20]}...",
         )
         return super().delete(request, *args, **kwargs)
 
 
 def redeem_points(request):
-    user_points = UserPoints.objects.get(user=request.user)
+    user_points = CustomUser.objects.get(request.user).points
     if request.method == "POST":
         points_to_redeem = int(request.POST.get("points", 0))
         if user_points.redeem_points(points_to_redeem):
-            messages.success(request, f"Successfully redeemed {
-                             points_to_redeem} points!")
+            messages.success(
+                request, f"Successfully redeemed {points_to_redeem} points!")
         else:
             messages.error(request, "Insufficient points.")
         return redirect('redeem_points')
@@ -540,32 +600,14 @@ def redeem_points(request):
 
 
 class TaskGenerateView(LoginRequiredMixin, TemplateView):
-    """View to generate a task for the user and redirect them to write about it."""
 
-    template_name = "task_generate.html"
+    def get(self, request, *args, **kwargs):
+        if task := generate_task(request.user):
+            return redirect('journal:new_entry_with_task', task_id=str(task.task_id))
 
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-
-        # Generate a task and add it to the context
-        task, task_id = generate_task()
-        context["task"] = task
-        context["task_id"] = task_id
-        context["points_awarded"] = task["points"]
-        context["points_penalty"] = calculate_penalty(task["points"])
-
-        # Create and save the task in the database for the user to complete
-        new_task = Task.objects.create(
-            user=self.request.user,
-            description=task["description"],
-            points_awarded=task["points"],
-            points_penalty=calculate_penalty(task["points"]),
-            task_id=task_id
-        )
-
-        # Redirect the user to the new entry template to write about the task
-        return redirect(reverse('journal:new_entry_with_task', kwargs={'task_id': new_task.pk}))
-
+        messages.error(
+            request, "Failed to generate a task. Please try again.")
+        return redirect('journal:dashboard')
 
 
 class HabitListView(LoginRequiredMixin, ListView):
@@ -616,25 +658,29 @@ class HabitDetailView(LoginRequiredMixin, DetailView):
 
 
 class IncrementHabitCounterView(LoginRequiredMixin, View):
-    """View to increment habit counter via AJAX."""
-
     def post(self, request, pk):
         habit = get_object_or_404(Habit, pk=pk, user=request.user)
         habit.increment_count()
+        current_count = habit.increment_counter
+        target_count = habit.target_count
+        is_completed = habit.is_completed()
         current_streak = habit.get_current_streak()
         longest_streak = habit.get_longest_streak()
-
         return JsonResponse(
             {
                 "status": "success",
-                "new_count": habit.increment_counter,
+                "new_count": current_count,
+                "target_count": target_count,
+                "is_completed": is_completed,
+                "frequency": habit.frequency,
                 "current_streak": current_streak,
                 "longest_streak": longest_streak,
             }
         )
 
-
 # To-Do Management Views
+
+
 class ToDoCreateView(LoginRequiredMixin, CreateView):
     """View to create a new to-do item."""
 
@@ -776,12 +822,20 @@ class BlogListView(ListView):
     template_name = "blog_list.html"
     model = BlogPost
     context_object_name = "blog_posts"
-    paginate_by = 5
-
-    def get_queryset(self):
-        return BlogPost.objects.filter(published=True).order_by("-timestamp")
 
     def get_context_data(self, **kwargs):
+        """
+        Add the latest blog posts to the context data.
+
+        This method fetches the latest published blog posts and adds them to the context
+        data for rendering in the template.
+
+        Args:
+            **kwargs: Additional keyword arguments.
+
+        Returns:
+            dict: The context data dictionary to be used in the template.
+        """
         context = super().get_context_data(**kwargs)
         context["latest_posts"] = BlogPost.objects.filter(published=True).order_by(
             "-timestamp"
@@ -832,15 +886,6 @@ class PostListView(ListView):
     context_object_name = "posts"
     paginate_by = 10
 
-    def get_queryset(self):
-        self.thread = get_object_or_404(Thread, id=self.kwargs["thread_id"])
-        return Post.objects.filter(thread=self.thread)
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context["thread"] = self.thread
-        return context
-
 
 class ForumCreateView(LoginRequiredMixin, CreateView):
     """View to create a new forum post."""
@@ -858,6 +903,19 @@ class ForumPostDetailView(DetailView):
     model = Post
     template_name = "post_detail.html"
     context_object_name = "post"
+
+    def get_content_object(self):
+        """
+        Retrieve the post object that the comment is associated with.
+
+        This method fetches the post object based on the post_id provided in the URL.
+        It ensures that the comment is correctly linked to the post.
+
+        Returns:
+            Post: The post object that the comment is associated with.
+        """
+        post_id = self.kwargs.get("post_id")
+        return get_object_or_404(Post, id=post_id)
 
 
 class CommentCreateView(LoginRequiredMixin, CreateView):
@@ -891,15 +949,19 @@ class GuideDetailView(DetailView):
     template_name = "journal/guide_detail.html"
     context_object_name = "guide"
 
-
-class ResourceListView(ListView):
-    """View to list resource categories and guides."""
-
-    model = ResourceCategory
-    template_name = "journal/resources.html"
-    context_object_name = "categories"
-
     def get_context_data(self, **kwargs):
+        """
+        Add guides and pagination information to the context data.
+
+        This method fetches all guides, paginates them, and adds the paginated
+        guides to the context data for rendering in the template.
+
+        Args:
+            **kwargs: Additional keyword arguments.
+
+        Returns:
+            dict: The context data dictionary to be used in the template.
+        """
         context = super().get_context_data(**kwargs)
         guides = Guide.objects.all()
         paginator = Paginator(guides, 5)
@@ -917,18 +979,19 @@ class ResourceCategoryView(DetailView):
     context_object_name = "category"
 
 
-class ResourceDetailView(DetailView):
-    """View to display resource details."""
+class ResourceListView(ListView):
+    """View to display resource categories."""
 
     model = Resource
-    template_name = "journal/resource_detail.html"
+    template_name = "journal/resources.html"
     context_object_name = "resource"
 
 
 def blog_detail(request, pk):
     """View to display blog post details."""
     post = get_object_or_404(BlogPost, pk=pk)
-    related_posts = BlogPost.objects.filter(published=True).exclude(id=pk).order_by("-timestamp")[:5]
+    related_posts = BlogPost.objects.filter(
+        published=True).exclude(id=pk).order_by("-timestamp")[:5]
     comment_form = CommentForm()
     if request.method == "POST":
         comment_form = CommentForm(request.POST)
@@ -943,31 +1006,6 @@ def blog_detail(request, pk):
         "related_posts": related_posts,
         "comment_form": comment_form
     })
-# Q&A Views
-
-
-class QuestionCreateView(LoginRequiredMixin, CreateView):
-    """View to create a new question."""
-
-    model = Question
-    fields = ["question"]
-    template_name = "question_form.html"
-    success_url = reverse_lazy("journal:qna_list")
-
-    def dispatch(self, *args, **kwargs):
-        if not self.request.user.is_subscriber:
-            return HttpResponseForbidden(
-                "You must be a subscriber to ask a question."
-            )
-        return super().dispatch(*args, **kwargs)
-
-    def form_valid(self, form):
-        form.instance.user = self.request.user
-        ActivityLog.objects.create(
-            user=self.request.user, action=f"Asked a question: {
-                form.instance.question}"
-        )
-        return super().form_valid(form)
 
 
 class AnswerCreateView(LoginRequiredMixin, CreateView):
@@ -977,8 +1015,8 @@ class AnswerCreateView(LoginRequiredMixin, CreateView):
     fields = ["answer"]
     template_name = "answer_form.html"
 
-    def dispatch(self, *args, **kwargs):
-        user = self.request.user
+    def dispatch(request, *args, **kwargs):
+        user = CustomUser.objects.get(pk=request.user.pk)
         if not user.is_premium and not user.is_moderator_or_admin:
             return HttpResponseForbidden(
                 "You must be a premium subscriber, moderator, or admin to answer questions."
@@ -1036,8 +1074,8 @@ class AboutView(TemplateView):
     """View for the about page."""
 
     template_name = "about.html"
-    
-    
+
+
 class ModeratorListView(LoginRequiredMixin, ListView):
     """View to list moderators."""
 
@@ -1054,11 +1092,11 @@ class MessageListView(LoginRequiredMixin, ListView):
 
     model = Message
     template_name = "messages.html"
-    
+
     def get_queryset(self):
         return Message.objects.filter(recipient=self.request.user)
-    
-    
+
+
 class FeatureListView(ListView):
     """View to list features."""
     template_name = "features.html"
@@ -1093,8 +1131,20 @@ class FeedbackView(LoginRequiredMixin, TemplateView):
     template_name = "feedback.html"
 
     def get_context_data(self, **kwargs):
+        """
+        Add FAQs to the context data.
+
+        This method fetches all FAQs from the database and adds them to the context
+        data for rendering in the template.
+
+        Args:
+            **kwargs: Additional keyword arguments.
+
+        Returns:
+            dict: The context data dictionary to be used in the template.
+        """
         context = super().get_context_data(**kwargs)
-        context["feedback_message"] = "We'd love to hear your feedback!"
+        context["faqs"] = Faq.objects.all()
         return context
 
 

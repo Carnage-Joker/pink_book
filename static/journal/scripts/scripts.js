@@ -1,42 +1,111 @@
 // Utility: Get CSRF Token from Cookie
 function getCSRFToken() {
-    const name = 'csrftoken';
-    const cookieValue = document.cookie.match('(^|;)\\s*' + name + '\\s*=\\s*([^;]+)');
-    return cookieValue ? cookieValue.pop() : '';
+    const name = 'csrftoken=';
+    const decodedCookie = decodeURIComponent(document.cookie);
+    const cookies = decodedCookie.split(';');
+    for (let cookie of cookies) {
+        cookie = cookie.trim();
+        if (cookie.startsWith(name)) {
+            return cookie.substring(name.length);
+        }
+    }
+    return '';
+}
+
+// Utility: Fetch with CSRF Token
+function fetchWithCSRF(url, options = {}) {
+    const headers = options.headers || {};
+    headers['X-CSRFToken'] = getCSRFToken();
+    headers['Content-Type'] = headers['Content-Type'] || 'application/json';
+    return fetch(url, { ...options, headers });
+}
+
+// Utility: Handle Fetch Errors
+function handleFetchError(response) {
+    if (!response.ok) {
+        return response.json().catch(() => {
+            throw new Error('An error occurred');
+        }).then(errData => {
+            throw new Error(errData.message || 'An error occurred');
+        });
+    }
+    return response.json();
 }
 
 // Utility: Show Toast Notifications
 function showToast(message, type = 'info') {
-    // Implement toast notification logic if desired
+    const toast = document.createElement('div');
+    toast.className = `toast toast-${type}`;
+    toast.innerText = message;
+    document.body.appendChild(toast);
+    setTimeout(() => {
+        toast.classList.add('fade-out');
+        toast.addEventListener('transitionend', () => toast.remove());
+    }, 3000);
 }
 
-// Panic Mode Toggle
+// Panic Mode Toggle with Local Storage
 function togglePanicMode() {
     document.body.classList.toggle('neutral-theme');
+    if (document.body.classList.contains('neutral-theme')) {
+        localStorage.setItem('theme', 'neutral');
+    } else {
+        localStorage.removeItem('theme');
+    }
 }
 
-// Initialize Event Listeners on DOM Load
+// On Page Load, Check Local Storage and Initialize Event Listeners
 document.addEventListener('DOMContentLoaded', () => {
-    // Event listeners for your interactive elements
+    // Apply Neutral Theme if Set
+    if (localStorage.getItem('theme') === 'neutral') {
+        document.body.classList.add('neutral-theme');
+    }
+
+    // Initialize Panic Button
     const panicButton = document.querySelector('.panic-button');
-    panicButton.addEventListener('click', togglePanicMode);
+    if (panicButton) {
+        panicButton.addEventListener('click', togglePanicMode);
+    }
+
+    // Initialize Generate Task Button
+    document.getElementById('generate-task')?.addEventListener('click', generateTask);
+
+    // Initialize Complete Task Button
+    document.getElementById('complete-task')?.addEventListener('click', function () {
+        completeTask(this.dataset.taskId);
+    });
+
+    // Initialize Fail Task Button
+    document.getElementById('fail-task')?.addEventListener('click', function () {
+        failTask(this.dataset.taskId);
+    });
+
+    // Initialize To-Do Checkboxes
+    document.addEventListener('change', function (e) {
+        if (e.target.classList.contains('todo-checkbox')) {
+            if (e.target.checked) {
+                completeTodoItem(e.target.dataset.id);
+            }
+        }
+    });
 });
 
-// Habit: Increment Counter via AJAX
-function incrementHabitCounter(habitId) {
-    fetch(`/journal/habits/${habitId}/increment/`, {
+/**
+ * Increment the habit counter via AJAX.
+ * @param {number} habitId - The ID of the habit to increment.
+ */
+function incrementHabit(habitId) {
+    fetchWithCSRF(`/journal/habits/${habitId}/increment/`, {
         method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRFToken': getCSRFToken(),
-        },
         body: JSON.stringify({}),
     })
-        .then(response => response.ok ? response.json() : Promise.reject(response))
+        .then(handleFetchError)
         .then(data => {
             if (data.status === 'success') {
-                document.getElementById(`habit-count-${habitId}`).textContent = data.new_count;
-                document.getElementById(`insight-${habitId}`).textContent = data.insight || '';
+                const habitCountElement = document.getElementById(`habit-count-${habitId}`);
+                const insightElement = document.getElementById(`insight-${habitId}`);
+                if (habitCountElement) habitCountElement.textContent = data.new_count;
+                if (insightElement) insightElement.textContent = data.insight || '';
                 showToast('Habit counter incremented!', 'success');
             } else {
                 showToast(data.message || 'Failed to increment habit counter.', 'error');
@@ -44,21 +113,19 @@ function incrementHabitCounter(habitId) {
         })
         .catch(error => {
             console.error('Error incrementing habit counter:', error);
-            showToast('Error incrementing habit counter.', 'error');
+            showToast(error.message || 'Error incrementing habit counter.', 'error');
         });
 }
 
-// Task: Generate New Task via AJAX
+/**
+ * Generate a new task via AJAX.
+ */
 function generateTask() {
-    fetch('/journal/generate-task/', {
+    fetchWithCSRF('/journal/generate-task/', {
         method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRFToken': getCSRFToken(),
-        },
         body: JSON.stringify({}),
     })
-        .then(response => response.ok ? response.json() : Promise.reject(response))
+        .then(handleFetchError)
         .then(data => {
             const taskResult = document.getElementById('task-result');
             if (taskResult && data.task) {
@@ -68,20 +135,19 @@ function generateTask() {
         })
         .catch(error => {
             console.error('Error generating task:', error);
-            showToast('Error generating task.', 'error');
+            showToast(error.message || 'Error generating task.', 'error');
         });
 }
 
-// Task: Complete a Task and Redirect to New Journal Entry
+/**
+ * Complete a task and redirect to a new journal entry.
+ * @param {number} taskId - The ID of the task to complete.
+ */
 function completeTask(taskId) {
-    fetch(`/journal/get-task-prompt/${taskId}/`, {
+    fetchWithCSRF(`/journal/get-task-prompt/${taskId}/`, {
         method: 'GET',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRFToken': getCSRFToken(),
-        },
     })
-        .then(response => response.ok ? response.json() : Promise.reject(response))
+        .then(handleFetchError)
         .then(data => {
             if (data.status === 'success' && data.task_prompt) {
                 window.location.href = `/journal/new-entry/?prompt=${encodeURIComponent(data.task_prompt)}`;
@@ -91,29 +157,30 @@ function completeTask(taskId) {
         })
         .catch(error => {
             console.error('Error retrieving task prompt:', error);
-            showToast('Error retrieving task prompt.', 'error');
+            showToast(error.message || 'Error retrieving task prompt.', 'error');
         });
 }
 
-// Task: Fail Task and Deduct Points
+/**
+ * Fail a task and deduct points.
+ * @param {number} taskId - The ID of the task to fail.
+ */
 function failTask(taskId) {
-    fetch('/journal/fail-task/', {
+    fetchWithCSRF('/journal/fail-task/', {
         method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRFToken': getCSRFToken(),
-        },
         body: JSON.stringify({
             task_id: taskId,
             penaltyType: 'DEDUCT_POINTS',
             pointsToDeduct: 10,
         }),
     })
-        .then(response => response.ok ? response.json() : Promise.reject(response))
+        .then(handleFetchError)
         .then(data => {
             if (data.status === 'success') {
                 const pointsDisplay = document.getElementById('points-display');
-                if (pointsDisplay) pointsDisplay.innerText = `Points: ${data.new_points}`;
+                if (pointsDisplay) {
+                    pointsDisplay.innerText = `Points: ${data.new_points}`;
+                }
                 showToast('Points deducted.', 'success');
             } else {
                 showToast(data.message || 'Failed to deduct points.', 'error');
@@ -121,27 +188,28 @@ function failTask(taskId) {
         })
         .catch(error => {
             console.error('Error failing task:', error);
-            showToast('Error failing task.', 'error');
+            showToast(error.message || 'Error failing task.', 'error');
         });
 }
 
-// To-Do: Complete via AJAX
+/**
+ * Complete a to-do item via AJAX.
+ * @param {number} todoId - The ID of the to-do item to complete.
+ */
 function completeTodoItem(todoId) {
-    fetch(`/journal/complete-todo/${todoId}/`, {
+    fetchWithCSRF(`/journal/complete-todo/${todoId}/`, {
         method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-            'X-CSRFToken': getCSRFToken(),
-        },
         body: JSON.stringify({ todo_id: todoId }),
     })
-        .then(response => response.ok ? response.json() : Promise.reject(response))
+        .then(handleFetchError)
         .then(data => {
             if (data.status === 'success') {
                 const todoItem = document.getElementById(`todo-${todoId}`);
                 if (todoItem) {
                     todoItem.classList.add('completed');
-                    setTimeout(() => todoItem.style.display = 'none', 1000);
+                    setTimeout(() => {
+                        todoItem.remove();
+                    }, 2000);
                 }
                 showToast('To-Do item completed!', 'success');
             } else {
@@ -150,37 +218,6 @@ function completeTodoItem(todoId) {
         })
         .catch(error => {
             console.error('Error completing To-Do item:', error);
-            showToast('Error completing To-Do item.', 'error');
+            showToast(error.message || 'Error completing To-Do item.', 'error');
         });
 }
-
-// Panic Mode Toggle
-function togglePanicMode() {
-    document.body.classList.toggle('neutral');
-    document.querySelectorAll('.card, img').forEach(element => {
-        element.classList.toggle('neutral');
-        element.style.filter = element.style.filter === 'blur(5px)' ? 'none' : 'blur(5px)';
-    });
-}
-document.querySelector('.panic-button').addEventListener('click', function () {
-    document.body.classList.toggle('neutral-theme');
-});
-
-// Initialize Event Listeners on DOM Load
-document.addEventListener('DOMContentLoaded', () => {
-    document.getElementById('generate-task')?.addEventListener('click', generateTask);
-    document.getElementById('complete-task')?.addEventListener('click', function () {
-        completeTask(this.dataset.taskId);
-    });
-    document.getElementById('fail-task')?.addEventListener('click', function () {
-        failTask(this.dataset.taskId);
-    });
-
-    document.querySelectorAll('.todo-checkbox').forEach(checkbox => {
-        checkbox.addEventListener('change', function () {
-            if (this.checked) completeTodoItem(this.dataset.id);
-        });
-    });
-
-    document.querySelector('.panic-button')?.addEventListener('click', togglePanicMode);
-});

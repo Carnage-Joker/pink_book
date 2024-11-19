@@ -6,15 +6,15 @@ from .views import (
     JournalEntryCreateView, JournalEntryUpdateView, JournalEntryDeleteView,
     JournalEntryListView, CustomLogoutView, ProfileUpdateView, ProfileView,
     ProfileSettingsView, ProfileCustomizeView, RegisterView,
-    ResourceCategoryView, ResourceListView, ResourceDetailView, ToDoCreateView,
-    ToDoDetailView, ToDoListView, ToDoUpdateView, AboutView, generate_task_view,
+    ResourceCategoryView, ResourceListView, ToDoCreateView,
+    ToDoDetailView, ToDoListView, ToDoUpdateView, AboutView, TaskGenerateView,
     fail_task_view, PasswordResetDoneView, PasswordResetView, CompleteToDoView,
     GuideDetailView, ActivityLogListView, BillingView, qna_list, qna_detail,
-    MessageListView, CustomLoginView, ModeratorListView,  PostListView, ThreadListView, FeatureListView, BlogListView,
+    MessageListView, CustomLoginView, ModeratorListView, FeatureListView, BlogListView,
     blog_detail, IncrementHabitCounterView, CompleteTaskView, privacy_policy,
     terms_of_service, ResendActivationView, RegistrationSuccessView,
     ActivateAccountView, activation_sent, FaqView, FeedbackView, BlogDetailView,
-    ThreadListView, PostListView, ForumCreateView, ForumPostDetailView, JournalEntryWithTaskView
+    ThreadListView, PostListView, ForumCreateView, JournalEntryWithTaskView
 )
 
 app_name = 'journal'
@@ -49,7 +49,9 @@ urlpatterns = [
 
     # Journal
     path('journal/entry/create/', JournalEntryCreateView.as_view(), name='new_entry'),
-    path('journal/entry/new/task/<int:task_id>/', JournalEntryWithTaskView.as_view(), name='new_entry_with_task'),
+    path('journal/entry/new/task/<uuid:task_id>/',
+         JournalEntryWithTaskView.as_view(), name='new_entry_with_task'),
+
     path('journal/list/', JournalEntryListView.as_view(),
          name='entry_list'),  # Fixed missing slash
     path('journal/entry/<int:pk>/',
@@ -79,7 +81,7 @@ urlpatterns = [
     path('todos/new/', ToDoCreateView.as_view(), name='create_todo'),
     path('todos/<int:pk>/edit/', ToDoUpdateView.as_view(), name='todo_update'),
     path('todos/<int:pk>/', ToDoDetailView.as_view(), name='todo_detail'),
-    path('generate-task/', generate_task_view, name='generate_task'),
+    path('generate-task/', TaskGenerateView.as_view(), name='generate_task'),
     path('fail-task/', fail_task_view, name='fail_task'),
     path('complete-todo/<int:todo_id>/', CompleteToDoView.as_view(), name='complete_todo'),
     path('complete-task/', CompleteTaskView.as_view(), name='complete_task'),
@@ -87,7 +89,6 @@ urlpatterns = [
     path('guide/<int:pk>/', GuideDetailView.as_view(), name='guide_detail'),
     path('resources/', ResourceListView.as_view(), name='resources'),
     path('resources/<int:pk>/', ResourceCategoryView.as_view(), name='resource_category'),
-    path('resource/<int:pk>/', ResourceDetailView.as_view(), name='resource_detail'),
     
 
     # Blog

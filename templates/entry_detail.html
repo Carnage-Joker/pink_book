@@ -12,7 +12,13 @@
         <strong>Date:</strong> {{ entry.timestamp }}
       </p>
       <p class="post-meta">
+        {% if entry.task %}
+          <strong>Task:</strong> {{ entry.task.description }}
+        {% endif %}
+      </p>
+        {% if entry.prompt_text %}
         <strong>Prompt:</strong> {{ entry.prompt_text }}
+        {% endif %}
       </p> <!-- Display the saved prompt -->
       <div class="entry-content">{{ entry.content|linebreaks }}</div>
     </div>
@@ -20,8 +26,10 @@
     <!-- Right Column - Additional Media and Back Link -->
     <div class="column card decorative-border">
       <p class="post-meta">
+        {% if entry.tags %}
         <strong>Tags:</strong> {{ entry.tags|join:', ' }}
       </p>
+      {% endif %}
       {% if entry.image %}
         <div class="profile-picture">
           <strong>Image:</strong>

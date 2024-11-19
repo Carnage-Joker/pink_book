@@ -10,18 +10,21 @@
       <h1 class="pink-title">Glam Goals</h1>
       <ul>
         {% for habit in habits %}
-          <li id="habit-{{ habit.id }}" class="habit-item">
-            <div class="progress-container">
-              <div class="progress-bar" style="inline-size: {{ habit.progress }}%;"></div>
-              <button class="update-progress-button btn btn-register" data-id="{{ habit.id }}">Update Progress</button>
-            </div>
-            <p>
-              {{ habit.name }} - Count: <span id="habit-count-{{ habit.id }}">{{ habit.increment_counter }}</span>
-            </p>
-            <button class="increment-counter-button btn btn-register" data-id="{{ habit.id }}">+1</button>
-            <div id="insight-{{ habit.id }}" class="habit-insight">{{ habit.get_insights }}</div> <!-- Insights -->
-          </li>
+<div class="habit" data-id="{{ habit.id }}">
+    <h3>{{ habit.name }} ({{ habit.frequency|capfirst }})</h3>
+    <div id="icons-{{ habit.id }}" class="icons-container">
+        {% for i in range(habit.increment_counter) %}
+            <span class="icon">❤️</span>
         {% endfor %}
+    </div>
+    <p>{{ habit.increment_counter }}/{{ habit.target_count }}</p>
+    {% if habit.is_completed %}
+        <p class="completed-message">Habit target reached for this {{ habit.frequency }}!</p>
+    {% endif %}
+    <button class="cute-btn" onclick="incrementHabit('{{ habit.id }}')">Increment</button>
+</div>
+{% endfor %}
+
       </ul>
     </div>
 
