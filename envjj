@@ -1,8 +1,0 @@
-
-SECRET_KEY='43299421-902e-4338-8598-98546daef10b'
-HUGGING_FACE_API_KEY='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'
-DEBUG=True
-ALLOWED_HOSTS='localhost,127.0.0.1,[::1]'
-EMAIL_HOST_USER='noreplyaccactivation@thepinkbook.com.au'
-EMAIL_HOST_PASSWORD = 'tz{32#CAlhQx'
-CORS_ALLOWED_ORIGINS='http://localhost:3000,http://www.thepinkbook.com.au,http://localhost:8000,http://127.0.0.1:3000'
