@@ -757,6 +757,10 @@ def generate_task_view(request):
     return JsonResponse({"error": "Invalid request method"}, status=400)
 
 
+def generate_task_truth():
+    
+
+
 @csrf_exempt
 def fail_task_view(request):
     """View to handle task failure and apply penalties."""

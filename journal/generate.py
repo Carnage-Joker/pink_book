@@ -48,19 +48,19 @@ def generate_insight(journal_entry):
     # Create the chat completion
     try:
         response = openai.ChatCompletion.create(
-            model="gpt-3.5-turbo",  # Use the appropriate model
+            model="gpt-4o",  # Use the appropriate model
             messages=[system_message, user_message],
             max_tokens=150,  # Adjust to ensure the response is concise
             temperature=0.7,
             top_p=1,
             frequency_penalty=0.7,
             presence_penalty=0.6
-        )
+        ).get("choices", [{}])[0].get("message", {}).get("content", "").strip()
     except Exception as e:
-        raise RuntimeError(f"Error generating insight: {e}")
+        raise RuntimeError(f"Error generating insight: {e}") from e
 
     # Extract the assistant's response
-    insight = response.choices[0].message['content'].strip()
+    insight = response
 
     # Ensure the insight is not too long
     max_length = 500  # Maximum character length

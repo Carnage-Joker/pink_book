@@ -83,10 +83,12 @@
         </div>
         <div class="fluffy-card games-card">
                         <h2>Stressed out girls?</h2>
-                        <p>Take a break and try on some cute outfits. You deserve it, babe!</p>
-                        <p>Or, how about a fun game of Truth or Dare? Only if you dare, Sissy! Muhahaha</p>
                         <div class="game-buttons">
-                            <a href="{% url 'journal:generate_task' %}" class="btn btn-truth">Play Truth</a>
+                        <p>Take a break and try on some cute outfits. You deserve it, babe!</p>
+                        <a href="[% url 'dressup:create_avatar' %]" class="btn btn-dressup">Play Dress-ups</a>
+                        <p>Or, how about a fun game of Truth or Dare? Only if you dare, Sissy! Muhahaha</p>
+                        
+                            <a href="{% url 'journal:generate_task_truth' %}" class="btn btn-truth">Play Truth</a>
                             <a href="{% url 'journal:generate_task' %}" class="btn btn-dare">Play Dare</a>
                         </div>
             </div>

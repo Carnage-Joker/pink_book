@@ -159,7 +159,6 @@ except Exception as e:
     print(f"Error: {e}")
 
 
-
 def get_average_sentiment(entries: QuerySet):
     """Calculate the average sentiment of queryset entries."""
     if not entries.exists():
