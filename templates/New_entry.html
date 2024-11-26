@@ -9,15 +9,13 @@
             <p>{{ generated_prompt }}</p>
         </div>
     </div>
-    <div class="column">
-        <div class="fluffy-card">
-            <h2>Write Your Entry</h2>
-    <form method="post">
-        {% csrf_token %}
-                {{ form.as_p }}
-                <button type="submit" class="btn">Submit</button>
-            </form>
-        </div>
+    <div class="fluffy-card">
+        <h2>Write Your Entry</h2>
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            {{ form.as_p }}
+            <button type="submit" class="btn">Submit</button>
+        </form>
     </div>
 </div>
 {% endblock %}
