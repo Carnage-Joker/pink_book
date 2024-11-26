@@ -1,11 +1,25 @@
-{% extends "base.html" %}
-{% block content %}
+{% extends 'base.html' %}
 {% load static %}
+{% load custom_filters %}
 
-<div class="dashboard-page">
-        {% if user.profile_picture %}
-        <div class="profile-picture">
-            <img src="{{ user.profile_picture.url }}" alt="Profile Picture">
+{% block title %}Dashboard - The Pink Book{% endblock %}
+
+{% block content %}
+    <div class="dashboard-grid">
+        <!-- Profile Picture Card -->
+        <div class="fluffy-card profile-card">
+            <div class="profile-picture">
+                {% if user.profile_picture %}
+                    <img src="{{ user.profile_picture.url }}" alt="Profile face">
+                {% else %}
+                    <img src="{% static 'journal/media/default-profile-pic.jpg' %}" alt="Profile">
+                {% endif %}
+            </div>
+            <h2>{{ user.sissy_name }}</h2>
+            <div class="profile-stats">
+                <p><strong>Level:</strong> {{ user.level }}</p>
+                <p><strong>Points:</strong> {{ user.points }}</p>
+                <p><strong>Tasks Completed:</strong> {{ user.tasks_completed }}</p>
         </div>
         </div>
         <!-- Welcome + Settings Links Card -->
