@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+{% block title %}{{ category.name }} Resources{% endblock %}
+
+{% block content %}
+<div class="container">
+  <nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+      <li class="breadcrumb-item"><a href="{% url 'journal:resource_category_list' %}">All Categories</a></li>
+      <li class="breadcrumb-item active" aria-current="page">{{ category.name }}</li>
+    </ol>
+  </nav>
+
+  <h1 class="pink-title">{{ category.name }} Resources</h1>
+  <p class="pink-description">Here are the best resources to help you shine in {{ category.name }}!</p>
+
+  {% if featured_resource %}
+    <div class="featured-resource fluffy-card">
+      <h2>Featured Resource</h2>
+      <h3>{{ featured_resource.title }}</h3>
+      <p>{{ featured_resource.description }}</p>
+      <a href="{{ featured_resource.link }}" class="btn btn-register" target="_blank">Learn More</a>
+    </div>
+  {% endif %}
+
+  {% if resources %}
+    <div class="resource-list">
+      {% for resource in resources %}
+        <div class="resource-item fluffy-card">
+          <h3>{{ resource.title }}</h3>
+          <p>{{ resource.description }}</p>
+          <a href="{{ resource.link }}" class="btn btn-link" target="_blank">Learn More</a>
+        </div>
+      {% endfor %}
+    </div>
+  {% else %}
+    <p class="no-resources">No resources found for this category. Stay tuned for updates!</p>
+  {% endif %}
+</div>
+{% endblock %}

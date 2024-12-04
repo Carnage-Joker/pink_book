@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ shop.name }}</title>
+    <link rel="stylesheet" href="{% static 'styles/shop_detail.css' %}">
+</head>
+<body>
+    <header>
+        <h1>{{ shop.name }}</h1>
+        <p>Shop Type: {{ shop.shop_type }}</p>
+        {% if shop.premium_only %}
+            <p>This shop is for premium users only.</p>
+        {% endif %}
+    </header>
+    <main>
+        <div class="items-grid">
+            {% for item in items %}
+                <div class="item">
+                    <img src="{{ item.image.url }}" alt="{{ item.name }}">
+                    <h4>{{ item.name }}</h4>
+                    <p>
+                        {% if item.price_points %} Price: {{ item.price_points }} points {% endif %}
+                        {% if item.price_dollars %} or ${{ item.price_dollars }} {% endif %}
+                    </p>
+                    {% if item.premium_only and not request.user.is_premium %}
+                        <p>This item is for premium users only.</p>
+                    {% else %}
+                        <form action="{% url 'dressup:purchase_item' item.id %}" method="post">
+                            {% csrf_token %}
+                            <button type="submit">Purchase</button>
+                        </form>
+                    {% endif %}
+                </div>
+            {% endfor %}
+        </div>
+    </main>
+</body>
+</html>

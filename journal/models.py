@@ -20,9 +20,7 @@ from django.urls import reverse
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 from django.utils.timezone import localdate
-
-from .generate import \
-    check_content_topic_with_openai  # Placeholder for AI analysis function
+from .generate import check_content_topic_with_openai  # Placeholder for AI analysis function
 from .utils.ai_utils import get_sentiment
 
 LEVEL_UP_THRESHOLD = 100
@@ -116,7 +114,7 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
     collective_insight = models.CharField(
         _('collective insight'), max_length=1000, null=True, blank=True)
     is_staff = models.BooleanField(_('staff status'), default=False)
-    is_active = models.BooleanField(default=False)
+    is_active = models.BooleanField(default=True)
     is_moderator = models.BooleanField(default=False)
     SUB_TIERS = (
         ('free', _('Free')),
@@ -128,17 +126,7 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
     subscription_tier = models.CharField(
         max_length=50, default='free', choices=SUB_TIERS
     )
-    is_subscriber = models.BooleanField(default=False)
-    avatar_body = models.CharField(
-        max_length=255, default="/static/virtual_try_on/avatars/body/light/hourglass.png")
-    avatar_hair = models.CharField(
-        max_length=255, default="/static/virtual_try_on/avatars/hair/long_straight/blonde.png")
-    avatar_top = models.CharField(
-        max_length=255, default="/static/virtual_try_on/garmets/tops/1.png")
-    avatar_bottom = models.CharField(
-        max_length=255, default="/static/virtual_try_on/garmets/skirts/1.png")
-    avatar_shoes = models.CharField(
-        max_length=255, default="/static/virtual_try_on/garmets/shoes/1.png")
+    
     groups = models.ManyToManyField(Group, related_name='customuser_groups')
     user_permissions = models.ManyToManyField(
         Permission, related_name='customuser_permissions')
@@ -186,6 +174,11 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
     def lock_content(self, content_name):
         self.locked_content[content_name] = True
         self.save()
+        
+    def unlock_content(self, content_name):
+        if content_name in self.locked_content:
+            del self.locked_content[content_name]
+            self.save()
 
     def is_premium(self):
         return self.subscription_tier in ['premium', 'moderator', 'admin']
@@ -230,7 +223,7 @@ PENALTY_CHOICES = [
     ('points_loss', 'Lose Points'),
     ('none', 'None')
 ]
-
+logger = logging.getLogger(__name__)
 
 User = get_user_model()
 CATEGORY_CHOICES = [
@@ -270,7 +263,7 @@ class Habit(models.Model):
     frequency = models.CharField(
         max_length=10, choices=FREQUENCY_CHOICES, default='daily')
     increment_counter = models.PositiveIntegerField(default=0)
-    last_reset = models.DateField(blank=True, null=True)
+    last_reset_date = models.DateField(blank=True, null=True)
     longest_streak_days = models.PositiveIntegerField(default=0)
 
     class Meta:
@@ -278,7 +271,7 @@ class Habit(models.Model):
 
     def __str__(self):
         return self.name
-
+  
     def is_completed(self):
         """Check if the habit has reached its target count for the current period."""
         return self.increment_counter >= self.target_count
@@ -286,8 +279,8 @@ class Habit(models.Model):
     def reset_counter(self):
         """Reset the counter based on the habit's frequency."""
         self.increment_counter = 0
-        self.last_reset = timezone.now().date()
-        self.save(update_fields=['increment_counter', 'last_reset'])
+        self.last_reset_date = timezone.now().date()
+        self.save(update_fields=['increment_counter', 'last_reset_date'])
 
     def get_current_streak(self):
         # Implement logic to calculate current streak
@@ -298,38 +291,44 @@ class Habit(models.Model):
         return self.longest_streak_days
 
     def check_reset_needed(self):
-        if self.last_reset is None:
+        if self.last_reset_date is None:
             return True
         if self.frequency == 'daily':
-            return self.last_reset < timezone.now().date()
+            return self.last_reset_date < timezone.now().date()
         elif self.frequency == 'weekly':
-            return self.last_reset < timezone.now().date() - timedelta(days=7)
+            return self.last_reset_date < timezone.now().date() - timedelta(days=7)
         elif self.frequency == 'monthly':
-            return self.last_reset.month != timezone.now().month
+            return self.last_reset_date.month != timezone.now().month
         elif self.frequency == 'yearly':
-            return self.last_reset.year != timezone.now().year
+            return self.last_reset_date.year != timezone.now().year
 
     @transaction.atomic
     def increment_count(self):
-        self.check_reset_needed()
-        self.increment_counter = F('increment_counter') + 1
-        self.last_reset_date = timezone.now().date()
-        self.save(update_fields=['increment_counter', 'last_reset_date'])
-        self.refresh_from_db(fields=['increment_counter'])
-        self.update_streaks()
+        try:
+            if self.check_reset_needed():
+                self.reset_counter()
+
+            # Update increment counter atomically
+            self.increment_counter = F('increment_counter') + 1
+            self.last_reset_date = timezone.now().date()
+            self.save(update_fields=['increment_counter', 'last_reset_date'])
+            self.refresh_from_db(fields=['increment_counter'])
+
+            self.update_streaks()
+        except Exception as e:
+            logger.error(f"Error incrementing habit: {e}")
+            raise
 
     def update_streaks(self):
         current_streak = self.get_current_streak()
         if current_streak > self.longest_streak_days:
             self.longest_streak_days = current_streak
             self.save(update_fields=['longest_streak_days'])
-            self.longest_streak_days = current_streak
-            self.save(update_fields=['longest_streak_days'])
 
     def get_insights(self):
         if self.increment_counter == 0:
             return "You haven't started this habit yet."
-        elif self.increment_counter > Value(10):
+        elif self.increment_counter > 10:  # Fix: Removed Value
             return f"Great job! You've hit {self.increment_counter} in {self.name}. Keep it up!"
         else:
             return "You're making progress, but there’s room to improve. Try to be more consistent."
@@ -419,22 +418,6 @@ class Answer(models.Model):
     related_models = GenericRelation(RelatedModel)
 
 
-class Resource(models.Model):
-    title = models.CharField(max_length=200)
-    description = models.TextField()
-    link = models.URLField()
-    timestamp = models.DateTimeField(auto_now_add=True)
-    allow_comments = models.BooleanField(default=True)
-    category = models.CharField(max_length=50, choices=[  # Add more categories as needed
-        ('fashion', 'Fashion'),
-        ('beauty', 'Beauty'),
-        ('health', 'Health'),
-        ('fitness', 'Fitness'),
-        ('lifestyle', 'Lifestyle'),
-        ('other', 'Other')
-    ], default='other')
-
-
 class BlogPost(models.Model):
     title = models.CharField(max_length=200)
     content = models.TextField()
@@ -442,11 +425,26 @@ class BlogPost(models.Model):
     timestamp = models.DateTimeField(auto_now_add=True)
     published = models.BooleanField(default=False)
     comments = GenericRelation('Comment', related_query_name='blog_comments')
+    
+
+class Resource(models.Model):
+    title = models.CharField(max_length=200)
+    description = models.TextField()
+    link = models.URLField()
+    timestamp = models.DateTimeField(auto_now_add=True)
+    featured = models.BooleanField(default=False)
 
 
 class ResourceCategory(models.Model):
-    name = models.CharField(max_length=100)
+    name = models.CharField(max_length=100, unique=True)
     resources = models.ManyToManyField(Resource, related_name='categories')
+
+    def __str__(self):
+        return self.name
+
+    def get_featured_resource(self):
+        """Returns the latest featured resource for the category."""
+        return self.resources.filter(featured=True).order_by('-timestamp').first()
 
 
 class ResourceComment(models.Model):
@@ -455,15 +453,22 @@ class ResourceComment(models.Model):
     resource = models.ForeignKey(Resource, on_delete=models.CASCADE)
     timestamp = models.DateTimeField(auto_now_add=True)
 
-# Contact Model (assuming you need one)
+    class Meta:
+        ordering = ['-timestamp']
 
 
 class Contact(models.Model):
-    name = models.CharField(max_length=100)
+    name = models.CharField(max_length=150)
     email = models.EmailField()
+    subject = models.CharField(max_length=200)
     message = models.TextField()
     timestamp = models.DateTimeField(auto_now_add=True)
 
+    def __str__(self):
+        return f"{self.name} - {self.subject} ({self.timestamp:%Y-%m-%d})"
+
+    class Meta:
+        ordering = ['-timestamp']
 # Moderator Model
 
 
@@ -488,10 +493,6 @@ class Task(models.Model):
 
 
 logger = logging.getLogger(__name__)  # Configuring logger for the module
-
-
-# Set up logging
-logger = logging.getLogger(__name__)
 
 
 class JournalEntry(models.Model):

@@ -13,11 +13,22 @@
   </div>
 
   <div class="logreg-section decorative-border">
-    <form class="logreg-form" method="post">
-      {% csrf_token %}
-      {{ form.as_p }}
-      <button type="submit" class="btn btn-login">Login</button>
-    </form>
+    <h2>Login to Your Account</h2>
+      <form class="logreg-form" method="post">
+    {% csrf_token %}
+    {{ form.non_field_errors }}
+    <div>
+        {{ form.sissy_name.label_tag }}
+        {{ form.sissy_name }}
+        {{ form.sissy_name.errors }}
+    </div>
+    <div>
+        {{ form.password.label_tag }}
+        {{ form.password }}
+        {{ form.password.errors }}
+    </div>
+    <button type="submit">Login</button>
+</form>
     <p>
       <a href="{% url 'journal:password_reset' %}" class="btn btn-register">Forgot Password?</a>
     </p>

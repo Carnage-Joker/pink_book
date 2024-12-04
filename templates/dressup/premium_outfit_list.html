@@ -1,22 +1,20 @@
-{% extends "base.html" %}
+<!-- templates/dressup/premium_outfit_list.html -->
+{% extends 'base.html' %}
 {% load static %}
-
 {% block content %}
-<div class="container premium-outfit-list-container">
-    <h1 class="title">Premium Outfits</h1>
-    <div class="item-grid">
-        {% for item in premium_outfits %}
-            <div class="premium-item">
-                <img src="{{ item.image.url }}" alt="{{ item.name }}">
-                <h3>{{ item.name }}</h3>
-                <p class="premium-label">Premium Exclusive</p>
-                <button class="btn btn-premium" onclick="window.location.href='{% url 'subscribe' %}'">Get Premium to Unlock</button>
-            </div>
-        {% endfor %}
-    </div>
-    <div class="cta">
-        <p>Subscribe to unlock access to all the fabulous premium outfits and exclusive locations.</p>
-        <a href="{% url 'subscribe' %}" class="btn btn-premium">Go Premium</a>
-    </div>
-</div>
+  <div class="outfit-list">
+    <h1>Premium Outfits</h1>
+    <ul>
+      {% for outfit in outfits %}
+        <li>
+          <a href="{% url 'premium_outfit_detail' outfit.pk %}">
+            <img src="{{ outfit.get_image_url }}" alt="{{ outfit.name }}" />
+            <h2>{{ outfit.name }}</h2>
+            <p>{{ outfit.description }}</p>
+            <span>${{ outfit.price }}</span>
+          </a>
+        </li>
+      {% endfor %}
+    </ul>
+  </div>
 {% endblock %}

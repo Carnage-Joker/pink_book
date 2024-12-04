@@ -69,13 +69,18 @@
             <span class="icon">❤️</span>
         {% endfor %}
     </div>
-    <p>{{ habit.increment_counter }}/{{ habit.target_count }}</p>
+    <p>
+        <span id="habit-count-{{ habit.id }}">{{ habit.increment_counter }}</span>/
+        {{ habit.target_count }}
+    </p>
     {% if habit.is_completed %}
         <p class="completed-message">Habit target reached for this {{ habit.frequency }}!</p>
     {% endif %}
+    <p id="insight-{{ habit.id }}" class="habit-insight"></p>
     <button class="cute-btn" onclick="incrementHabit('{{ habit.id }}')">Increment</button>
 </div>
 {% endfor %}
+
 
 
             </ul>
@@ -85,7 +90,7 @@
                         <h2>Stressed out girls?</h2>
                         <div class="game-buttons">
                         <p>Take a break and try on some cute outfits. You deserve it, babe!</p>
-                        <a href="[% url 'dressup:create_avatar' %]" class="btn btn-dressup">Play Dress-ups</a>
+                        <a href="{% url 'dressup:create_avatar' %}" class="btn btn-dressup">Play Dress-ups</a>
                         <p>Or, how about a fun game of Truth or Dare? Only if you dare, Sissy! Muhahaha</p>
                         
                             <a href="{% url 'journal:generate_task_truth' %}" class="btn btn-truth">Play Truth</a>

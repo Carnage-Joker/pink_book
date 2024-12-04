@@ -1,3 +1,6 @@
+from django.contrib.auth import get_user_model
+from django.contrib.auth.forms import AuthenticationForm
+from django.contrib.auth import authenticate
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Layout, Submit
 from django import forms
@@ -28,13 +31,13 @@ class HabitForm(forms.ModelForm):
 
 class PostForm(forms.ModelForm):
     thread = forms.ChoiceField(
-        choices=[('general', 'General'), ('hair_makeup', 'Hair & Makeup'),('fashion', 'Fashion Advice'), ('chastity', 'Chastity Chats'), ('fitness', 'Fitness and lifestyle'), ('NSFW', 'NSFW Stories'), ('other', 'Other')],
+        choices=[('general', 'General'), ('hair_makeup', 'Hair & Makeup'), ('fashion', 'Fashion Advice'), ('chastity', 'Chastity Chats'), ('fitness', 'Fitness and lifestyle'), ('NSFW', 'NSFW Stories'), ('other', 'Other')],
         required=True
     )
     tags = forms.ModelMultipleChoiceField(
         queryset=Tag.objects.all(),
         widget=forms.CheckboxSelectMultiple,
-        required=False)  
+        required=False)
 
     class Meta:
         model = Post
@@ -106,20 +109,49 @@ class ToDoForm(forms.ModelForm):
         }
 
 
+UserModel = get_user_model()
+
+
 class CustomUserLoginForm(AuthenticationForm):
-    username = forms.CharField(
+    sissy_name = forms.CharField(
         label="Sissy Name",
         widget=forms.TextInput(
-            attrs={'autofocus': True, 'autocomplete': 'username'})
+            attrs={'autofocus': True, 'autocomplete': 'username'}),
     )
     password = forms.CharField(
         label="Password",
         strip=False,
-        widget=forms.PasswordInput(attrs={'autocomplete': 'current-password'})
+        widget=forms.PasswordInput(attrs={'autocomplete': 'current-password'}),
     )
 
+    # Remove the default 'username' field
     def __init__(self, request=None, *args, **kwargs):
         super().__init__(request, *args, **kwargs)
+        self.fields.pop('username')  # Remove the 'username' field
+        self.error_messages['invalid_login'] = (
+            "Please enter a correct sissy name and password. "
+            "Note that both fields may be case-sensitive."
+        )
+
+
+    def clean(self):
+        sissy_name = self.cleaned_data.get('sissy_name')
+        password = self.cleaned_data.get('password')
+
+        if sissy_name and password:
+            self.user_cache = authenticate(
+                self.request, sissy_name=sissy_name, password=password)
+
+            if self.user_cache is None:
+                raise forms.ValidationError(
+                    self.error_messages['invalid_login'],
+                    code='invalid_login',
+                    params={'sissy_name': self.fields['sissy_name'].label},
+                )
+            else:
+                self.confirm_login_allowed(self.user_cache)
+
+        return self.cleaned_data
 
 
 class ResendActivationForm(forms.Form):

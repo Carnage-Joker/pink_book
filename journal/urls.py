@@ -6,7 +6,7 @@ from .views import (
     JournalEntryCreateView, JournalEntryUpdateView, JournalEntryDeleteView,
     JournalEntryListView, CustomLogoutView, ProfileUpdateView, ProfileView,
     ProfileSettingsView, ProfileCustomizeView, RegisterView,
-    ResourceCategoryView, ResourceListView, ToDoCreateView,
+    ResourceCategoryListView, ResourceCategoryDetailView, ToDoCreateView,
     ToDoDetailView, ToDoListView, ToDoUpdateView, AboutView, TaskGenerateView,
     fail_task_view, PasswordResetDoneView, PasswordResetView, CompleteToDoView,
     GuideDetailView, ActivityLogListView, BillingView, qna_list, qna_detail,
@@ -14,7 +14,8 @@ from .views import (
     blog_detail, IncrementHabitCounterView, CompleteTaskView, privacy_policy,
     terms_of_service, ResendActivationView, RegistrationSuccessView,
     ActivateAccountView, activation_sent, FaqView, FeedbackView, BlogDetailView,
-    ThreadListView, PostListView, ForumCreateView, JournalEntryWithTaskView
+    ThreadListView, PostListView, ForumCreateView, JournalEntryWithTaskView,
+    TruthTaskGenerateView, some_error_page
 )
 
 app_name = 'journal'
@@ -36,7 +37,7 @@ urlpatterns = [
          name='registration_success'),
     path('activation_sent/', activation_sent, name='activation_sent'),
     path('activate/<uidb64>/<token>/',
-         ActivateAccountView.as_view(), name='activate_account'),
+         ActivateAccountView.as_view(), name='activate'),
 
     # Dashboard & Profile
     path('dashboard/', DashboardView.as_view(), name='dashboard'),
@@ -82,15 +83,16 @@ urlpatterns = [
     path('todos/<int:pk>/edit/', ToDoUpdateView.as_view(), name='todo_update'),
     path('todos/<int:pk>/', ToDoDetailView.as_view(), name='todo_detail'),
     path('generate-task/', TaskGenerateView.as_view(), name='generate_task'),
+    path('generate-task-truth/', TruthTaskGenerateView.as_view(), name='generate_task_truth'),
     path('fail-task/', fail_task_view, name='fail_task'),
     path('complete-todo/<int:todo_id>/', CompleteToDoView.as_view(), name='complete_todo'),
     path('complete-task/', CompleteTaskView.as_view(), name='complete_task'),
 
     path('guide/<int:pk>/', GuideDetailView.as_view(), name='guide_detail'),
-    path('resources/', ResourceListView.as_view(), name='resources'),
-    path('resources/<int:pk>/', ResourceCategoryView.as_view(), name='resource_category'),
-    
-
+    path('resource_category_list/', ResourceCategoryListView.as_view(),
+         name='resource_category_list'),
+    path("resources/<int:pk>/", ResourceCategoryDetailView.as_view(),
+         name="resource_category_detail"),
     # Blog
     path('blog/', BlogListView.as_view(), name='blog_list'),
     path('blog/<int:pk>/', BlogDetailView.as_view(), name='blog_detail'),
@@ -98,6 +100,7 @@ urlpatterns = [
     # Contact and FAQ
 
     path('contact/', ContactView.as_view(), name='contact'),
+
     path('qna/', qna_list, name='qna_list'),
     path('qna/<int:pk>/', qna_detail, name='qna_detail'),
 
@@ -108,4 +111,5 @@ urlpatterns = [
     path('privacy-policy/', privacy_policy, name='privacy_policy'),
     path('terms-of-service/', terms_of_service, name='terms_of_service'),
     path('feedback/', FeedbackView.as_view(), name='feedback'),
+    path('error/', some_error_page, name='some_error_page'),
 ]

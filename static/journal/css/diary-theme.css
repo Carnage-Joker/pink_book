@@ -440,3 +440,11 @@ button:focus {
         grid-column: span 1;
     }
 }
+
+.icon {
+    transition: transform 0.3s ease;
+}
+
+.icon.updated {
+    transform: scale(1.3);
+}

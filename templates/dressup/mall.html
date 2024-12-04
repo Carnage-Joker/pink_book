@@ -1,21 +1,27 @@
-{% extends "base.html" %}
+<!-- dressup/templates/dressup/mall.html -->
+
+{% extends 'base.html' %}
+{% load static %}
+
 {% block content %}
 <div class="container">
-    <h1 class="text-center">Sissy Mall - Choose Your Photoshoot Location</h1>
-    <div class="location-gallery">
-        {% for location in locations %}
-            <div class="location-card">
-                <img src="{{ location.image.url }}" alt="{{ location.name }}">
-                <h2>{{ location.name }}</h2>
-                <p>{{ location.description }}</p>
-                {% if location.is_premium and user.billing.subscription_status != 'premium' %}
-                    <button class="btn btn-premium">Premium Only</button>
-                {% else %}
-                    <form method="post" action="{% url 'mall' location.id %}">
-                        {% csrf_token %}
-                        <button type="submit" class="btn btn-register">Select Location</button>
-                    </form>
-                {% endif %}
+    <h2>Welcome to the Mall, {{ request.user.sissy_name }}!</h2>
+    <div class="avatar-display">
+        <img src="{% static 'avatars/body/'|add:avatar.body|add:'.png' %}" alt="Body">
+        <img src="{% static 'avatars/hair/'|add:avatar.hair|add:'.png' %}" alt="Hair">
+        {% for item in avatar.equipped_items.all %}
+            <img src="{{ item.image.url }}" alt="{{ item.name }}" class="{{ item.category }}">
+        {% endfor %}
+    </div>
+    <h3>Shops</h3>
+    <div class="shops">
+        {% for shop in shops %}
+            <div class="shop">
+                <a href="{% url 'shop_detail' shop.id %}">
+                    <!-- Assuming each shop has an image field -->
+                    <img src="{{ shop.image.url }}" alt="{{ shop.name }}">
+                    <h4>{{ shop.name }}</h4>
+                </a>
             </div>
         {% endfor %}
     </div>

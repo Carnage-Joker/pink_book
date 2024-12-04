@@ -1,5 +1,5 @@
 # utils.py
-from .models import FavoriteOutfit, ClothingItem
+from .models import ClothingItem, Avatar
 from django.contrib.auth import get_user_model
 
 
@@ -9,11 +9,13 @@ def get_default_user():
 
 
 def add_clothing_to_favorites(user, clothing_item):
-    favorite_outfit, created = FavoriteOutfit.objects.get_or_create(
-        user=user, outfit_name='Favorite Outfit')
-    favorite_outfit.clothing_items.add(clothing_item)
-    favorite_outfit.save()
+    
 
 
 def get_premium_items():
     return ClothingItem.objects.filter(is_premium=True)
+
+
+def create_avatar_for_user(user):
+    avatar, created = Avatar.objects.get_or_create(user=user)
+    return avatar, created

@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<div class="container upload-clothing-container">
+    <h1 class="title">Upload Your Clothing Item</h1>
+    <form method="post" enctype="multipart/form-data">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <button type="submit" class="btn btn-register">Upload</button>
+    </form>
+    <p class="cta">Once uploaded, your clothing item will be reviewed before it becomes available in the Sissy Mall.</p>
+</div>
+{% endblock %}

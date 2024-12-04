@@ -5,31 +5,35 @@
 {% block content %}
 <div class="two-columns">
     <!-- Left Column - Sissies Say Content -->
-    <div class="fluffy-card">
+    <div class="left-column">
         <h1 class="pink-title">Sissies Say</h1>
         <p class="pink-description">From one sissy to another...</p>
         {% for post in blog_posts %}
-        <div class="blog-post card-inner">
-            <h2>{{ post.title }}</h2>
-            <p>{{ post.content|truncatewords:50 }}</p>
-            <a href="{% url 'journal:blog_detail' post.id %}" class="btn btn-read-more">Read more</a>
-            <p class="published-date">{{ post.timestamp|date:'F j, Y' }}</p>
+        <div class="fluffy-card">
+            <div class="blog-post card-inner">
+                <h2>{{ post.title }}</h2>
+                <p>{{ post.content|truncatewords:50 }}</p>
+                <a href="{% url 'journal:blog_detail' post.id %}" class="btn btn-read-more">Read more</a>
+                <p class="published-date">{{ post.timestamp|date:'F j, Y' }}</p>
+            </div>
         </div>
         {% endfor %}
     </div>
 
     <!-- Right Column - Latest Posts -->
-    <div class="fluffy-card">
-        <h2>Latest Posts</h2>
-        <ul class="latest-posts">
-            {% for post in latest_posts %}
-            <li>
-                <a href="{% url 'journal:blog_detail' post.id %}">{{ post.title }}</a>
-            </li>
-            {% endfor %}
-        </ul>
-        <h2>Join the Conversation</h2>
-        <p>Share your experiences and connect with other sissies in our community. Your voice matters, and we're here to listen!</p>
+    <div class="container">
+        <div class="fluffy-card">
+            <h2>Latest Posts</h2>
+            <ul class="latest-posts">
+                {% for post in latest_posts %}
+                <li>
+                    <a href="{% url 'journal:blog_detail' post.id %}">{{ post.title }}</a>
+                </li>
+                {% endfor %}
+            </ul>
+            <h2>Join the Conversation</h2>
+            <p>Share your experiences and connect with other community members. Your voice matters, and we're here to listen!</p>
+        </div>
     </div>
 </div>
 {% endblock %}

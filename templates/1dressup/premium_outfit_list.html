@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block content %}
+<div class="container premium-outfit-list-container">
+    <h1 class="title">Premium Outfits</h1>
+    <div class="item-grid">
+        {% for item in premium_outfits %}
+            <div class="premium-item">
+                <img src="{{ item.image.url }}" alt="{{ item.name }}">
+                <h3>{{ item.name }}</h3>
+                <p class="premium-label">Premium Exclusive</p>
+                <button class="btn btn-premium" onclick="window.location.href='{% url 'subscribe' %}'">Get Premium to Unlock</button>
+            </div>
+        {% endfor %}
+    </div>
+    <div class="cta">
+        <p>Subscribe to unlock access to all the fabulous premium outfits and exclusive locations.</p>
+        <a href="{% url 'subscribe' %}" class="btn btn-premium">Go Premium</a>
+    </div>
+</div>
+{% endblock %}

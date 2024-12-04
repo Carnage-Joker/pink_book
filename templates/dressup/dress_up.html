@@ -1,26 +1,72 @@
+<!-- templates/dressup/dress_up.html -->
+
 {% extends 'base.html' %}
 {% load static %}
-
-{% block title %}Dress Up Your Avatar{% endblock %}
-
-
 {% block content %}
-<div class="avatar-dress-up">
-    <h1>Dress Up Your Avatar</h1>
+<h1>Dress Up Your Avatar</h1>
+
+<form method="POST" enctype="multipart/form-data">
+    {% csrf_token %}
     <div id="avatar-canvas">
-        <img src="{% static 'avatars/' %}{{ avatar.body }}.png" id="body" alt=body>
-        <img src="{% static 'avatars/' %}{{ avatar.top }}.png" id="top" alt=top>
-        <img src="{% static 'avatars/' %}{{ avatar.bottom }}.png" id="bottom" alt=bottom>
-        <img src="{% static 'avatars/' %}{{ avatar.shoes }}.png" id="shoes" alt=shoes>
-        <img src="{% static 'avatars/' %}{{ avatar.accessories }}.png" id="accessories" alt=accessories>
+        {% if avatar.body %}
+            <img src="{{ avatar.body.url }}" id="avatar-body" alt="avatar body">
+        {% else %}
+            <img src="{% static 'dressup/avatars/body/light/hourglass.png' %}" id="avatar-body" alt="default avatar body">
+        {% endif %}
+
+        {% if avatar.hair %}
+            <img src="{{ avatar.hair.url }}" id="avatar-hair" alt="avatar hair">
+        {% else %}
+            <img src="{% static 'dressup/avatars/hair/long_straight/blonde.png' %}" id="avatar-hair" alt="default avatar hair">
+        {% endif %}
+
+        {% if avatar.top %}
+            <img src="{{ avatar.top.url }}" id="avatar-top" alt="avatar top">
+        {% else %}
+            <img src="{% static 'dressup/garmets/tops/default.png' %}" id="avatar-top" alt="default avatar top">
+        {% endif %}
+
+        {% if avatar.bottom %}
+            <img src="{{ avatar.bottom.url }}" id="avatar-bottom" alt="avatar bottom">
+        {% else %}
+            <img src="{% static 'dressup/garmets/skirts/default.png' %}" id="avatar-bottom" alt="default avatar bottom">
+        {% endif %}
+
+        {% if avatar.shoes %}
+            <img src="{{ avatar.shoes.url }}" id="avatar-shoes" alt="avatar shoes">
+        {% else %}
+            <img src="{% static 'dressup/garmets/shoes/default.png' %}" id="avatar-shoes" alt="default avatar shoes">
+        {% endif %}
+
+        {% if avatar.accessories %}
+            <img src="{{ avatar.accessories.url }}" id="avatar-accessories" alt="avatar accessories">
+        {% else %}
+            <img src="{% static 'dressup/garmets/accessories/default.png' %}" id="avatar-accessories" alt="default avatar accessories">
+        {% endif %}
     </div>
-    <div class="item-selection">
-        {% for item in items %}
-        <div class="item" data-category="{{ item.category }}" data-name="{{ item.name }}">
-            <img src="{{ item.image.url }}" alt="{{ item.name }}">
-            <p>{{ item.name }}</p>
+
+    <div id="clothing-selection">
+        <!-- Example for Top Selection -->
+        <div class="clothing-item" id="top-selection">
+            <button type="button" class="prev-arrow" onclick="changeItem('top', 'prev')">&lt;</button>
+            <img src="{% static 'dressup/garmets/tops/default.png' %}" data-image-src="{% static 'dressup/garmets/tops/default.png' %}" id="top-item" class="draggable" alt="top">
+            <button type="button" class="next-arrow" onclick="changeItem('top', 'next')">&gt;</button>
         </div>
-        {% endfor %}
+        <!-- Repeat similar blocks for dresses, skirts, shoes, accessories -->
     </div>
-</div>
+
+    <!-- Hidden Inputs to Store Selected Items -->
+    <input type="hidden" name="body" id="body-input" value="{{ avatar.body.url if avatar.body else '' }}">
+    <input type="hidden" name="hair" id="hair-input" value="{{ avatar.hair.url if avatar.hair else '' }}">
+    <input type="hidden" name="top" id="top-input" value="{{ avatar.top.url if avatar.top else '' }}">
+    <input type="hidden" name="bottom" id="bottom-input" value="{{ avatar.bottom.url if avatar.bottom else '' }}">
+    <input type="hidden" name="shoes" id="shoes-input" value="{{ avatar.shoes.url if avatar.shoes else '' }}">
+    <input type="hidden" name="accessories" id="accessories-input" value="{{ avatar.accessories.url if avatar.accessories else '' }}">
+
+    <button type="submit" id="save-outfit">Save Outfit</button>
+</form>
+{% endblock %}
+
+{% block scripts %}
+<script src="{% static 'dressup/scripts.js' %}"></script>
 {% endblock %}

@@ -71,21 +71,67 @@ def generate_task(user):
 def calculate_penalty(points):
     return -(points * 2)
 
+def generate_task_truth(user):
+    truth_tasks = [
+        {"description":
+            "Confess your most embarrassing secret as a sissy. Write about how it felt to admit it (use the Task tag to collect points!).", "points": 15},
+        {"description":
+            "Write a journal entry about the moment you felt the most vulnerable in your sissy journey. Share why it impacted you so deeply (Task tag required).", "points": 12},
+        {"description": "Reflect on a time when you struggled to accept yourself. What helped you overcome it? Write your story in your journal.", "points": 10},
+        {"description": "Describe your ultimate dream of sissy life. Be as detailed and imaginative as possible. Don’t hold back!", "points": 20},
+        {"description": "Admit to a time when you hesitated or faltered in your submission. Why did it happen, and what did you learn?", "points": 10},
+        {"description": "Write about a moment when you felt the most proud of your sissy progress. What made it so special?", "points": 8},
+        {"description":
+            "Share a confession about something you’ve been too shy to admit, even to yourself. Write it in your journal (use the Task tag!).", "points": 18},
+        {"description": "Reveal the most daring thought or fantasy you've ever had about your sissy identity. Be brave and write it down.", "points": 15},
+        {"description": "What’s your biggest fear about being a sissy? Write a journal entry exploring this fear and how you might overcome it.", "points": 12},
+        {"description": "Detail the most fulfilling moment you've experienced as a sissy. Why did it mean so much to you?", "points": 10},
+        {"description": "Write about a time when you felt judged for your sissy nature. How did you cope, and what would you do differently now?", "points": 12},
+        {"description": "Confess your deepest desire for self-improvement as a sissy. What steps will you take to achieve it?", "points": 10},
+        {"description": "Be brutally honest: What’s one aspect of sissyhood that you still struggle with? Reflect on why and how you can grow.", "points": 15},
+        {"description": "Describe your happiest memory related to your sissy identity. What made it so joyous, and how can you recreate it?", "points": 10},
+        {"description": "Admit something you’ve never told anyone about your sissy journey. Write it down and reflect on how it feels to share.", "points": 20},
+        {"description": "Reveal a moment when you felt conflicted about your desires. What caused the conflict, and how did you resolve it?", "points": 12},
+        {"description": "Write a letter to your younger self about your sissy journey. What would you say to comfort or encourage them?", "points": 15},
+        {"description": "Confess your guilty pleasure as a sissy. Why does it make you feel guilty, and how can you embrace it instead?", "points": 8},
+        {"description": "Be honest about a time when you felt jealous of another sissy. What triggered it, and how can you use that to inspire growth?", "points": 10},
+        {"description": "Reflect on the first time you felt like a true sissy. What were you doing, and how did it change your perspective?", "points": 15},
+        {"description": "Share your most empowering moment as a sissy. How did it impact your confidence and outlook?", "points": 12},
+        {"description": "Write about a time when your sissy identity helped you connect with someone in a meaningful way. How did it feel?", "points": 10},
+        {"description": "Confess the wildest sissy goal you’ve ever considered. What’s holding you back from pursuing it?", "points": 18},
+        {"description":
+            "Be honest about what makes you feel the most beautiful as a sissy. Share your thoughts in a journal entry (use the Task tag!).", "points": 8},
+        {"description": "Reveal the most vulnerable thing you’ve ever done as a sissy. How did it shape your journey?", "points": 15},
+        {"description": "Reflect on a compliment you've received about your sissy journey. What was said, and why did it stand out to you?", "points": 8},
+        {"description": "Admit a time when you felt conflicted about sharing your sissy side. How did you navigate the situation?", "points": 12},
+        {"description": "Write about your ultimate sissy role model. What about them inspires you, and how can you embody those traits?", "points": 10},
+        {"description": "Confess a secret desire related to your sissy identity. Be bold and put it into words!", "points": 20},
+    ]
+
+    truth_task_data = random.choice(truth_tasks)
+    
+    return Task.objects.create(
+        user=user,
+        description=truth_task_data["description"],
+        points_awarded=truth_task_data["points"],
+        # Example: Penalty is half the points awarded
+        points_penalty=calculate_penalty(truth_task_data["points"]),
+
+    )
+
 
 def send_activation_email(user, request):
-    token = default_token_generator.make_token(user)
-    uid = urlsafe_base64_encode(force_bytes(user.pk))
-    activation_link = request.build_absolute_uri(
-        reverse('journal:activate_account',
-                kwargs={'uidb64': uid, 'token': token})
-    )
+    current_site = get_current_site(request)
     subject = 'Activate Your Account'
     message = render_to_string('activation_email.html', {
         'user': user,
-        'activation_link': activation_link,
+        'domain': current_site.domain,
+        'protocol': 'https' if request.is_secure() else 'http',
+        'uidb64': urlsafe_base64_encode(force_bytes(user.id)),
+        'token': default_token_generator.make_token(user),
     })
-    send_mail(subject, message,
-              'noreplyaccactivation@thepinkbook.com.au', [user.email])
+    to_email = user.email
+    send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, [to_email])
 
 
 def fail_task(user):

@@ -91,6 +91,7 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 /**
+/**
  * Increment the habit counter via AJAX.
  * @param {number} habitId - The ID of the habit to increment.
  */
@@ -102,12 +103,35 @@ function incrementHabit(habitId) {
         .then(handleFetchError)
         .then(data => {
             if (data.status === 'success') {
+                // Update the counter
                 const habitCountElement = document.getElementById(`habit-count-${habitId}`);
+                if (habitCountElement) {
+                    habitCountElement.textContent = data.new_count; // Update count dynamically
+                }
+
+                // Update the icons (hearts)
+                const iconsContainer = document.getElementById(`icons-${habitId}`);
+                if (iconsContainer) {
+                    // Clear existing hearts and add new ones
+                    iconsContainer.innerHTML = '';
+                    for (let i = 0; i < data.new_count; i++) {
+                        const heartIcon = document.createElement('span');
+                        heartIcon.className = 'icon';
+                        heartIcon.textContent = '❤️';
+                        iconsContainer.appendChild(heartIcon);
+                    }
+                }
+
+                // Update the insights (if available)
                 const insightElement = document.getElementById(`insight-${habitId}`);
-                if (habitCountElement) habitCountElement.textContent = data.new_count;
-                if (insightElement) insightElement.textContent = data.insight || '';
+                if (insightElement) {
+                    insightElement.textContent = data.insight || ''; // Update insight text dynamically
+                }
+
+                // Show success toast
                 showToast('Habit counter incremented!', 'success');
             } else {
+                // Handle failure case
                 showToast(data.message || 'Failed to increment habit counter.', 'error');
             }
         })
@@ -221,3 +245,13 @@ function completeTodoItem(todoId) {
             showToast(error.message || 'Error completing To-Do item.', 'error');
         });
 }
+
+
+fetch('/path/to/customize-avatar/', {
+    method: 'POST',
+    headers: {
+        'X-CSRFToken': csrftoken,  // Add CSRF token
+        'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(data)
+});

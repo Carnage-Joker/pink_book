@@ -1,13 +1,179 @@
-{% extends "base.html" %}
+<!-- dressup/templates/dressup/create_avatar.html -->
+
+{% extends 'base.html' %}
+{% load static %}
+{% load custom_filters %}  <!-- Ensure custom_filters is loaded if using the replace filter -->
+
 {% block content %}
-<div class="container">
-    <h1 class="text-center">Create Your Sissy Avatar</h1>
-    <div class="avatar-section">
-        <form method="post" enctype="multipart/form-data">
-            {% csrf_token %}
-            <input type="file" name="avatar_image" class="btn btn-upload">
-            <button type="submit" class="btn btn-register">Create Avatar</button>
-        </form>
+<div class="container mt-4">
+    <h2>Create Your Avatar</h2>
+    <form method="post">
+        {% csrf_token %}
+        
+        <!-- Display Form Errors -->
+        {% if form.errors %}
+            <div class="alert alert-danger">
+                <ul>
+                    {% for field in form %}
+                        {% for error in field.errors %}
+                            <li>{{ error }}</li>
+                        {% endfor %}
+                    {% endfor %}
+                    {% for error in form.non_field_errors %}
+                        <li>{{ error }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        {% endif %}
+        
+        <!-- Skin Tone Selection -->
+        <div class="form-group mb-4">
+            <label>Choose Skin Tone:</label>
+            <div class="image-selection d-flex flex-wrap">
+                {% for value, label in form.skin.field.choices %}
+                    <label class="avatar-option me-3 mb-3">
+                        <input type="radio" name="{{ form.skin.name }}" value="{{ value }}" {% if form.skin.value == value %}checked{% endif %} style="display:none;">
+                        <img src="{% static 'avatars/skin/'|add:value|add:'.png' %}" alt="{{ label }}" width="100" height="100" class="img-thumbnail">
+                        <div> {{ label|capfirst|replace:"_, " }} </div>
+                    </label>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Body Type Selection -->
+        <div class="form-group mb-4">
+            <label>Choose Body Type:</label>
+            <div class="image-selection d-flex flex-wrap">
+                {% for value, label in form.body.field.choices %}
+                    <label class="avatar-option me-3 mb-3">
+                        <input type="radio" name="{{ form.body.name }}" value="{{ value }}" {% if form.body.value == value %}checked{% endif %} style="display:none;">
+                        <img src="{% static 'avatars/body/'|add:value|add:'.png' %}" alt="{{ label }}" width="100" height="100" class="img-thumbnail">
+                        <div> {{ label|capfirst|replace:"_, " }} </div>
+                    </label>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Submit Button -->
+        <button type="submit" class="btn btn-primary">Create Avatar</button>
+    </form>
+
+    <!-- Live Avatar Preview Section -->
+    <div class="mt-5">
+        <h3>Live Avatar Preview:</h3>
+        <div id="avatar-preview" class="position-relative" style="width: 200px; height: 400px;">
+            <!-- Body Layer -->
+            <img id="preview-body" src="{% static 'avatars/body/00.png' %}" alt="Body" class="position-absolute top-0 start-0">
+            <!-- Skin Tone Layer -->
+            <img id="preview-skin" src="{% static 'avatars/skin/00.png' %}" alt="Skin Tone" class="position-absolute top-0 start-0">
+            <!-- Default Layers (Fixed) -->
+            <img id="preview-hair" src="{% static 'avatars/hair/00.png' %}" alt="Hair" class="position-absolute top-0 start-0">
+            <img id="preview-shoes" src="{% static 'avatars/shoes/00.png' %}" alt="Shoes" class="position-absolute bottom-0 start-0">
+            <img id="preview-accessories" src="{% static 'avatars/accessories/00.png' %}" alt="Accessories" class="position-absolute top-0 start-0">
+            <img id="preview-skirt" src="{% static 'avatars/skirt/00.png' %}" alt="Skirt" class="position-absolute bottom-0 start-0">
+            <img id="preview-top" src="{% static 'avatars/top/00.png' %}" alt="Top" class="position-absolute top-0 start-0">
+        </div>
     </div>
 </div>
+
+<!-- Styling for the selection options and avatar preview -->
+<style>
+    .image-selection {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 15px;
+    }
+    .avatar-option {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        cursor: pointer;
+        text-align: center;
+    }
+    .avatar-option input:checked + img {
+        border: 3px solid #007bff;
+        border-radius: 8px;
+    }
+    .avatar-option img {
+        border: 2px solid transparent;
+        border-radius: 8px;
+        transition: border 0.3s;
+    }
+    .avatar-option:hover img {
+        border: 2px solid #6c757d;
+    }
+    .avatar-option div {
+        margin-top: 5px;
+        font-size: 14px;
+    }
+
+    /* Avatar Preview Styling */
+    #avatar-preview {
+        width: 200px;
+        height: 400px;
+        border: 1px solid #ccc;
+        border-radius: 10px;
+        overflow: hidden;
+        background-color: #f8f9fa;
+    }
+    #avatar-preview img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+    }
+
+    /* Responsive adjustments */
+    @media (max-width: 576px) {
+        .avatar-option img {
+            width: 80px;
+            height: 80px;
+        }
+        #avatar-preview {
+            width: 150px;
+            height: 300px;
+        }
+    }
+</style>
+
+<!-- JavaScript for Live Avatar Preview -->
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const form = document.querySelector('form');
+
+        // Mapping form field names to preview image IDs and static folders
+        const mappings = {
+            'skin': {
+                'previewId': 'preview-skin',
+                'folder': 'avatars/skin/'
+            },
+            'body': {
+                'previewId': 'preview-body',
+                'folder': 'avatars/body/'
+            }
+            // Add more mappings if other attributes become selectable
+        };
+
+        // Function to update the preview image
+        function updatePreview(fieldName, value) {
+            if (mappings[fieldName]) {
+                const previewElement = document.getElementById(mappings[fieldName].previewId);
+                const folder = mappings[fieldName].folder;
+                const newSrc = "{% static '' %}" + folder + value + ".png";
+                previewElement.src = newSrc;
+            }
+        }
+
+        // Add event listeners to skin tone and body type radio inputs
+        Object.keys(mappings).forEach(function(fieldName) {
+            const radioInputs = document.querySelectorAll(`input[name="${fieldName}"]`);
+            radioInputs.forEach(function(radio) {
+                radio.addEventListener('change', function(event) {
+                    if (event.target.checked) {
+                        updatePreview(fieldName, event.target.value);
+                    }
+                });
+            });
+        });
+    });
+</script>
 {% endblock %}
