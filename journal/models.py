@@ -137,6 +137,13 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
 
     objects = CustomUserManager()
 
+    avatar = models.OneToOneField(
+        'dressup.Avatar',
+        on_delete=models.CASCADE,
+        related_name='sissy',  # Optional: allows reverse lookup
+        null=True,  # Allow null for users without an avatar
+        blank=True,
+    )
     USERNAME_FIELD = 'sissy_name'
     REQUIRED_FIELDS = ['email']
 

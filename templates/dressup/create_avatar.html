@@ -2,7 +2,7 @@
 
 {% extends 'base.html' %}
 {% load static %}
-{% load custom_filters %}  <!-- Ensure custom_filters is loaded if using the replace filter -->
+{% load custom_filters %}
 
 {% block content %}
 <div class="container mt-4">
@@ -34,7 +34,7 @@
                     <label class="avatar-option me-3 mb-3">
                         <input type="radio" name="{{ form.skin.name }}" value="{{ value }}" {% if form.skin.value == value %}checked{% endif %} style="display:none;">
                         <img src="{% static 'avatars/skin/'|add:value|add:'.png' %}" alt="{{ label }}" width="100" height="100" class="img-thumbnail">
-                        <div> {{ label|capfirst|replace:"_, " }} </div>
+                        <div>{{ label|capfirst|replace:"_, " }}</div>
                     </label>
                 {% endfor %}
             </div>
@@ -42,23 +42,6 @@
 
         <!-- Body Type Selection -->
         <div class="form-group mb-4">
-            <label>Choose Body Type:</label>
-            <div class="image-selection d-flex flex-wrap">
-                {% for value, label in form.body.field.choices %}
-                    <label class="avatar-option me-3 mb-3">
-                        <input type="radio" name="{{ form.body.name }}" value="{{ value }}" {% if form.body.value == value %}checked{% endif %} style="display:none;">
-                        <img src="{% static 'avatars/body/'|add:value|add:'.png' %}" alt="{{ label }}" width="100" height="100" class="img-thumbnail">
-                        <div> {{ label|capfirst|replace:"_, " }} </div>
-                    </label>
-                {% endfor %}
-            </div>
-        </div>
-
-        <!-- Submit Button -->
-        <button type="submit" class="btn btn-primary">Create Avatar</button>
-    </form>
-
-    <!-- Live Avatar Preview Section -->
     <div class="mt-5">
         <h3>Live Avatar Preview:</h3>
         <div id="avatar-preview" class="position-relative" style="width: 200px; height: 400px;">
@@ -74,7 +57,66 @@
             <img id="preview-top" src="{% static 'avatars/top/00.png' %}" alt="Top" class="position-absolute top-0 start-0">
         </div>
     </div>
+</div>        
+        <label>Choose Body Type:</label>
+            <div class="image-selection d-flex flex-wrap">
+                {% for value, label in form.body.field.choices %}
+                    <label class="avatar-option me-3 mb-3">
+                        <input type="radio" name="{{ form.body.name }}" value="{{ value }}" {% if form.body.value == value %}checked{% endif %} style="display:none;">
+                        <img src="{% static 'avatars/body/'|add:value|add:'.png' %}" alt="{{ label }}" width="100" height="100" class="img-thumbnail">
+                        <div>{{ label|capfirst|replace:"_, " }}</div>
+                    </label>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Submit Button -->
+        <button type="submit" class="btn btn-primary">Create Avatar</button>
+    </form>
 </div>
+
+<!-- Styling for the selection options -->
+<style>
+    .image-selection {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 15px;
+    }
+    .avatar-option {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        cursor: pointer;
+        text-align: center;
+    }
+    .avatar-option input:checked + img {
+        border: 3px solid #007bff;
+        border-radius: 8px;
+    }
+    .avatar-option img {
+        border: 2px solid transparent;
+        border-radius: 8px;
+        transition: border 0.3s;
+    }
+    .avatar-option:hover img {
+        border: 2px solid #6c757d;
+    }
+    .avatar-option div {
+        margin-top: 5px;
+        font-size: 14px;
+    }
+
+    /* Responsive adjustments */
+    @media (max-width: 576px) {
+        .avatar-option img {
+            width: 80px;
+            height: 80px;
+        }
+    }
+</style>
+{% endblock %}
+    <!-- Live Avatar Preview Section -->
+    
 
 <!-- Styling for the selection options and avatar preview -->
 <style>

@@ -1,7 +1,9 @@
-# Standard imports
+from django.utils.timezone import now
+from journal.models import JournalEntry, ToDo, Habit, CustomUser
+from django.shortcuts import get_object_or_404
+from django.views.generic import TemplateView
 import json
 import logging
-import random
 from datetime import date
 from typing import Any, Dict
 
@@ -343,38 +345,40 @@ class ProfileSettingsView(LoginRequiredMixin, SafeMixin, TemplateView):
         return context
 
 
-class DashboardView(LoginRequiredMixin, SafeMixin, TemplateView):
-    """View for the user dashboard."""
+class DashboardView(LoginRequiredMixin, TemplateView):
+    """Enhanced View for the user dashboard."""
     template_name = "dashboard.html"
 
+    def get_profile_pic(self):
+        """Retrieve the URL of the user's profile picture."""
+        user = self.request.user
+        if user.profile_picture:
+            return user.profile_picture.url
+        return "/static/journal/media/default-profile-pic.jpg"
+
     def get_quote_of_the_day(self):
+        """Select a deterministic quote based on the current day."""
         today = date.today()
-        quotes = Quote.objects.all()
-        if quotes.exists():
-            random.seed(today.toordinal())  # Ensure the same quote for the day
-            quote = random.choice(quotes)
-            return quote.content
-        return "No quote available"
+        quotes = list(Quote.objects.all())
+        if quotes:
+            index = today.toordinal() % len(quotes)
+            return quotes[index].content
+        return "Every day is a chance to be fabulous!"
 
     def get_context_data(self, **kwargs):
+        """Populate context with dashboard data and ensure dynamic updates."""
         context = super().get_context_data(**kwargs)
         user = self.request.user
 
-        # Fetch recent data
+        # Optimize database queries
         recent_entries = JournalEntry.objects.filter(
             user=user).order_by("-timestamp")[:3]
         todos = ToDo.objects.filter(user=user).order_by("-timestamp")[:5]
         habits = Habit.objects.filter(user=user).order_by("-timestamp")[:5]
-
-        # Check if habits need a reset
-        if habits.exists():
-            for habit in habits:
-                if habit.check_reset_needed():
-                    habit.reset_counter()
-
-        # Generate Truth or Dare tasks
-        dare_task = generate_task(user)
-        truth_task = generate_task_truth(user)
+        # Reset habit counters if needed
+        for habit in habits:
+            if habit.check_reset_needed():
+                habit.reset_counter()
 
         # Sentiment and journal insights
         if recent_entries.exists():
@@ -402,36 +406,21 @@ class DashboardView(LoginRequiredMixin, SafeMixin, TemplateView):
             })
 
         # Profile and points
-        profile = getattr(user, "profile", None)
-        points = getattr(profile, "points", 0) if profile else 0
-        profile_pic = get_profile_pic(self.request)
+        points = getattr(user, "points", 0)
+        profile_pic = self.get_profile_pic()
 
-        # General context update
+        # Additional context
         context.update({
             "user": user,
-            "profile": profile,
             "points": points,
+            "profile_pic": profile_pic,
             "quote_of_the_day": self.get_quote_of_the_day(),
             "todos": todos,
             "habits": habits,
             "entries": recent_entries,
-            "entries_with_insights": recent_entries,
-            "dare_task": dare_task,  # Add the dare task to context
-            "truth_task": truth_task,
-            "profile_pic": profile_pic,
         })
 
         return context
-
-
-def get_profile_pic(request):
-    """Get the user's profile picture."""
-    user = request.user
-    if hasattr(user, 'profile'):
-        profile = user.profile
-        if hasattr(profile, 'profile_pic') and profile.profile_pic:
-            return profile.profile_pic.url
-    return None
 
 
 class HomeView(SafeMixin, TemplateView):

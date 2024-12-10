@@ -1,0 +1,450 @@
+/* Importing Google Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Amatic+SC&family=Dancing+Script:wght@700&family=Quicksand:wght@400;500;600&display=swap');
+
+/* Root Variables for Easy Updates */
+:root {
+    --primary-bg: linear-gradient(135deg, #fc43a0, #ff99cc);
+    --card-bg: #f7c1db;
+    --primary-color: #ff3399;
+    --secondary-color: #ff99cc;
+    --neutral-bg: #f2f2f2;
+    --neutral-text: #4d4d4d;
+    --border-radius: 30px;
+    --font-color: #333;
+    --font-family-body: 'Quicksand', Arial, sans-serif;
+    --font-family-title: 'Dancing Script', 'Comic Sans MS', cursive;
+    --hover-transition: background-color 0.3s ease, color 0.3s ease;
+    --spacing-small: 0.5rem;
+    --spacing-medium: 1rem;
+    --spacing-large: 2rem;
+}
+
+/* General Styling */
+body {
+    font-family: var(--font-family-body);
+    background: var(--primary-bg);
+    color: var(--font-color);
+    margin: 0;
+    padding: 0;
+    overflow-x: hidden;
+    line-height: 1.6;
+    padding: 0 var(--spacing-medium);
+}
+
+h1 {
+    font-size: clamp(2rem, 5vw, 3rem);
+}
+
+/* Sissy Theme */
+body.sissy-theme {
+    background: var(--primary-bg);
+}
+
+/* Panic Mode Overrides */
+body.panic-mode {
+    --primary-bg: #ffffff;
+    --card-bg: #ffffff;
+    --primary-color: #000000;
+    --secondary-color: #555555;
+    --neutral-bg: #f2f2f2;
+    --neutral-text: #000000;
+    --border-radius: 5px;
+    --font-color: #000000;
+    --font-family-body: Arial, sans-serif;
+    --font-family-title: Arial, sans-serif;
+}
+
+/* Hide Panic Button in Panic Mode */
+body.panic-mode .panic-button {
+    display: none;
+}
+
+/* Hide Sissy-Specific Elements in Panic Mode */
+body.panic-mode .decorative-corner,
+body.panic-mode .post-it-notes,
+body.panic-mode::before,
+body.panic-mode::after {
+    display: none;
+}
+
+/* Background Decorative Elements */
+body::before,
+body::after {
+    content: '❤ ♦';
+    font-size: 3rem;
+    color: rgba(255, 255, 255, 0.2);
+    position: absolute;
+    z-index: 0;
+    animation: float 10s infinite;
+}
+
+body::before {
+    top: 10%;
+    left: 5%;
+}
+
+body::after {
+    bottom: 15%;
+    right: 10%;
+}
+
+/* Keyframes for Float Animation */
+@keyframes float {
+    0% {
+        transform: translateY(0);
+    }
+
+    50% {
+        transform: translateY(-20px);
+    }
+
+    100% {
+        transform: translateY(0);
+    }
+}
+
+/* Focus States */
+a:focus,
+button:focus {
+    outline: 2px solid var(--secondary-color);
+}
+
+/* Panic Button Styling */
+.panic-button {
+    position: fixed;
+    top: 10px;
+    right: 10px;
+    background-color: var(--primary-color);
+    color: white;
+    padding: 10px 20px;
+    border-radius: 15px;
+    cursor: pointer;
+    z-index: 1000;
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.2);
+    transition: background-color 0.3s ease-in-out, transform 0.2s;
+    font-family: var(--font-family-body);
+    font-size: 1em;
+}
+
+.panic-button:hover {
+    background-color: #cc0066;
+    transform: scale(1.05);
+}
+
+/* Neutral Background and Text */
+.neutral-bg {
+    background-color: var(--neutral-bg);
+}
+
+.neutral-text {
+    color: var(--neutral-text);
+}
+
+/* Post-It Note Style Navigation */
+.post-it-notes {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    padding: 10px 0;
+    gap: 10px;
+    background-color: var(--secondary-color);
+    border-bottom: 4px solid var(--primary-color);
+}
+
+.post-it {
+    background-color: #ff66b2;
+    color: #ffffff;
+    border-radius: 15px;
+    padding: 10px 20px;
+    box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.1);
+    transform: rotate(-3deg);
+    transition: background-color 0.3s ease, transform 0.2s ease;
+    font-family: var(--font-family-title);
+    font-size: 1.2em;
+    text-decoration: none;
+}
+
+.post-it:hover {
+    background-color: var(--primary-color);
+    transform: rotate(0deg);
+    color: #fff;
+}
+
+/* Fluffy Wavy Card Styling */
+.fluffy-card {
+    width: 80%;
+    max-width: 600px;
+    padding: 20px;
+    background-color: var(--card-bg);
+    font-family: var(--font-family-title);
+    border-radius: var(--border-radius);
+    border: 3px dashed var(--primary-color);
+    box-shadow: 0 6px 12px rgba(255, 182, 193, 0.5);
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    margin: 20px auto;
+}
+
+.fluffy-card:hover {
+    transform: scale(1.05);
+    box-shadow: 0 10px 20px rgba(255, 182, 193, 0.7);
+}
+
+/* Grid Layout for Dashboard */
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    grid-template-rows: auto;
+    gap: 20px;
+    padding: 20px;
+}
+
+/* Card Layouts */
+.profile-card,
+.settings-card,
+.entries-card,
+.insights-card {
+    grid-column: span 2;
+}
+
+.quote-card,
+.todo-card,
+.habits-card,
+.games-card {
+    grid-column: span 1;
+}
+
+/* Footer Styling */
+.footer {
+    background-color: var(--card-bg);
+    border-top: 4px solid var(--primary-color);
+    color: var(--primary-color);
+    padding: 20px;
+    text-align: center;
+    box-shadow: 0 -4px 10px rgba(0, 0, 0, 0.1);
+    font-size: 1em;
+    margin-top: 20px;
+}
+
+.footer-nav {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px;
+}
+
+.footer-nav a {
+    color: var(--primary-color);
+    margin: 0 5px;
+    text-decoration: none;
+    font-family: var(--font-family-title);
+    font-size: 1.1em;
+    transition: var(--hover-transition);
+}
+
+.footer-nav a:hover {
+    color: var(--secondary-color);
+    text-decoration: underline;
+}
+
+.footer-text {
+    font-size: 0.9em;
+    color: var(--primary-color);
+}
+
+/* Completed To-Do Items */
+.todo-item.completed {
+    text-decoration: line-through;
+    opacity: 0.6;
+    transition: opacity 0.5s ease-in-out;
+}
+
+/* Post Containers */
+.post-container {
+    border: 2px solid var(--secondary-color);
+    border-radius: 15px;
+    box-shadow: 0 4px 10px rgba(255, 153, 204, 0.5);
+    padding: 20px;
+    background-color: #fff;
+    margin-bottom: 20px;
+}
+
+.post-card {
+    background-color: #ffe6f2;
+    border-radius: 20px;
+    padding: 15px;
+    margin-bottom: 15px;
+    box-shadow: 0 3px 6px rgba(255, 182, 193, 0.3);
+    position: relative;
+}
+
+.post-card .post-title {
+    font-family: 'Amatic SC', cursive;
+    color: #ff66b2;
+}
+
+.post-card .post-author {
+    font-family: var(--font-family-body);
+    color: #cc6699;
+}
+
+.post-card .post-action-btn {
+    display: inline-block;
+    margin-top: 10px;
+    background-color: var(--secondary-color);
+    color: #fff;
+    padding: 8px 16px;
+    border-radius: 10px;
+    text-decoration: none;
+    font-weight: bold;
+    transition: background-color 0.3s;
+}
+
+.post-card .post-action-btn:hover {
+    background-color: #ff66b2;
+}
+
+/* Cute Buttons */
+.cute-btn {
+    background-color: var(--secondary-color);
+    border: none;
+    color: #fff;
+    padding: 10px 20px;
+    border-radius: 15px;
+    font-size: clamp(0.8rem, 2vw, 1rem);
+    font-family: var(--font-family-body);
+    transition: background-color 0.3s, box-shadow 0.3s;
+}
+
+.cute-btn:hover {
+    box-shadow: 0 3px 10px rgba(255, 102, 178, 0.4);
+    background-color: #ff80bf;
+    transform: translateY(-2px);
+}
+
+/* Pagination */
+.cute-pagination {
+    background-color: #ffccdd;
+    color: #fff;
+    padding: 5px 15px;
+    border-radius: 10px;
+    margin: 0 5px;
+    transition: background-color 0.3s;
+}
+
+.cute-pagination:hover {
+    background-color: var(--secondary-color);
+}
+
+/* Decorative Elements */
+.decorative-corner img {
+    width: 30px;
+    position: absolute;
+    top: -10px;
+    right: -10px;
+}
+
+/* Info Container */
+.info-container {
+    border: 2px solid var(--secondary-color);
+    border-radius: 15px;
+    box-shadow: 0 4px 10px rgba(255, 153, 204, 0.5);
+    background-color: #fff;
+    padding: 20px;
+    position: relative;
+}
+
+.info-container::after {
+    content: '✨';
+    font-size: 20px;
+    position: absolute;
+    top: -5px;
+    left: -5px;
+    color: var(--secondary-color);
+}
+
+/* Hamburger Menu Styles */
+.menu-toggle {
+    display: none;
+}
+
+@media (max-width: 768px) {
+    .menu-toggle {
+        display: block;
+    }
+
+    .post-it-notes {
+        display: none;
+    }
+
+    .menu-toggle:checked+.post-it-notes {
+        display: flex;
+    }
+}
+
+/* Toast Notifications */
+.toast {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background-color: var(--secondary-color);
+    color: #fff;
+    padding: 10px 20px;
+    border-radius: 15px;
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.2);
+    opacity: 1;
+    transition: opacity 0.5s ease-in-out;
+    z-index: 1000;
+}
+
+.toast-success {
+    background-color: #66bb6a;
+}
+
+.toast-error {
+    background-color: #e57373;
+}
+
+.toast.fade-out {
+    opacity: 0;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 992px) {
+    .dashboard-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .profile-card,
+    .settings-card,
+    .entries-card,
+    .insights-card {
+        grid-column: span 2;
+    }
+}
+
+@media (max-width: 768px) {
+    .dashboard-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .profile-card,
+    .settings-card,
+    .entries-card,
+    .insights-card,
+    .quote-card,
+    .todo-card,
+    .habits-card,
+    .games-card {
+        grid-column: span 1;
+    }
+}
+
+.icon {
+    transition: transform 0.3s ease;
+}
+
+.icon.updated {
+    transform: scale(1.3);
+}

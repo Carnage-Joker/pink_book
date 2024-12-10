@@ -13,7 +13,7 @@
                 {% if purchased_item.item in avatar.equipped_items.all %}
                     <p>Currently Equipped</p>
                 {% else %}
-                    <form action="{% url 'equip_item' purchased_item.item.id %}" method="post">
+                    <form action="{% url 'dressup:equip_item' purchased_item.item.id %}" method="post">
                         {% csrf_token %}
                         <button type="submit">Equip</button>
                     </form>

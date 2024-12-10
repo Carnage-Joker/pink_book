@@ -1,29 +1,42 @@
-<!-- dressup/templates/dressup/mall.html -->
-
 {% extends 'base.html' %}
-{% load static %}
-
 {% block content %}
-<div class="container">
+<div class="mall-map container mt-4">
     <h2>Welcome to the Mall, {{ request.user.sissy_name }}!</h2>
-    <div class="avatar-display">
-        <img src="{% static 'avatars/body/'|add:avatar.body|add:'.png' %}" alt="Body">
-        <img src="{% static 'avatars/hair/'|add:avatar.hair|add:'.png' %}" alt="Hair">
-        {% for item in avatar.equipped_items.all %}
-            <img src="{{ item.image.url }}" alt="{{ item.name }}" class="{{ item.category }}">
-        {% endfor %}
-    </div>
-    <h3>Shops</h3>
-    <div class="shops">
-        {% for shop in shops %}
-            <div class="shop">
-                <a href="{% url 'shop_detail' shop.id %}">
-                    <!-- Assuming each shop has an image field -->
-                    <img src="{{ shop.image.url }}" alt="{{ shop.name }}">
-                    <h4>{{ shop.name }}</h4>
-                </a>
+
+    <div class="row">
+        <!-- Avatar Preview -->
+        <div class="col-md-4 mb-4">
+            <h3>Your Avatar</h3>
+            <div class="avatar-container">
+                <div class="avatar-display">
+                    <!-- Body Layer -->
+                    <img src="{{ image_urls.body }}" alt="Body">
+                    
+                    <!-- Equipped Items -->
+                    {% for item in avatar.equipped_items.all %}
+                        <img src="{{ item.image.url }}" alt="{{ item.name }}" class="{{ item.category }}">
+                    {% endfor %}
+                </div>
             </div>
-        {% endfor %}
+        </div>
+
+        <!-- Shops Section -->
+        <div class="col-md-8">
+            <h3>Shops</h3>
+            <div class="row">
+                {% for shop in shops %}
+                    <div class="col-md-6 mb-4">
+                        <div class="shop-card">
+                            <a href="{% url 'dressup:shop_detail' shop.id %}">
+                                <img src="{{ shop.get_image_url }}" alt="{{ shop.name }}" class="img-fluid shop-image">
+                            </a>
+                        </div>
+                    </div>
+                {% empty %}
+                    <p>No shops available at the moment.</p>
+                {% endfor %}
+            </div>
+        </div>
     </div>
 </div>
 {% endblock %}

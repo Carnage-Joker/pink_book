@@ -1,0 +1,14 @@
+<!-- chat/templates/chat/index.html -->
+{% extends 'base.html' %}
+{% block content %}
+<h2>Chat Rooms</h2>
+<ul>
+    <li><a href="{% url 'room' room_name='general' %}">General</a></li>
+    <li><a href="{% url 'room' room_name='sissy_talk' %}">Sissy Talk</a></li>\
+    <li><a href="{% url 'room' room_name='crossdressers' %}">Crossdressers</a></li>
+    <li><a href="{% url 'room' room_name='make-up_masters' %}">Make-up Masters</a></li>
+    <li><a href="{% url 'room' room_name='fashionistas' %}">Fashionistas</a></li>
+    <li><a href="{% url 'room' room_name='shoe_lovers' %}">Shoe Lovers</a></li>
+    <li><a href="{% url 'room' room_name='NSFW_18+_sexy_sissy_sluts' %}">NSFW18+SSS</a></li>
+</ul>
+{% endblock %}

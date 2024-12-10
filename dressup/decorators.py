@@ -7,7 +7,7 @@ def avatar_required(function):
     @login_required
     def wrap(request, *args, **kwargs):
         if not hasattr(request.user, 'avatar'):
-            return redirect('create_avatar')
+            return redirect('dressup:create_avatar')
         else:
             return function(request, *args, **kwargs)
     return wrap

@@ -17,3 +17,11 @@ def replace(value, args):
     except ValueError:
         # If the format is incorrect, return the original value
         return value
+
+
+register = template.Library()
+
+
+@register.filter
+def concat(*args):
+    return ''.join(args)

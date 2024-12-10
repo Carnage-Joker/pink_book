@@ -3,7 +3,12 @@
 .mall {
     text-align: center;
 }
-
+.mall_map {
+    display: flex;
+    justify-content: center;
+    margin-top: 20px;
+    back
+}
 #avatar-canvas {
     position: relative;
     width: 200px;
@@ -39,4 +44,61 @@
 
 .item p {
     margin: 5px 0;
+}
+
+/* In a separate CSS file or within a <style> tag */
+
+.avatar-display {
+    position: relative;
+    width: 200px;
+    height: 400px;
+}
+
+.avatar-layer {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+}
+
+.skin-layer {
+    z-index: 1;
+}
+
+.body-layer {
+    z-index: 2;
+}
+
+.hair-layer {
+    z-index: 3;
+}
+
+.hair-color-layer {
+    z-index: 4;
+}
+
+.top-layer {
+    z-index: 5;
+}
+
+.skirt-layer {
+    z-index: 6;
+}
+
+.accessories-layer {
+    z-index: 7;
+}
+
+.shoes-layer {
+    z-index: 8;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 576px) {
+    .avatar-display {
+        width: 150px;
+        height: 300px;
+    }
 }

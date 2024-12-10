@@ -6,7 +6,6 @@ from django.db import migrations
 class Migration(migrations.Migration):
 
     dependencies = [
-       ('dressup', '0001_initial'),
        ('journal', '0063_remove_customuser_avatar_body_and_more'),
     ]
 
