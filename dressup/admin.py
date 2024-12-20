@@ -1,15 +1,11 @@
 from django.contrib import admin
-
-# dressup/admin.py
-
-from django.contrib import admin
 from .models import Avatar, Shop, Item, PurchasedItem
 
 
 @admin.register(Avatar)
 class AvatarAdmin(admin.ModelAdmin):
-    list_display = ('user', 'name', 'skin', 'body', 'hair', 'hair_color', 'shoes', 'accessories', 'skirt', 'top', 'created_at')
-    list_filter = ('skin', 'body', 'hair', 'shoes', 'accessories', 'skirt', 'top', 'created_at')
+    list_display = ('user', 'name', 'skin', 'body', 'hair', 'hair_color',)
+    list_filter = ('skin', 'body', 'hair', 'hair_color')
     search_fields = ('user__sissy_name', 'name')
     actions = ['reset_avatar']
 
@@ -20,6 +16,7 @@ class ShopAdmin(admin.ModelAdmin):
     list_filter = ('shop_type', 'premium_only')
     search_fields = ('name', 'shop_type')
     actions = ['make_premium_only', 'make_not_premium_only', 'lock_shops', 'unlock_shops']
+    
 
 
 @admin.register(Item)

@@ -25,3 +25,9 @@ register = template.Library()
 @register.filter
 def concat(*args):
     return ''.join(args)
+
+
+@register.filter
+def get_item(dictionary, key):
+    """Fetches the value of a dictionary key."""
+    return dictionary.get(key, "")

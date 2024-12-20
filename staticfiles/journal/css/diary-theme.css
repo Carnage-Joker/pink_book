@@ -13,6 +13,9 @@
     --font-color: #333;
     --font-family-body: 'Quicksand', Arial, sans-serif;
     --font-family-title: 'Dancing Script', 'Comic Sans MS', cursive;
+    --font-family-heading: 'Amatic SC', cursive;
+    --font-family-heading-alt: 'Indie Flower', cursive;
+    --font-family-title-alt: 'Shadows Into Light', cursive;
     --hover-transition: background-color 0.3s ease, color 0.3s ease;
     --spacing-small: 0.5rem;
     --spacing-medium: 1rem;
@@ -186,6 +189,19 @@ button:focus {
     margin: 20px auto;
 }
 
+.h2 {
+    font-family: var(--font-family-heading);
+    font-size: 2em;
+    color: var(--primary-color);
+    margin-bottom: 20px;
+}
+
+.t1 {
+    font-family: var(--font-family-title);
+    font-size: 1.5em;
+    color: var(--primary-color);
+    margin-bottom: 20px;
+}
 .fluffy-card:hover {
     transform: scale(1.05);
     box-shadow: 0 10px 20px rgba(255, 182, 193, 0.7);
@@ -448,3 +464,4 @@ button:focus {
 .icon.updated {
     transform: scale(1.3);
 }
+

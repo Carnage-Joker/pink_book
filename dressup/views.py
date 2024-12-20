@@ -1,3 +1,5 @@
+from django.http import JsonResponse
+from django.core.paginator import Paginator
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.http import HttpRequest, HttpResponse
@@ -29,11 +31,11 @@ def create_avatar_view(request: HttpRequest) -> HttpResponse:
             avatar.user = request.user
             # Set default values for other attributes
             avatar.hair = '00'
-            avatar.hair_color = '00'
+            avatar.hair_color = 'black'
             avatar.shoes = '00'
             avatar.accessories = '00'
-            avatar.skirt = '00'
-            avatar.top = '00'
+            avatar.skirts = '00'
+            avatar.tops = '00'
             avatar.name = f"{request.user.sissy_name}'s Avatar"
             avatar.save()
             messages.success(
@@ -52,31 +54,32 @@ def create_avatar_view(request: HttpRequest) -> HttpResponse:
 
 @login_required
 @avatar_required
-def mall_view(request: HttpRequest) -> HttpResponse:
+def mall_view(request):
     """
     Displays the mall where users can upgrade their avatars.
     """
-    shops = Shop.objects.all()
-    # Use the related_name for the avatar relationship
-    avatar = getattr(request.user, 'sissy_avatar', None)
+    shops = Shop.objects.all().order_by('id')  # Ensure shops are ordered
+    paginator = Paginator(shops, 10)  # 10 shops per page
+    page_number = request.GET.get('page')
+    shops_page = paginator.get_page(page_number)
 
+    avatar = getattr(request.user, 'sissy_avatar', None)
     if avatar is None:
-        # Optionally, redirect the user to an avatar creation page
         messages.error(request, "You need to create an avatar first!")
-        # Replace with your actual URL name for avatar creation
         return redirect('dressup:create_avatar')
 
-    # Correct call to get_image_urls
-    image_urls = avatar.get_image_urls()
-    equipped_items = avatar.equipped_items.all()
+    # Prepare layers and URLs
+    layer_keys = ['body', 'skirt', 'top', 'shoes', 'hair', 'accessories']
+    image_urls = avatar.get_image_urls(layer_keys)  # Pass layer_keys to method
 
     context = {
-        'shops': shops,
+        'shops': shops_page,  # Use paginated shops
         'avatar': avatar,
         'image_urls': image_urls,
-        'equipped_items': equipped_items,  # Include equipped items
+        'layer_keys': layer_keys,
     }
     return render(request, 'dressup/mall.html', context)
+
 
 
 @login_required
@@ -85,13 +88,18 @@ def shop_detail(request: HttpRequest, shop_id: int) -> HttpResponse:
     """
     Displays details of a specific shop and handles item purchases.
     """
+    # Fetch the shop by its ID
     shop = get_object_or_404(Shop, id=shop_id)
-    items = Item.objects.filter(shop=shop)
+
+    # Retrieve the items associated with the shop
+    items = shop.items.all()
 
     if request.method == 'POST':
         item_id = request.POST.get('item_id')
-        item = get_object_or_404(Item, id=item_id, shop=shop)
         avatar = request.user.avatar
+
+        # Fetch the item and ensure it belongs to the shop
+        item = get_object_or_404(shop.items, id=item_id)
 
         # Check if the item is already purchased
         if PurchasedItem.objects.filter(avatar=avatar, item=item).exists():
@@ -100,7 +108,8 @@ def shop_detail(request: HttpRequest, shop_id: int) -> HttpResponse:
             # Create a PurchasedItem entry
             PurchasedItem.objects.create(avatar=avatar, item=item)
             messages.success(
-                request, f"You have successfully purchased {item.name}!")
+                request, f"You have successfully purchased {item.name}!"
+            )
             return redirect('dressup:mall')
 
     context = {
@@ -188,12 +197,57 @@ def inventory_view(request: HttpRequest) -> HttpResponse:
     """
     Displays the user's purchased items and their equip status.
     """
-    avatar = request.user.avatar
-    purchased_items = PurchasedItem.objects.filter(user=request.user)
+    # Safeguard: Ensure the avatar exists
+    avatar = getattr(request.user, 'sissy_avatar', None)
+    if not avatar:
+        messages.error(request, "You need to create an avatar first!")
+        return redirect('dressup:create_avatar')
+            
+
+    # Retrieve purchased and equipped items
+    purchased_items = PurchasedItem.objects.filter(id=avatar.id)
     equipped_items = avatar.equipped_items.all()
+    if request.method == 'POST' or request.GET.get('item_id'):
+        item_id = request.POST.get('item_id') or request.GET.get('item_id')
+        item = get_object_or_404(Item, id=item_id)
+
+        # Toggle equip/unequip status
+        if item in equipped_items:
+            avatar.unequip_item(item)
+            messages.success(request, f"{item.name} has been unequipped.")
+        else:
+            avatar.equip_item(item)
+            messages.success(request, f"{item.name} has been equipped.")
+
+        # Refresh equipped items after changes
+        equipped_items = avatar.equipped_items.all()
 
     context = {
         'purchased_items': purchased_items,
         'equipped_items': equipped_items,
     }
     return render(request, 'dressup/inventory.html', context)
+
+
+@login_required
+@avatar_required
+def equip_item_ajax(request, item_id):
+    """
+    AJAX View: Equip an item via drag-and-drop interaction.
+    """
+    item = get_object_or_404(Item, id=item_id)
+    avatar = request.user.avatar
+
+    # Toggle equip logic
+    if item in avatar.equipped_items.all():
+        avatar.unequip_item(item)
+        status = "unequipped"
+    else:
+        avatar.equip_item(item)
+        status = "equipped"
+
+    return JsonResponse({
+        'status': status,
+        'item_id': item_id,
+        'message': f"{item.name} has been {status}."
+    })

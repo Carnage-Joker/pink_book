@@ -48,14 +48,21 @@ def generate_insight(journal_entry):
     # Create the chat completion
     try:
         response = openai.ChatCompletion.create(
-            model="gpt-4o",  # Use the appropriate model
+            model="gpt-4",  # Use the appropriate model
             messages=[system_message, user_message],
             max_tokens=150,  # Adjust to ensure the response is concise
             temperature=0.7,
             top_p=1,
             frequency_penalty=0.7,
             presence_penalty=0.6
-        ).get("choices", [{}])[0].get("message", {}).get("content", "").strip()
+        )
+
+        # Extract the assistant's response
+        choices = response.get("choices", [])
+        if choices and "message" in choices[0] and "content" in choices[0]["message"]:
+            insight = choices[0]["message"]["content"].strip()
+        else:
+            raise RuntimeError("Unexpected response structure from OpenAI API")
     except Exception as e:
         raise RuntimeError(f"Error generating insight: {e}") from e
 
@@ -74,10 +81,6 @@ def generate_insight(journal_entry):
 logger = logging.getLogger(__name__)
 
 
-# Set up logging
-logger = logging.getLogger(__name__)
-
-
 def check_content_topic_with_openai(entry_content, prompt_topic):
     """
     Sends the content of the entry to OpenAI's API to check if it stayed on topic.
@@ -90,7 +93,7 @@ def check_content_topic_with_openai(entry_content, prompt_topic):
         bool: True if the content stayed on topic, False otherwise.
     """
     try:
-        # Construct the messages for the chat model
+        # Construct the messages for the chat model/
         messages = [
             {"role": "system", "content": "You are an assistant that checks if content adheres to a given topic."},
             {"role": "user", "content": (
@@ -103,9 +106,9 @@ def check_content_topic_with_openai(entry_content, prompt_topic):
 
         # Call the OpenAI ChatCompletion API for analysis
         response = openai.ChatCompletion.create(
-            model="gpt-4",  # Replace with another model if needed
+            model="gpt-4",  # Corrected model name
             messages=messages,
-            max_tokens=5,
+            max_tokens=500,
             temperature=0.2  # Low temperature for consistent output
         )
 
@@ -116,6 +119,6 @@ def check_content_topic_with_openai(entry_content, prompt_topic):
         # Interpret the response
         return result.lower() == 'yes'
 
-    except openai.error.OpenAIError as e:
+    except openai.OpenAIError as e:
         logger.error(f"Error while sending content to OpenAI API: {str(e)}")
         return False

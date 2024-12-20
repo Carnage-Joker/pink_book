@@ -140,7 +140,7 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
     avatar = models.OneToOneField(
         'dressup.Avatar',
         on_delete=models.CASCADE,
-        related_name='sissy',  # Optional: allows reverse lookup
+        related_name='user_avatar',  # Optional: allows reverse lookup
         null=True,  # Allow null for users without an avatar
         blank=True,
     )

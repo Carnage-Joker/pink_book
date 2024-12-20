@@ -1,7 +1,4 @@
-from django.utils.timezone import now
-from journal.models import JournalEntry, ToDo, Habit, CustomUser
-from django.shortcuts import get_object_or_404
-from django.views.generic import TemplateView
+
 import json
 import logging
 from datetime import date
@@ -25,6 +22,9 @@ from django.views import View
 from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import (CreateView, DeleteView, DetailView, FormView,
                                   ListView, TemplateView, UpdateView)
+from django.views.generic.edit import CreateView
+
+from journal.models import CustomUser, Habit, JournalEntry, ToDo
 
 # Local application imports
 from .forms import (CommentForm, CustomUserCreationForm, CustomUserLoginForm,
@@ -439,19 +439,18 @@ class JournalEntryCreateView(LoginRequiredMixin, CreateView):
     form_class = JournalEntryForm
     template_name = "new_entry.html"
 
-    def get_initial(self):
+    def get_initial(self) -> dict:
         initial = super().get_initial()
         generated_prompt = generate_prompt()
         initial['generated_prompt'] = generated_prompt
         return initial
 
-    def get_context_data(self, **kwargs):
+    def get_context_data(self, **kwargs) -> dict:
         context = super().get_context_data(**kwargs)
-        context["generated_prompt"] = self.get_initial().get(
-            'generated_prompt', '')
+        context["generated_prompt"] = self.get_initial().get('generated_prompt')
         return context
 
-    def form_valid(self, form):
+    def form_valid(self, form) -> HttpResponse:
         form.instance.user = self.request.user
         form.instance.prompt_text = form.cleaned_data.get("generated_prompt")
         response = super().form_valid(form)
@@ -461,7 +460,7 @@ class JournalEntryCreateView(LoginRequiredMixin, CreateView):
             insight_text = generate_insight(form.instance.content)
             form.instance.insight = insight_text
             form.instance.save(update_fields=['insight'])
-        except Exception as e:
+        except Exception:
             messages.error(self.request, "Error generating insight.")
             form.instance.insight = "Insight generation failed."
             form.instance.save(update_fields=['insight'])
@@ -485,7 +484,7 @@ class JournalEntryCreateView(LoginRequiredMixin, CreateView):
 
         return response
 
-    def get_success_url(self):
+    def get_success_url(self) -> str:
         return reverse("journal:entry_detail", kwargs={"pk": self.object.pk})
 
 

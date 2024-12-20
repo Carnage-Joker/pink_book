@@ -1,8 +1,9 @@
 # dressup/models.py
+from journal.models import CustomUser  # Replace with actual path
+from django.templatetags.static import static
 from operator import is_
 from django.contrib.auth import get_user_model
-from journal.models import CustomUser  # Replace 'your_app' with the actual app name
-from django.templatetags.static import static  # Import static
+
 from django.db import models
 
 
@@ -10,15 +11,15 @@ class Item(models.Model):
     CATEGORY_CHOICES = (
         ('body', 'Body'),
         ('hair', 'Hair'),
-        ('top', 'Top'),
-        ('bottom', 'Bottom'),
+        ('top', 'Tops'),
+        ('skirt', 'Skirts'),
         ('shoes', 'Shoes'),
-        ('accessory', 'Accessory'),
+        ('accessory', 'Accessories'),
         ('makeup', 'Makeup'),
-        ('wig', 'Wig'),
+        ('wig', 'Wigs'),
         ('jewellery', 'Jewellery'),
         ('lingerie', 'Lingerie'),
-        ('background', 'Background'),
+        ('background', 'Backgrounds'),
     )
 
     name = models.CharField(max_length=100)
@@ -72,7 +73,7 @@ class Shop(models.Model):
     image_path = models.CharField(max_length=200, blank=True, null=True)
     
     def get_image_url(self):
-        return static(f'dressup/shops/{self.shop_level}/{self.image_path}')
+        return static(f'dressup/shops/{self.shop_level}/{self.shop_type}.jpg')
 
     def __str__(self):
         return self.name
@@ -82,136 +83,84 @@ User = get_user_model()
 
 
 class Avatar(models.Model):
-    # Choice Tuples
     BODY_CHOICES = (
         ('00', 'straight_body'),
         ('01', 'petite_body'),
         ('02', 'curvy_body'),
         ('03', 'hourglass_body'),
-        ('04', 'pear_body'),
-        ('05', 'apple_body'),
-        ('06', 'athletic_body'),
-        # Add more body types as needed
     )
     SKIN_CHOICES = (
         ('00', 'light'),
-        ('01', 'olive'),
-        ('02', 'medium'),
-        ('03', 'dark'),
-        ('04', 'pale'),
-        ('05', 'tan'),
+        ('01', 'tan'),
+        ('02', 'dark'),
     )
     HAIR_CHOICES = (
         ('00', 'short_hair'),
         ('01', 'short_wavy_bangs'),
         ('02', 'long_straight_hair'),
-        ('03', 'long_curly_hair'),
-        ('04', 'long_wavy_hair'),
-        ('05', 'bob_cut'),
-        ('06', 'pig_tails'),
-        ('07', 'bald'),
-        ('08', 'short_curly_hair'),
-        ('09', 'short_wavy_hair'),
-        ('10', 'long_straight_bangs'),
-        ('11', 'long_curly_bangs'),
-        ('12', 'long_wavy_bangs'),
-        ('13', 'bob_cut_bangs'),
-        ('14', 'pig_tails_bangs'),
-        ('15', 'short_curly_bangs'),
-        # Add more hair styles as needed
     )
     HAIR_COLOR_CHOICES = (
-        ('00', 'none'),  # for wigs
         ('black', 'black'),
-        ('brunette', 'brown'),
+        ('brunette', 'brunette'),
         ('blonde', 'blonde'),
         ('red', 'red'),
         ('pink', 'pink'),
     )
 
-    SHOES_CHOICES = [
-        ('00', 'Basic Shoes'),
-        ('01', 'Sneakers'),
-        ('02', 'Boots'),
-        ('03', 'Heels'),
-        ('04', 'Flats'),
-        ('05', 'Sandals'),
-        ('06', 'Wedges'),
-        ('07', 'Mules'),
-        ('08', 'Pumps'),
-        ('09', 'Platforms'),
-        ('10', 'Ankle Boots'),
-        ('11', 'Thigh High Boots'),
-        ('12', 'Knee High Boots'),
-    ]
-
-    ACCESSORIES_CHOICES = [
-        ('00', 'None'),
-        ('01', 'Hat'),
-        ('02', 'Scarf'),
-        ('03', 'Gloves'),
-        ('04', 'Sunglasses'),
-        ('05', 'Handbag'),
-        ('06', 'Necklace'),
-        ('07', 'Bracelet'),
-        ('08', 'Earrings'),
-        ('09', 'Collar'),
-        ('10', 'Belt'),
-    ]
-
-    SKIRT_CHOICES = [
-        ('00', 'Basic Shorts'),
-        ('01', 'Mini Skirt'),
-        ('02', 'Midi Skirt'),
-        ('03', 'Maxi Skirt'),
-        ('04', 'Pencil Skirt'),
-        ('05', 'Pleated Skirt'),
-        ('06', 'A-Line Skirt'),
-    ]
-
-    TOP_CHOICES = [
-        ('00', 'Basic Top'),
-        ('01', 'T-Shirt'),
-        ('02', 'Blouse'),
-        ('03', 'Crop Top'),
-        ('04', 'Bra'),
-        ('05', 'Corset'),
-        ('06', 'Bustier'),
-    ]
-
-    # Model Fields
     user = models.OneToOneField(
-        CustomUser, on_delete=models.CASCADE, related_name='sissy_avatar')
+        CustomUser, on_delete=models.CASCADE, related_name='sissy_avatar'
+    )
     name = models.CharField(max_length=100)
-    image_path = models.CharField(
-        max_length=200, blank=True, null=True)  # Optional: If used
     body = models.CharField(max_length=2, choices=BODY_CHOICES, default='00')
     skin = models.CharField(max_length=2, choices=SKIN_CHOICES, default='00')
     hair = models.CharField(max_length=20, choices=HAIR_CHOICES, default='00')
     hair_color = models.CharField(
-        max_length=20, choices=HAIR_COLOR_CHOICES, default='00')
-    shoes = models.CharField(max_length=2, choices=SHOES_CHOICES, default='00')
-    accessories = models.CharField(
-        max_length=2, choices=ACCESSORIES_CHOICES, default='00')
-    skirt = models.CharField(max_length=2, choices=SKIRT_CHOICES, default='00')
-    top = models.CharField(max_length=2, choices=TOP_CHOICES, default='00')
-    created_at = models.DateTimeField(auto_now_add=True, null=True)
-    purchased_items = models.ManyToManyField(
-        'Item', blank=True)  # Ensure Item model is defined
+        max_length=20, choices=HAIR_COLOR_CHOICES, default='black'
+    )
     equipped_items = models.ManyToManyField(
         'Item',
         related_name='equipped_on_avatars',
         blank=True,
-        help_text="Items currently equipped on the avatar."
+        help_text="Items currently equipped on the avatar.",
     )
+
+    def get_image_urls(self, layer_keys=None):
+        """
+        Constructs a dictionary of image URLs for each component of the avatar,
+        based on the equipped items and defaults for unequipped components.
+        """
+    # Default layers if none are provided
+        if layer_keys is None:
+            layer_keys = ['body', 'hair', 'skirt', 'top', 'shoes', 'accessories']
+
+    # Default image paths
+        urls = {
+            'body': static(f'dressup/avatars/body/{self.body}/{self.skin}.png'),
+            'hair': static(f'dressup/avatars/hair/{self.hair}/{self.hair_color}.png'),
+        }
+
+    # Add defaults for other layers
+        for key in layer_keys:
+            if key not in urls:
+                urls[key] = static(f'dressup/avatars/{key}/00.png')
+
+    # Override defaults with equipped item images
+        for item in self.equipped_items.all():
+            if item.category in layer_keys:
+                urls[item.category] = static(item.image_path)
+
+        return urls
 
     def equip_item(self, item):
         """
         Equip an item to the avatar, ensuring only one item per category is equipped.
         """
-        if item.category:
-            # Remove currently equipped item of the same category
-            self.equipped_items.filter(category=item.category).delete()
+        if not item.category:
+            raise ValueError("Item must have a category to be equipped.")
+
+        # Remove currently equipped item of the same category
+        self.equipped_items.filter(category=item.category).delete()
+
         # Equip the new item
         self.equipped_items.add(item)
         self.save()
@@ -223,26 +172,13 @@ class Avatar(models.Model):
         self.equipped_items.remove(item)
         self.save()
 
-    def get_image_urls(self):
+    @property
+    def equipped_display_names(self):
         """
-        Returns a dictionary of image URLs for each avatar component.
-        Dynamically checks equipped items to build the URLs.
+        Returns a dictionary of display names for equipped items.
         """
-        urls = {
-            'body': (f'dressup/avatars/body/{self.skin}/{self.body}.png'),
-            'hair': (f'dressup/avatars/hair/{self.hair}/{self.hair_color}.png'),
-            'shoes': (f'dressup/avatars/shoes/{self.shoes}.png'),
-            'accessories': (f'dressup/avatars/accessories/{self.accessories}.png'),
-            'skirt': (f'dressup/avatars/skirts/{self.skirt}.png'),
-            'top': (f'dressup/avatars/tops/{self.top}.png'),
-        }
-        # Add URLs for equipped items
-        for item in self.equipped_items.all():
-            urls[item.category] = item.image_path
+        return {item.category: item.name for item in self.equipped_items.all()}
 
-        return urls
-        # Optionally, define methods to get image URLs
-        
 
 class PurchasedItem(models.Model):
     user = models.ForeignKey(

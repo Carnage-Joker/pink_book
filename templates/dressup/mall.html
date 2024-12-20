@@ -1,42 +1,56 @@
 {% extends 'base.html' %}
+{% load static %}
+{% load custom_filters %}
 {% block content %}
-<div class="mall-map container mt-4">
-    <h2>Welcome to the Mall, {{ request.user.sissy_name }}!</h2>
+<link rel="stylesheet" href="{% static 'dressup/styles.css' %}">
 
-    <div class="row">
-        <!-- Avatar Preview -->
-        <div class="col-md-4 mb-4">
-            <h3>Your Avatar</h3>
-            <div class="avatar-container">
-                <div class="avatar-display">
-                    <!-- Body Layer -->
-                    <img src="{{ image_urls.body }}" alt="Body">
-                    
-                    <!-- Equipped Items -->
-                    {% for item in avatar.equipped_items.all %}
-                        <img src="{{ item.image.url }}" alt="{{ item.name }}" class="{{ item.category }}">
-                    {% endfor %}
-                </div>
-            </div>
-        </div>
+<h1>Welcome to the Mall</h1>
 
-        <!-- Shops Section -->
-        <div class="col-md-8">
-            <h3>Shops</h3>
-            <div class="row">
-                {% for shop in shops %}
-                    <div class="col-md-6 mb-4">
-                        <div class="shop-card">
-                            <a href="{% url 'dressup:shop_detail' shop.id %}">
-                                <img src="{{ shop.get_image_url }}" alt="{{ shop.name }}" class="img-fluid shop-image">
-                            </a>
-                        </div>
-                    </div>
-                {% empty %}
-                    <p>No shops available at the moment.</p>
-                {% endfor %}
-            </div>
+<!-- Avatar Display -->
+
+<div class="avatar-container">
+    <div class="avatar-display">
+        <h2>Your Avatar</h2>
+       <div class="avatar-images">
+    {% for layer in layer_keys %}
+    <img src="{{ image_urls|get_item:layer }}" alt="{{ layer|capfirst }}" class="layer {{ layer }}">
+    {% endfor %}
+
+
         </div>
     </div>
+    <a href="{% url 'dressup:inventory' %}" class="button">View Inventory</a>
+        </div>
+</div>
+
+<!-- Shop Listings -->
+<div class="mall_map">
+    <div class="shop-container">
+        <h2>Shops</h2>
+        {% for shop in shops %}
+        <div class="shop-item">
+            <a href="{% url 'dressup:shop_detail' shop.id %}">
+                <img src="{{ shop.get_image_url }}" alt="{{ shop.name }}">
+                <p><strong>{{ shop.name }}</strong></p>
+                <p>{{ shop.description }}</p>
+            </a>
+        </div>
+        {% empty %}
+        <p>No shops available at the moment.</p>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- Pagination Controls -->
+<div class="pagination">
+    {% if shops.has_previous %}
+    <a href="?page={{ shops.previous_page_number }}" class="cute-pagination">Previous</a>
+    {% endif %}
+
+    <span class="neutral-text">Page {{ shops.number }} of {{ shops.paginator.num_pages }}</span>
+
+    {% if shops.has_next %}
+    <a href="?page={{ shops.next_page_number }}" class="cute-pagination">Next</a>
+    {% endif %}
 </div>
 {% endblock %}
