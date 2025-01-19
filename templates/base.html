@@ -22,7 +22,7 @@
 </head>
 <body class="sissy-theme">
     <!-- Panic Button -->
-    <div class="panic-button" onclick="togglePanicMode()">Panic</div>
+    <div class="panic-button" onClick|onTouch="togglePanicMode()">Panic</div>
 
     <!-- Header -->
     <header class="neon-accent-header">
@@ -33,7 +33,7 @@
     <!-- Navigation Tabs (Post-it Notes) -->
     <nav class="post-it-notes">
         <a href="{% url 'journal:welcome' %}" class="post-it">Home</a>
-        <a href="{% url 'journal:resources' %}" class="post-it">Resources</a>
+        <a href="{% url 'journal:resource_category_list' %}" class="post-it">Resources</a>
         <a href="{% url 'journal:dashboard' %}" class="post-it">Dashboard</a>
         <a href="{% url 'journal:thread_list' %}" class="post-it">Forum</a>
         <a href="{% url 'journal:blog_list' %}" class="post-it">Blog</a>
@@ -64,6 +64,8 @@
 
     <!-- Include External Scripts -->
     {% block scripts %}
+    <script type="module" src="dressup/static/dressup/scripts.js"></script>
+
     <script src="{% static 'journal/scripts/scripts.js' %}"></script>
     {% endblock %}
 </body>

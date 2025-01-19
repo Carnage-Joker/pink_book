@@ -1,154 +1,207 @@
-from django.shortcuts import render, get_object_or_404, redirect
-from django.contrib.auth.decorators import login_required
-from django.views import View
-from django.utils.decorators import method_decorator
-from django.contrib import messages
+from django.shortcuts import redirect
 from django.http import JsonResponse
-from django.urls import reverse
-from .models import Avatar, ClothingItem, FavoriteOutfit, PhotoshootLocation, Item, PurchasedItem
-
-# CreateAvatarView
-
-
-@method_decorator(login_required, name='dispatch')
-class CreateAvatarView(View):
-    def get(self, request):
-        if Avatar.objects.filter(user=request.user).exists():
-            messages.info(request, "You already have an avatar!")
-            return redirect('dressup:avatar_exists')
-        return render(request, 'create_avatar.html')
-
-    def post(self, request):
-        user = request.user
-        if Avatar.objects.filter(user=user).exists():
-            messages.info(request, "You already have an avatar!")
-            return redirect('dressup:avatar_exists')
-
-        avatar = Avatar.objects.create(user=user)
-        messages.success(request, "Your avatar has been created!")
-        return redirect('dressup:avatar_created')
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
+from django.contrib import messages
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import get_object_or_404, redirect, render
+from .decorators import avatar_required
+from .forms import AvatarCreationForm
+from .models import Avatar, Item, PurchasedItem, Shop
+from django.http import HttpRequest, HttpResponse
 
 
-# DressUpView - Display Avatar and Available Clothing Items
-@method_decorator(login_required, name='dispatch')
-class DressUpView(View):
-    def get(self, request):
-        avatar = get_object_or_404(Avatar, user=request.user)
-        clothing_items = ClothingItem.objects.all()
-        return render(request, 'my_avatar.html', {
-            'avatar': avatar,
-            'clothing_items': clothing_items,
-        })
-
-
-# PurchasePremiumOutfitView - Allow Premium Users to Purchase Outfits
-@method_decorator(login_required, name='dispatch')
-class PurchasePremiumOutfitView(View):
-    def post(self, request, outfit_id):
-        user = request.user
-        outfit = get_object_or_404(ClothingItem, id=outfit_id, is_premium=True)
-
-        # Check if the user has a premium subscription
-        if not hasattr(user, 'billing') or user.billing.subscription_status != 'premium':
-            messages.error(
-                request, "You need a premium subscription to purchase this outfit.")
-            return redirect('dressup:premium_outfit_list')
-
-        # Add the outfit to user's collection
-        PurchasedItem.objects.create(user=user, item=outfit)
-        messages.success(
-            request, f"{outfit.name} has been added to your collection!")
-        return redirect('dressup:favorite_outfit_list')
-
-
-# FavoriteOutfitListView - Display User's Favorite Outfits
-@method_decorator(login_required, name='dispatch')
-class FavoriteOutfitListView(View):
-    def get(self, request):
-        favorite_outfits = FavoriteOutfit.objects.filter(user=request.user)
-        return render(request, 'favorite_outfit_list.html', {
-            'favorite_outfits': favorite_outfits,
-        })
-
-
-# PhotoshootLocationView - Select Photoshoot Locations for Avatars
-@method_decorator(login_required, name='dispatch')
-class PhotoshootLocationView(View):
-    def get(self, request):
-        locations = PhotoshootLocation.objects.all()
-        return render(request, 'mall.html', {
-            'locations': locations,
-        })
-
-    def post(self, request, location_id):
-        location = get_object_or_404(PhotoshootLocation, id=location_id)
-
-        # Check if the location is premium
-        if location.is_premium and not hasattr(request.user, 'billing') or request.user.billing.subscription_status != 'premium':
-            messages.error(
-                request, "This photoshoot location is for premium users only.")
-            return redirect('dressup:mall')
-
-        messages.success(request, f"You've selected the {
-                         location.name} for your photoshoot!")
-        return redirect('dressup:photoshoot_selected', location_id=location.id)
-
-
-# Create Avatar Function-Based View
 @login_required
-def create_avatar(request):
-    user = request.user
-    avatar, created = Avatar.objects.get_or_create(user=user)
-    if created:
-        messages.success(request, "Your avatar has been created!")
-        return redirect('dressup:dress_up')
-    else:
-        messages.info(request, "You already have an avatar!")
-        return redirect('dressup:avatar_exists')
-
-
-# Dress Up Function-Based View
-@login_required
-def dress_up(request):
-    avatar = get_object_or_404(Avatar, user=request.user)
-    clothing_items = ClothingItem.objects.all()
-    return render(request, 'my_avatar.html', {'avatar': avatar, 'clothing_items': clothing_items})
-
-
-# Purchase Item View for Buying Clothing Items
-@login_required
-def purchase_item(request, item_id):
-    item = get_object_or_404(ClothingItem, id=item_id)
-
-    # Check for Premium Item Restriction
-    if item.is_premium and not hasattr(request.user, 'billing') or request.user.billing.subscription_status != 'premium':
-        messages.error(
-            request, "You need a premium subscription to purchase this item.")
+def create_avatar_view(request):
+    """
+    View to handle the creation of a new Avatar for the logged-in user.
+    """
+    if hasattr(request.user, 'avatar'):
+        messages.info(
+            request, "You already have an avatar. Redirecting to the mall.")
         return redirect('dressup:mall')
 
-    # Purchase the Item
-    PurchasedItem.objects.create(user=request.user, item=item)
-    messages.success(request, f"You have successfully purchased {item.name}!")
-    return redirect('dressup:mall')
+    if request.method == 'POST':
+        form = AvatarCreationForm(request.POST)
+        if form.is_valid():
+            avatar = form.save(commit=False)
+            avatar.user = request.user
+            avatar.name = f"{request.user.username}'s Avatar"
+            avatar.save()
+            messages.success(
+                request, "Your avatar has been created successfully!")
+            return redirect('dressup:mall')
+        else:
+            messages.error(request, "Please correct the errors below.")
+    else:
+        form = AvatarCreationForm()
+
+    return render(request, 'dressup/create_avatar.html', {'form': form})
 
 
-# Mall View - Display Items Available for Purchase
 @login_required
-def mall(request):
-    premium_only = hasattr(
-        request.user, 'billing') and request.user.billing.subscription_status == 'premium'
-    items = ClothingItem.objects.filter(
-        is_premium=False) if not premium_only else ClothingItem.objects.all()
-    return render(request, 'mall.html', {'items': items})
+@avatar_required
+def mall_view(request):
+    """
+    Displays the mall where users can upgrade their avatars.
+    """
+    # Retrieve the user's avatar safely
+    avatar = getattr(request.user, 'sissy_avatar', None)
+    if avatar is None:
+        messages.error(request, "You need to create an avatar first!")
+        return redirect('dressup:create_avatar')
+
+    # Fetch all shops and paginate them
+    shops = Shop.objects.all().order_by('id')
+    paginator = Paginator(shops, 10)  # 10 shops per page
+    page_number = request.GET.get('page')
+    shops_page = paginator.get_page(page_number)
+
+    # Prepare image URLs for the avatar
+    try:
+        layer_keys = ['body', 'skirt', 'top', 'shoes', 'hair', 'accessories']
+        image_urls = avatar.get_image_urls(layer_keys)
+    except Exception as e:
+        messages.error(
+            request, "An error occurred while loading your avatar. Please try again.")
+        image_urls = {}
+
+    context = {
+        'shops': shops_page,
+        'avatar': avatar,
+        'image_urls': image_urls,
+        'layer_keys': layer_keys,
+    }
+    return render(request, 'dressup/mall.html', context)
+
+@login_required
+@avatar_required
+def shop_detail(request, shop_id):
+    """
+    Displays details of a specific shop and handles item purchases.
+    """
+    shop = get_object_or_404(Shop, id=shop_id)
+    items = shop.items.all()
+
+    if request.method == 'POST':
+        item_id = request.POST.get('item_id')
+        item = get_object_or_404(shop.items, id=item_id)
+        avatar = request.user.avatar
+
+        if PurchasedItem.objects.filter(user=request.user, item=item).exists():
+            messages.info(request, "You have already purchased this item.")
+        else:
+            PurchasedItem.objects.create(user=request.user, item=item)
+            messages.success(
+                request, f"You have successfully purchased {item.name}!")
+            return redirect('dressup:mall')
+
+    return render(request, 'dressup/shop_detail.html', {'shop': shop, 'items': items})
 
 
-# Avatar Created Page
-def avatar_created(request):
-    return render(request, 'avatar_created.html')
+@login_required
+@avatar_required
+def inventory_view(request):
+    """
+    Displays the user's purchased items and their equip status.
+    """
+    avatar = getattr(request.user, 'sissy_avatar', None)
+    if not avatar:
+        messages.error(request, "You need to create an avatar first!")
+        return redirect('dressup:create_avatar')
+
+    # Retrieve purchased and equipped items
+    purchased_items = PurchasedItem.objects.filter(user=request.user)
+    equipped_items = avatar.equipped_items.all() if avatar else []
+
+    if request.method == 'POST' or request.GET.get('item_id'):
+        item_id = request.POST.get('item_id') or request.GET.get('item_id')
+        item = get_object_or_404(Item, id=item_id)
+
+        # Toggle equip/unequip status
+        if item in equipped_items:
+            avatar.unequip_item(item)
+            messages.success(request, f"{item.name} has been unequipped.")
+        else:
+            avatar.equip_item(item)
+            messages.success(request, f"{item.name} has been equipped.")
+
+        # Refresh equipped items after changes
+        equipped_items = avatar.equipped_items.all()
+
+    context = {
+        'purchased_items': purchased_items,
+        'equipped_items': equipped_items,
+    }
+    return render(request, 'dressup/inventory.html', context)
 
 
-# Avatar Exists Page
-def avatar_exists(request):
-    return render(request, 'avatar_exists.html')
+@login_required
+@avatar_required
+def equip_item_ajax(request, item_id):
+    """
+    AJAX View: Equip an item via drag-and-drop interaction.
+    """
+    item = get_object_or_404(Item, id=item_id)
+    avatar = request.user.avatar
+
+    if avatar.equipped_items.filter(id=item.id).exists():
+        avatar.unequip_item(item)
+        status = "unequipped"
+    else:
+        avatar.equip_item(item)
+        status = "equipped"
+
+    return JsonResponse({
+        'status': status,
+        'item_id': item_id,
+        'message': f"{item.name} has been {status}.",
+        'image_url': static(item.image_path)
+    })
 
 
+@login_required
+def purchase_item(request: HttpRequest, item_id: int) -> HttpResponse:
+    """
+    Handles the purchase of an item for the user's avatar.
+    """
+    item = get_object_or_404(Item, id=item_id)
+    avatar = request.user.avatar
+    user = request.user
+
+    if item.premium_only and not user.is_premium():
+        messages.error(request, "This item is for premium users only.")
+        return redirect('dressup:shop_detail', shop_id=item.shop.id)
+
+    if PurchasedItem.objects.filter(user=user, item=item).exists():
+        messages.info(request, "You have already purchased this item.")
+        return redirect('dressup:shop_detail', shop_id=item.shop.id)
+
+    if item.price_points and user.points < item.price_points:
+        messages.error(
+            request, "You do not have enough points to purchase this item.")
+        return redirect('dressup:shop_detail', shop_id=item.shop.id)
+
+    user.deduct_points(item.price_points)
+    PurchasedItem.objects.create(user=user, item=item)
+    messages.success(request, f"You have successfully purchased {item.name}!")
+
+    return redirect('dressup:shop_detail', shop_id=item.shop.id)
+
+
+@login_required
+@avatar_required
+def unequip_item(request, item_id):
+    """
+    Unequips an item from the avatar.
+    """
+    item = get_object_or_404(Item, id=item_id)
+    avatar = request.user.avatar
+
+    if item in avatar.equipped_items.all():
+        avatar.unequip_item(item)
+        messages.success(
+            request, f"{item.name} has been successfully unequipped.")
+    else:
+        messages.error(request, f"{item.name} is not equipped.")
+
+    return redirect('dressup:inventory')

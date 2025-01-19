@@ -2,7 +2,8 @@ import logging
 from collections import Counter
 from datetime import timedelta
 
-from django.db.models import Avg
+from django.db.models import Avg, Count, F, IntegerField, Sum, Value
+from django.db.models.functions import ExtractHour, Length
 from django.db.models.query import QuerySet
 from django.utils.timezone import now
 from nltk.corpus import stopwords
@@ -45,12 +46,22 @@ def get_dashboard_insights(entries, habits, todos):
     }
 
 
+def get_most_common_tags(entries: QuerySet) -> str:
+    """Get the most common tags from entries."""
+    from django.db.models import Count
+    
+    tag_counts = entries.values('tags__name').annotate(tag_count=Count('tags__name')).order_by('-tag_count')
+    return tag_counts[0]['tags__name'] if tag_counts else NO_DATA_AVAILABLE
+
 def get_habit_consistency(habits):
     """Calculate habit consistency as a percentage."""
     if not habits.exists():
         return 0
-    habit_streaks = [habit.increment_counter for habit in habits if hasattr(
-        habit, 'increment_counter')]
+    habit_streaks = [
+        habit.increment_counter
+        for habit in habits
+        if hasattr(habit, 'increment_counter')
+    ]
     return round(sum(habit_streaks) / len(habit_streaks) * 100) if habit_streaks else 0
 
 
@@ -60,42 +71,44 @@ def get_weekly_reflection_count(entries):
     return entries.filter(timestamp__gte=one_week_ago).count()
 
 
-def get_chores_completed(todo):
+def get_chores_completed(todos: QuerySet) -> int:
     """Calculate the number of chores completed."""
     return todo.filter(task_type='chore', completed=True).count()
 
-
-def get_most_common_tags(entries):
-    """Get the most common tags from entries."""
-    tags = [tag.name for entry in entries for tag in entry.tags.all()]
-    return Counter(tags).most_common(1)
-
+    def get_most_common_tags(entries: QuerySet) -> str:
+        """Get the most common tags from entries."""
+        from django.db.models import Count
+        
+        tag_counts = entries.values('tags__name').annotate(tag_count=Count('tags__name')).order_by('-tag_count')
+        return tag_counts[0]['tags__name'] if tag_counts else NO_DATA_AVAILABLE
 
 def get_current_streak(entries):
     """Get the current streak of journaling entries."""
-    if not entries:
+    if not entries.exists():
         return 0
 
     streak = 0
     current_date = now().date()
+    sorted_entries = entries.order_by('-timestamp')
 
-    for entry in entries:
+    for entry in sorted_entries:
         if entry.timestamp.date() != current_date:
             break
 
         streak += 1
         current_date -= timedelta(days=1)
+
     return streak
 
 
-def get_peak_journaling_time(entries):
+
+def get_peak_journaling_time(entries: QuerySet) -> int | None:
     """Get the peak journaling time."""
-    if not entries:
+    if not entries.exists():
         return None
 
-    hours = [entry.timestamp.hour for entry in entries]
-    most_common_hour = Counter(hours).most_common(1)
-    return most_common_hour[0][0] if most_common_hour else None
+    peak_hour = entries.annotate(hour=ExtractHour('timestamp')).values('hour').annotate(count=Count('id')).order_by('-count').first()
+    return peak_hour['hour'] if peak_hour else None
 
 
 def extract_keywords(entries, num_keywords=10):
@@ -112,15 +125,13 @@ def extract_keywords(entries, num_keywords=10):
     ) and word not in stopwords.words('english')]
     most_common = Counter(filtered_tokens).most_common(num_keywords)
     return most_common  # List of tuples (keyword, count)
-
-
-def get_sentiment(text):
+def get_sentiment(text: str):
     """
     Analyze the sentiment of the given text using VADER.
 
     Parameters:
     text (str): The text to be analyzed.
-    tuple: A tuple containing the sentiment ('positive', 'negative', 'neutral'),
+    
     Returns:
     tuple: A tuple containing the sentiment ('positive', 'negative', 'neutral'),
            polarity (float), and subjectivity (approximate confidence score).
@@ -133,12 +144,10 @@ def get_sentiment(text):
 
     # Extracting polarity and subjectivity
     # Compound score is a normalized score between -1 and 1
+    # Extracting polarity and subjectivity
+    # Compound score is a normalized score between -1 and 1
     polarity = sentiment_scores['compound']
-    subjectivity = (
-        sentiment_scores['pos'] + sentiment_scores['neg'] + sentiment_scores['neu']
-    ) / 3
-
-    # Determine the sentiment
+    subjectivity = (sentiment_scores['pos'] + sentiment_scores['neg'] + sentiment_scores['neu']) / 3  # Approximate subjectivity
     if polarity > 0:
         sentiment = 'positive'
     elif polarity < 0:
@@ -148,16 +157,15 @@ def get_sentiment(text):
 
     return sentiment, polarity, subjectivity
 
-
 # Example usage
+sentiment, polarity, subjectivity = None, None, None
 try:
     text = "I love this new feature! It's amazing."
     sentiment, polarity, subjectivity = get_sentiment(text)
-    print(f"Sentiment: {sentiment}, Polarity: {
-          polarity}, Subjectivity: {subjectivity}")
+    print(f"Sentiment: {sentiment}, Polarity: {polarity}, Subjectivity: {subjectivity}")
 except Exception as e:
-    print(f"Error: {e}")
-
+    print(f"Sentiment: {sentiment}, Polarity: {polarity}, Subjectivity: {subjectivity}")
+    print(f"Sentiment: {sentiment}, Polarity: {polarity}, Subjectivity: {subjectivity}")
 
 def get_average_sentiment(entries: QuerySet):
     """Calculate the average sentiment of queryset entries."""
@@ -170,13 +178,19 @@ def get_average_sentiment(entries: QuerySet):
 
 
 def get_most_common_emotions(entries):
-    emotions = [entry.sentiment for entry in entries if entry.sentiment]
-    return Counter(emotions).most_common(1)
+    """Get the most common emotions from entries."""
+    if not entries.exists():
+        return NO_DATA_AVAILABLE
+
+    emotion_counts = entries.values('sentiment').annotate(emotion_count=Count('sentiment')).order_by('-emotion_count')
+    return emotion_counts[0] if emotion_counts else NO_DATA_AVAILABLE
+
+
 
 
 def get_average_word_count(entries):
-    if not entries:
+    if not entries.exists():
         return 0
 
-    total_words = sum(len(entry.content.split()) for entry in entries)
-    return total_words // len(entries)
+    total_words = entries.annotate(word_count=Length(F('content')) - Length(F('content')) + Value(1)).aggregate(total=Sum('word_count'))['total']
+    return total_words // entries.count() if total_words else 0

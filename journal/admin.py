@@ -5,7 +5,13 @@ from django.contrib.auth.models import Group
 
 from .models import (BlogPost, Comment, CustomUser, Faq, JournalEntry, Post, Quote,
                      RelatedModel, Report, Tag, Thread, UserFeedback,
-                     UserProfile, Habit, Guide)
+                     UserProfile, Habit, Guide, Resource, ResourceCategory, ResourceComment)
+
+@admin.register(Resource)
+class ResourceAdmin(admin.ModelAdmin):
+    list_display = ('title',)
+    search_fields = ('title',)
+    
 
 
 @admin.register(Thread)
@@ -23,7 +29,6 @@ class HabitAdmin(admin.ModelAdmin):
     list_display = ('name', 'description', 'reward', 'penalty', 'frequency')
     search_fields = ('name', 'description')
     list_filter = ('frequency',)
-
 
 
 class CustomUserAdmin(BaseUserAdmin):

@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Purchase Confirmation</title>
+    <link rel="stylesheet" href="{% static 'styles/purchase_confirmation.css' %}">
+</head>
+<body>
+    <header>
+        <h1>Confirm Your Purchase</h1>
+    </header>
+    <main>
+        <div class="item-details">
+            <img src="{{ item.image.url }}" alt="{{ item.name }}">
+            <h2>{{ item.name }}</h2>
+            <p>Category: {{ item.category }}</p>
+            <p>
+                Price: 
+                {% if item.price_points %} 
+                    {{ item.price_points }} points 
+                {% endif %}
+                {% if item.price_dollars %}
+                    or ${{ item.price_dollars }}
+                {% endif %}
+            </p>
+            {% if item.premium_only %}
+                <p><strong>Premium Only Item</strong></p>
+            {% endif %}
+        </div>
+        <div class="purchase-actions">
+            <p>Are you sure you want to purchase this item?</p>
+            <form action="{% url 'confirm_purchase' item.id %}" method="post">
+                {% csrf_token %}
+                <button type="submit" class="confirm-button">Confirm Purchase</button>
+            </form>
+            <form action="{% url 'mall_view' %}" method="get">
+                <button type="submit" class="cancel-button">Cancel</button>
+            </form>
+        </div>
+        {% if item.price_dollars %}
+            <div class="real-money-info">
+                <p>
+                    <strong>Note:</strong> By confirming this purchase, you agree to the transaction using your linked payment method.
+                </p>
+            </div>
+        {% endif %}
+    </main>
+</body>
+</html>

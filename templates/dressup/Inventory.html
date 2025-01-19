@@ -1,0 +1,28 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load custom_filters %}
+{% block content %}
+<h1>Your Inventory</h1>
+
+<!-- Avatar Display -->
+<div class="avatar-container" id="avatar-container">
+    <div class="avatar-images">
+        {% for layer in layer_keys %}
+        <img src="{{ image_urls|get_item:layer }}" alt="{{ layer|capfirst }}" class="layer {{ layer }}">
+        {% endfor %}
+    </div>
+</div>
+
+<!-- Inventory Section -->
+<div class="items" id="inventory">
+    <h2>Your Closet</h2>
+    {% for purchased_item in purchased_items %}
+    <div class="item" draggable="true" data-item-id="{{ purchased_item.item.id }}" 
+         data-category="{{ purchased_item.item.category }}">
+        <img src="{% static purchased_item.item.image_path %}" 
+             alt="{{ purchased_item.item.name }}">
+        <h4>{{ purchased_item.item.name }}</h4>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

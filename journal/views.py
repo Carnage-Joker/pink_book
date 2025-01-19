@@ -1,22 +1,17 @@
-# Standard imports
-from django.urls import reverse
-from django.http import JsonResponse
-from click import prompt
-from django.views.generic import TemplateView
-from django.contrib.auth import login
-from django.views.generic.base import RedirectView
-from django.conf import settings
+
 import json
 import logging
-import random
 from datetime import date
-from django.core.mail import send_mail
+from typing import Any, Dict
+
+from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth import get_user_model, login
 from django.contrib.auth import views as auth_views
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.contrib.auth.tokens import default_token_generator
 from django.contrib.auth.views import LoginView as AuthLoginView
+from django.core.mail import send_mail
 from django.core.paginator import Paginator
 from django.http import HttpResponse, HttpResponseForbidden, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
@@ -27,6 +22,9 @@ from django.views import View
 from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import (CreateView, DeleteView, DetailView, FormView,
                                   ListView, TemplateView, UpdateView)
+from django.views.generic.edit import CreateView
+
+from journal.models import CustomUser, Habit, JournalEntry, ToDo
 
 # Local application imports
 from .forms import (CommentForm, CustomUserCreationForm, CustomUserLoginForm,
@@ -42,15 +40,14 @@ from .utils.ai_utils import (extract_keywords, get_average_sentiment,
                              get_most_common_emotions, get_most_common_tags,
                              get_peak_journaling_time)
 from .utils.utils import (calculate_penalty, generate_task,
-                          send_activation_email)
+                          generate_truth_task, send_activation_email)
 
-# Set up the logger
+# Set up the logger to capture and log application events and errors
 logger = logging.getLogger(__name__)
 
 User = get_user_model()
 
 
-DASHBOARD_URL = "journal:dashboard"
 
 
 class SafeMixin:
@@ -67,7 +64,7 @@ class SafeMixin:
                 request,
                 "An unexpected error occurred. Please try again later."
             )
-            return redirect(DASHBOARD_URL)
+            return redirect("journal:some_error_page")
 
 
 class ResendActivationView(SafeMixin, FormView):
@@ -116,21 +113,22 @@ class RegistrationSuccessView(TemplateView):
         send_mail(subject, message, from_email, recipient_list)
 
     def get(self, request, *args, **kwargs):
-        # Assume 'registered_user_id' is stored in session during registration
         user_id = request.session.get('registered_user_id')
         if user_id:
             user = CustomUser.objects.get(id=user_id)
-            login(request, user)
+
+            # Specify the backend for allauth
+            user.backend = 'django.contrib.auth.backends.ModelBackend'
+            
             self.send_welcome_email(user)
             messages.success(
                 request,
                 "Your account was activated successfully. Welcome to the community!",
             )
-            # Clear the session data
-            del request.session['registered_user_id']
+            request.session.pop('registered_user_id', None)
         else:
             messages.error(request, "No user found. Please log in.")
-            return redirect("journal:login")
+            return redirect("journal:welcome")
         return super().get(request, *args, **kwargs)
 
 
@@ -141,19 +139,18 @@ class RegisterView(SafeMixin, FormView):
     form_class = CustomUserCreationForm
     success_url = reverse_lazy("journal:registration_success")
 
-
-def form_valid(self, form):
-    user = form.save(commit=False)
-    user.is_active = False
-    user.save()
-    send_activation_email(user, self.request)
-    # Store user ID in session
-    self.request.session['registered_user_id'] = user.id
-    messages.success(
-        self.request,
-        "Your account has been created! Please check your email to activate your account."
-    )
-    return redirect(self.success_url)
+    def form_valid(self, form):
+        user = form.save(commit=False)
+        user.is_active = False
+        user.save()
+        send_activation_email(user, self.request)
+        # Store user ID in session
+        self.request.session['registered_user_id'] = user.id
+        messages.success(
+            self.request,
+            "Your account has been created! Please check your email to activate your account."
+        )
+        return redirect(self.success_url)
 
 
 class ActivateAccountView(SafeMixin, View):
@@ -181,13 +178,17 @@ class ActivateAccountView(SafeMixin, View):
         if user is not None and default_token_generator.check_token(user, token):
             user.is_active = True
             user.save()
+
+            # Log in the user after activation
+            login(request, user)
             messages.success(
                 request, "Your account has been activated successfully."
             )
-            return redirect(DASHBOARD_URL)
+            return redirect("journal:dashboard")
         else:
-            messages.error(request, "Activation link is invalid!")
-            return redirect("journal:login")
+            messages.error(
+                request, "Activation link is invalid or has expired!")
+            return redirect("journal:some_error_page")
 
 
 class CustomLoginView(SafeMixin, AuthLoginView):
@@ -197,7 +198,7 @@ class CustomLoginView(SafeMixin, AuthLoginView):
     authentication_form = CustomUserLoginForm
     success_url = reverse_lazy("journal:dashboard")
 
-    def form_valid(self, form):
+    def form_valid(self, form: CustomUserLoginForm):
         """
         Handle a valid login form submission.
 
@@ -206,11 +207,11 @@ class CustomLoginView(SafeMixin, AuthLoginView):
         user = form.get_user()
         login(self.request, user)
         logger.info(
-            f"User {user.username} (Email: {user.email}) logged in successfully."
+            f"User {user.sissy_name} (Email: {user.email}) logged in successfully."
         )
         return redirect(self.success_url)
 
-    def form_invalid(self, form):
+    def form_invalid(self, form: CustomUserLoginForm) -> HttpResponse:
         """
         Handle an invalid form submission by logging the error and displaying an error message.
 
@@ -271,7 +272,7 @@ class ProfileView(LoginRequiredMixin, DetailView):
     model = CustomUser
     template_name = "profile.html"
 
-    def get_object(self):
+    def get_object(self, queryset=None):
         """
         Retrieve the current user object.
 
@@ -304,7 +305,7 @@ class ProfileCustomizeView(LoginRequiredMixin, SafeMixin, UpdateView):
     model = CustomUser
     success_url = reverse_lazy("journal:dashboard")
 
-    def form_invalid(self, form):
+    def form_invalid(self, form: ThemeForm) -> HttpResponse:
         """
         Handle invalid form submissions.
 
@@ -315,11 +316,12 @@ class ProfileCustomizeView(LoginRequiredMixin, SafeMixin, UpdateView):
             The response to render the form with errors.
         """
         messages.error(
-            self.request, "An error occurred while updating your profile. Please try again."
+            self.request,
+            "An error occurred while updating your profile. Please try again."
         )
         return super().form_invalid(form)
 
-    def get_context_data(self, **kwargs):
+    def get_context_data(self, **kwargs: Dict[str, Any]) -> Dict[str, Any]:
         context = super().get_context_data(**kwargs)
         user = self.request.user
         profile = getattr(user, "profile", None)
@@ -344,78 +346,87 @@ class ProfileSettingsView(LoginRequiredMixin, SafeMixin, TemplateView):
 
 
 class DashboardView(LoginRequiredMixin, TemplateView):
-    """View for the user dashboard."""
+    """Enhanced View for the user dashboard."""
     template_name = "dashboard.html"
 
-    def get_quote_of_the_day(self):
-        today = date.today()
-        quotes = Quote.objects.all()
-        if quotes.exists():
-            random.seed(today.toordinal())
-            quote = random.choice(quotes)
-            return quote.content
-        return "No quote available"
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
+    def get_profile_pic(self):
+        """Retrieve the URL of the user's profile picture."""
         user = self.request.user
+        profile_picture = getattr(user, "profile_picture", None)or "/static/journal/media/default-profile-pic.jpg"
+        if profile_picture:
+            return profile_picture
+       
+    def get_quote_of_the_day(self):
+        """Select a deterministic quote based on the current day."""
+        today = date.today()
+        quotes = list(Quote.objects.all())
+        if quotes:
+            index = today.toordinal() % len(quotes)
+            return quotes[index].content
+        return "Every day is a chance to be fabulous!"
 
-        # Fetch recent data
-        recent_entries = JournalEntry.objects.filter(
-            user=user).order_by("-timestamp")[:3]
-        todos = ToDo.objects.filter(user=user).order_by("-timestamp")[:5]
-        habits = Habit.objects.filter(user=user).order_by("-timestamp")[:5]
-        profile = getattr(user, "profile", None)
 
-        # Generate a Truth or Dare task using the provided function
-        # Directly call the function without arguments
-        truth_or_dare_task = generate_task(user)
+def get_context_data(self, **kwargs):
+    context = super().get_context_data(**kwargs)
+    user = self.request.user
 
-        # Sentiment and journal insights
-        if recent_entries.exists():
-            sentiment_data = get_average_sentiment(recent_entries)
-            context.update({
-                "avg_polarity": sentiment_data.get("avg_polarity", 0),
-                "avg_subjectivity": sentiment_data.get("avg_subjectivity", 0),
-                "streak": get_current_streak(recent_entries),
-                "frequent_keywords": extract_keywords(recent_entries),
-                "common_tags": get_most_common_tags(recent_entries),
-                "most_common_emotions": get_most_common_emotions(recent_entries),
-                "average_word_count": get_average_word_count(recent_entries),
-                "most_active_hour": get_peak_journaling_time(recent_entries),
-            })
-        else:
-            context.update({
-                "avg_polarity": 0,
-                "avg_subjectivity": 0,
-                "streak": 0,
-                "frequent_keywords": [],
-                "common_tags": [],
-                "most_common_emotions": [],
-                "average_word_count": 0,
-                "most_active_hour": None,
-            })
+    # Fetch the recent entries without slicing
+    recent_entries = JournalEntry.objects.filter(
+        user=user).order_by("-timestamp")
+    todos = ToDo.objects.filter(user=user).order_by("-timestamp")[:5]
+    habits = Habit.objects.filter(user=user).order_by("-timestamp")[:5]
 
-        # General context update
+    # Reset habit counters if needed
+    for habit in habits:
+        if habit.check_reset_needed():
+            habit.reset_counter()
+
+    # Calculate streak using the full queryset
+    if recent_entries.exists():
+        sentiment_data = get_average_sentiment(recent_entries)
         context.update({
-            "user": user,
-            "profile": profile,
-            "points": getattr(profile, "points", 0) if profile else 0,
-            "quote_of_the_day": self.get_quote_of_the_day(),
-            "todos": todos,
-            "habits": habits,
-            "entries": recent_entries,
-            "entries_with_insights": recent_entries,
-            "truth_or_dare_task": truth_or_dare_task  # Add the task to context
+            "avg_polarity": sentiment_data.get("avg_polarity", 0),
+            "avg_subjectivity": sentiment_data.get("avg_subjectivity", 0),
+            "streak": get_current_streak(recent_entries),
+            "frequent_keywords": extract_keywords(recent_entries[:3]),
+            "common_tags": get_most_common_tags(recent_entries[:3]),
+            "most_common_emotions": get_most_common_emotions(recent_entries[:3]),
+            "average_word_count": get_average_word_count(recent_entries[:3]),
+            "most_active_hour": get_peak_journaling_time(recent_entries),
+        })
+    else:
+        context.update({
+            "avg_polarity": 0,
+            "avg_subjectivity": 0,
+            "streak": 0,
+            "frequent_keywords": [],
+            "common_tags": [],
+            "most_common_emotions": [],
+            "average_word_count": 0,
+            "most_active_hour": None,
         })
 
-        return context
+    # Profile and points
+    points = getattr(user, "points", 0)
+    profile_pic = self.get_profile_pic()
 
+    # Additional context
+    context.update({
+        "user": user,
+        "points": points,
+        "profile_pic": profile_pic,
+        "quote_of_the_day": self.get_quote_of_the_day(),
+        "todos": todos,
+        "habits": habits,
+        "entries": recent_entries[:3],  # Only pass the sliced entries here
+    })
 
-class HomeView(TemplateView, SafeMixin):
+    return context
+
+class HomeView(SafeMixin, TemplateView):
     """Home page view."""
 
-    template_name = "home.html"
+    template_name = "welcome.html"
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -428,36 +439,35 @@ class JournalEntryCreateView(LoginRequiredMixin, CreateView):
     form_class = JournalEntryForm
     template_name = "new_entry.html"
 
-    def get_context_data(self, **kwargs):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self._generated_prompt = None
+
+    def get_initial(self) -> dict:
+        initial = super().get_initial()
+        if self._generated_prompt is None:
+            self._generated_prompt = generate_prompt()
+        initial['generated_prompt'] = self._generated_prompt
+        return initial
+
+    def get_context_data(self, **kwargs) -> dict:
         context = super().get_context_data(**kwargs)
-        generated_prompt = generate_prompt()
-        context["generated_prompt"] = generated_prompt
-        # Pre-fill the form's generated_prompt field
-        self.initial.update({'generated_prompt': generated_prompt})
-        context['form'].initial['generated_prompt'] = generated_prompt
+        context["generated_prompt"] = self._generated_prompt
         return context
 
-    def form_valid(self, form):
-        form.instance.user = self.request.user
-        form.instance.prompt_text = form.cleaned_data.get("generated_prompt")
-        response = super().form_valid(form)
-
-        # Generate and attach the insight
+    def generate_insight_and_save(self, journal_entry):
         try:
-            insight_text = generate_insight(form.instance.content)
-            form.instance.insight = insight_text
-            form.instance.save(update_fields=['insight'])
+            insight_text = generate_insight(journal_entry.content)
+            journal_entry.insight = insight_text
+            journal_entry.save(update_fields=['insight'])
         except Exception as e:
-            messages.error(self.request, f"Error generating insight: {str(e)}")
-            form.instance.insight = "Insight generation failed."
-            form.instance.save(update_fields=['insight'])
+            logger.error(f"Insight generation failed: {e}")
+            journal_entry.insight = "Insight generation failed."
+            journal_entry.save(update_fields=['insight'])
 
-        # Award points to the user
-        points_earned = form.instance.calculate_points()
-        self.request.user.points += points_earned
-        self.request.user.save()
-
-        # Success message
+    def award_user_points(self, user, points_earned):
+        user.points += points_earned
+        user.save()
         if points_earned > 0:
             messages.success(
                 self.request,
@@ -466,13 +476,20 @@ class JournalEntryCreateView(LoginRequiredMixin, CreateView):
         else:
             messages.warning(
                 self.request,
-                f"Naughty girl, you need to follow instructions to get points. You lost {abs(points_earned)}."
+                f"Follow instructions to earn points. You lost {abs(points_earned)} points."
             )
 
-        return response  # Ensures the correct redirection occurs
+    def form_valid(self, form) -> HttpResponse:
+        form.instance.user = self.request.user
+        form.instance.prompt_text = form.cleaned_data.get("generated_prompt")
+        response = super().form_valid(form)
+        self.generate_insight_and_save(form.instance)
+        self.award_user_points(
+            self.request.user, form.instance.calculate_points())
+        return response
 
     def get_success_url(self):
-        return reverse("journal:entry_detail", kwargs={"pk": self.object.pk})
+        return reverse_lazy("journal:entry_detail", kwargs={"pk": self.object.pk})
 
 
 class JournalEntryWithTaskView(LoginRequiredMixin, CreateView):
@@ -482,37 +499,33 @@ class JournalEntryWithTaskView(LoginRequiredMixin, CreateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        if task_id := self.kwargs.get("task_id"):
-            context["task"] = get_object_or_404(
-                Task, task_id=task_id, user=self.request.user)
+        task_id = self.kwargs.get("task_id")
+        task = get_object_or_404(Task, task_id=task_id, user=self.request.user)
+        context["task"] = task
         return context
 
     def form_valid(self, form):
         task_id = self.kwargs.get("task_id")
-        if task := get_object_or_404(Task, task_id=task_id, user=self.request.user):
-            # Save the task description as text instead of the Task object
-            form.instance.task = task.description
-            form.instance.prompt_text = task.description
-            form.instance.user = self.request.user
+        task = get_object_or_404(Task, task_id=task_id, user=self.request.user)
 
-        journal_entry = form.save(commit=False)
-        journal_entry.save()
-        form.save_m2m()
+        form.instance.task = task.description
+        form.instance.prompt_text = task.description
+        form.instance.user = self.request.user
 
-        # Analyze content for topic relevance
-        journal_entry.analyze_content()
+        # Analyze content for topic relevance after saving
+        response = super().form_valid(form)
+        form.instance.analyze_content()
 
         # Award or penalize points based on the AI analysis
-        if journal_entry.passes_ai_analysis():
+        if form.instance.passes_ai_analysis():
             self.request.user.points += task.points_awarded
         else:
             self.request.user.points -= task.points_penalty  # Deduct points if the task fails
 
-        # Save updated user points
         self.request.user.save()
 
         messages.success(self.request, "Journal entry created successfully!")
-        return super().form_valid(form)
+        return response
 
     def get_success_url(self) -> str:
         return reverse("journal:entry_detail", kwargs={"pk": self.object.pk})
@@ -599,6 +612,17 @@ def redeem_points(request):
     return render(request, 'redeem_points.html', {'points': user_points.points})
 
 
+class TruthTaskGenerateView(LoginRequiredMixin, TemplateView):
+    
+    def get(self, request, *args, **kwargs):
+        if truth_task := generate_task_truth(request.user):
+            return redirect('journal:new_entry_with_task', task_id=str(truth_task.task_id))
+        
+        messages.error(
+            request, "Failed to generate taask. Please try again.")
+        return redirect('journal:dashboard')
+        
+
 class TaskGenerateView(LoginRequiredMixin, TemplateView):
 
     def get(self, request, *args, **kwargs):
@@ -666,6 +690,7 @@ class IncrementHabitCounterView(LoginRequiredMixin, View):
         is_completed = habit.is_completed()
         current_streak = habit.get_current_streak()
         longest_streak = habit.get_longest_streak()
+        insight = habit.get_insights()  # Add this line to generate insights dynamically
         return JsonResponse(
             {
                 "status": "success",
@@ -675,9 +700,9 @@ class IncrementHabitCounterView(LoginRequiredMixin, View):
                 "frequency": habit.frequency,
                 "current_streak": current_streak,
                 "longest_streak": longest_streak,
+                "insight": insight,  # Include insights in the response
             }
         )
-
 # To-Do Management Views
 
 
@@ -747,17 +772,19 @@ class CompleteToDoView(View):
 @csrf_exempt
 def generate_task_view(request):
     """View to generate a new task."""
+    user = request.user
 
     if request.method == "POST":
         try:
-            task = generate_task()
+            task = generate_task(user)
             return JsonResponse({"task": task})
         except Exception as e:
             return JsonResponse({"error": str(e)}, status=500)
     return JsonResponse({"error": "Invalid request method"}, status=400)
 
 
-def generate_task_truth():
+
+
     
 
 
@@ -975,20 +1002,33 @@ class GuideDetailView(DetailView):
         return context
 
 
-class ResourceCategoryView(DetailView):
-    """View to display resources within a category."""
+class ResourceCategoryListView(ListView):
+    model = ResourceCategory
+    template_name = "journal/resource_category_list.html"
+    context_object_name = "categories"
 
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        # Assuming the featured resource is the most recent one
+        context["featured_resource"] = Resource.objects.order_by(
+            "-timestamp").first()
+        return context
+
+
+class ResourceCategoryDetailView(DetailView):
+    """View to display resources within a single category."""
     model = ResourceCategory
     template_name = "journal/resource_category_detail.html"
     context_object_name = "category"
 
-
-class ResourceListView(ListView):
-    """View to display resource categories."""
-
-    model = Resource
-    template_name = "journal/resources.html"
-    context_object_name = "resource"
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        category = self.object
+        context["resources"] = category.resources.order_by(
+            "-timestamp")  # List of resources
+        # Featured resource
+        context["featured_resource"] = category.get_featured_resource()
+        return context
 
 
 def blog_detail(request, pk):
@@ -1161,3 +1201,8 @@ class FaqView(LoginRequiredMixin, TemplateView):
         context = super().get_context_data(**kwargs)
         context["faqs"] = Faq.objects.all()
         return context
+
+
+def some_error_page(request):
+    """View to display an error page."""
+    return render(request, "some_error_page.html")

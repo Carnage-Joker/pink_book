@@ -1,0 +1,58 @@
+<!-- create_avatar.html -->
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>Create Your Avatar</h2>
+    <form method="post">
+        {% csrf_token %}
+
+        <!-- Display Form Errors -->
+        {% if form.errors %}
+            <div class="alert alert-danger">
+                <ul>
+                    {% for field in form %}
+                        {% for error in field.errors %}
+                            <li>{{ error }}</li>
+                        {% endfor %}
+                    {% endfor %}
+                    {% for error in form.non_field_errors %}
+                        <li>{{ error }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        {% endif %}
+
+        <!-- Skin Tone Selection -->
+        <div class="form-group mb-4">
+            <label>Choose Skin Tone:</label>
+            <div class="image-selection d-flex flex-wrap">
+                {% for value, label in form.skin.field.choices %}
+                    <label class="avatar-option me-3 mb-3">
+                        <input type="radio" name="{{ form.skin.name }}" value="{{ value }}" {% if form.skin.value == value %}checked{% endif %} style="display:none;">
+                        <img src="{% static 'avatars/skin/'|add:value|add:'.png' %}" alt="{{ label }}" class="img-thumbnail">
+                    </label>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Body Type Selection -->
+        <div class="form-group mb-4">
+            <label>Choose Body Type:</label>
+            <div class="image-selection d-flex flex-wrap">
+                {% for value, label in form.body.field.choices %}
+                    <label class="avatar-option me-3 mb-3">
+                        <input type="radio" name="{{ form.body.name }}" value="{{ value }}" {% if form.body.value == value %}checked{% endif %} style="display:none;">
+                        <img src="{% static 'avatars/body/'|add:value|add:'.png' %}" alt="{{ label }}" class="img-thumbnail">
+                    </label>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Submit Button -->
+        <button type="submit" class="btn btn-primary">Create Avatar</button>
+    </form>
+</div>
+{% endblock %}
+

@@ -1,4 +1,7 @@
-<!-- templates/activation_email.html -->
-<p>Hello {{ user.username }},</p>
+<p>Hi {{ user.sissy_name }},</p>
 <p>Please click the link below to activate your account:</p>
-<p><a href="{{ activation_link }}">Activate your account</a></p>
+<p>
+  <a href="{{ protocol }}://{{ domain }}{% url 'journal:activate' uidb64=uidb64 token=token %}">
+    Activate your account
+  </a>
+</p>

@@ -1,0 +1,49 @@
+<!-- mall.html -->
+{% extends 'base.html' %}
+{% load static %}
+
+{% block content %}
+<h1>Welcome to the Mall</h1>
+
+<!-- Avatar Display -->
+<div class="avatar-container">
+    <div class="avatar-images">
+        {% for layer in layer_keys %}
+        <img src="{{ image_urls|get_item:layer }}" alt="{{ layer|capfirst }}" class="layer {{ layer }}">
+        {% endfor %}
+    </div>
+</div>
+
+<a href="{% url 'dressup:inventory' %}" class="btn btn-secondary">View Inventory</a>
+
+<!-- Shop Listings -->
+<div class="mall_map">
+    <div class="shop-container">
+        {% for shop in shops %}
+        <div class="shop-item">
+            <a href="{% url 'dressup:shop_detail' shop.id %}">
+                <img src="{{ shop.get_image_url }}" alt="{{ shop.name }}">
+                <p><strong>{{ shop.name }}</strong></p>
+                <p>{{ shop.description }}</p>
+            </a>
+        </div>
+        {% empty %}
+        <p>No shops available at the moment.</p>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- Pagination Controls -->
+<div class="pagination">
+    {% if shops.has_previous %}
+    <a href="?page={{ shops.previous_page_number }}" class="btn btn-outline-secondary">Previous</a>
+    {% endif %}
+
+    <span>Page {{ shops.number }} of {{ shops.paginator.num_pages }}</span>
+
+    {% if shops.has_next %}
+    <a href="?page={{ shops.next_page_number }}" class="btn btn-outline-secondary">Next</a>
+    {% endif %}
+</div>
+{% endblock %}
+

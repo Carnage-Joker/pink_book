@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Photography Studio</title>
+    <link rel="stylesheet" href="{% static 'styles/photography_studio.css' %}">
+</head>
+<body>
+    <header>
+        <h1>Photography Studio</h1>
+        <nav>
+            <a href="{% url 'mall_view' %}">Back to Mall</a>
+        </nav>
+    </header>
+    <main>
+        <h2>Select Backdrop</h2>
+        <div class="backdrops-grid">
+            {% for backdrop in backdrops %}
+                <div class="backdrop">
+                    <img src="{{ backdrop.image.url }}" alt="{{ backdrop.name }}">
+                    <p>{{ backdrop.name }}</p>
+                    {% if backdrop.premium_only and not request.user.is_premium %}
+                        <p>This backdrop is for premium users only.</p>
+                    {% else %}
+                        <form action="{% url 'purchase_photoshoot' backdrop.id %}" method="post">
+                            {% csrf_token %}
+                            <button type="submit">Select</button>
+                        </form>
+                    {% endif %}
+                </div>
+            {% endfor %}
+        </div>
+        <h2>Your Photoshoots</h2>
+        <div class="photoshoots-grid">
+            {% for photoshoot in photoshoots %}
+                <img src="{{ photoshoot.image.url }}" alt="Photoshoot">
+            {% endfor %}
+        </div>
+    </main>
+</body>
+</html>
