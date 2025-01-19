@@ -1,8 +1,10 @@
+// ==============================
+// Module: Drag-and-Drop Logic
+// ==============================
 document.addEventListener('DOMContentLoaded', () => {
     const items = document.querySelectorAll('.item');
     const avatarContainer = document.getElementById('avatar');
 
-    // Allow the avatar to accept drops
     avatarContainer.addEventListener('dragover', (e) => {
         e.preventDefault();
     });
@@ -12,42 +14,47 @@ document.addEventListener('DOMContentLoaded', () => {
         const itemID = e.dataTransfer.getData('item-id');
         const category = e.dataTransfer.getData('category');
 
-        // Find the corresponding avatar layer
         const targetLayer = document.getElementById(`layer-${category}`);
 
         if (targetLayer) {
-            // Replace the avatar layer with the new item
             targetLayer.src = e.dataTransfer.getData('image-url');
-
-            // Optional: Send a POST request to update equipped items
+            const csrfToken = getCSRFToken();
+            if (!csrfToken) {
+                alert('Failed to retrieve CSRF token.');
+                return;
+            }
             fetch(`/dressup/equip_item/${itemID}/`, {
                 method: 'POST',
                 headers: {
-                    'X-CSRFToken': getCSRFToken(),
+                    'X-CSRFToken': csrfToken,
                     'Content-Type': 'application/json',
                 },
-            }).then(response => {
+            })
+            .then(response => {
                 if (response.ok) {
                     alert('Item equipped successfully!');
                 } else {
+                    console.error('Equip item failed:', response.statusText);
                     alert('Failed to equip item.');
                 }
-            });
+            })
+            .catch(error => console.error('Network error:', error));
         }
     });
+        
 
-    // Dragstart event for inventory items
+
     items.forEach(item => {
         item.addEventListener('dragstart', (e) => {
             const image = item.querySelector('img').src;
             e.dataTransfer.setData('item-id', item.dataset.itemId);
             e.dataTransfer.setData('category', item.dataset.category);
-            e.dataTransfer.setData('image-url', image);
         });
     });
 
-    // Function to get CSRF token for POST requests
+    // Function to retrieve the CSRF token from the HTML document
     function getCSRFToken() {
         return document.querySelector('[name=csrfmiddlewaretoken]').value;
     }
 });
+

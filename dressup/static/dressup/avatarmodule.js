@@ -3,22 +3,22 @@
 // ==============================
 export const avatarModule = (() => {
     const items = {
-        'dress': ['dress1.png', 'dress2.png', 'dress3.png'],
-        'skirt': ['skirt1.png', 'skirt2.png', 'skirt3.png'],
-        'top': ['top1.png', 'top2.png', 'top3.png'],
-        'shoes': ['shoes1.png', 'shoes2.png', 'shoes3.png'],
-        'accessories': ['accessory1.png', 'accessory2.png', 'accessory3.png']
+        'dresses': ['00.png', '01.png', '02.png'],
+        'skirts': ['00.png', '01.png', '02.png'],
+        'tops': ['00.png', '01.png', '02.png'],
+        'shoes': ['00.png', '01.png', '02.png'],
+        'accessories': ['00.png', '01.png', '02.png']
     };
 
     let currentIndex = {
-        'dress': 0,
-        'skirt': 0,
-        'top': 0,
+        'dresses': 0,
+        'skirts': 0,
+        'tops': 0,
         'shoes': 0,
         'accessories': 0
     };
 
-    function changeItem(category, direction) {
+    function changeItem(category, direction, callback) {
         const categoryItems = items[category];
         const currentItemIndex = currentIndex[category];
         const totalItems = categoryItems.length;
@@ -29,7 +29,10 @@ export const avatarModule = (() => {
             currentIndex[category] = (currentItemIndex - 1 + totalItems) % totalItems;
         }
 
-        document.getElementById(category).src = `/static/items/${categoryItems[currentIndex[category]]}`;
+        const newItemPath = `/static/dressup/avatars/${categoryItems[currentIndex[category]]}`;
+        document.getElementById(category).src = newItemPath;
+
+        if (callback) callback(category, currentIndex[category]);
     }
 
     function allowDrop(event) {

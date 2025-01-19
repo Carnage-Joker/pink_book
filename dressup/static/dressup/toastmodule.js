@@ -2,8 +2,13 @@
 // Module: Toast Notifications
 // ==============================
 export const toastModule = (() => {
-    function showToast(message, type = 'info') {
+    function showToast(message, type = 'info', duration = 3000) {
         const toastContainer = document.querySelector('.toast-container');
+        if (!toastContainer) {
+            console.error('Toast container not found.');
+            return;
+        }
+
         const toast = document.createElement('div');
         toast.className = `toast toast-${type}`;
         toast.innerText = message;
@@ -12,8 +17,10 @@ export const toastModule = (() => {
         animateToast(toast);
 
         setTimeout(() => {
-            toastContainer.removeChild(toast);
-        }, 3000);
+            if (toast.parentElement === toastContainer) {
+                toastContainer.removeChild(toast);
+            }
+        }, duration);
     }
 
     function animateToast(toast) {
@@ -22,7 +29,6 @@ export const toastModule = (() => {
             toast.style.transition = 'opacity 0.5s';
             toast.style.opacity = 1;
         }, 10);
-    }
 
     return { showToast };
 })();

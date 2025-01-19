@@ -2,102 +2,27 @@
 {% load static %}
 {% load custom_filters %}
 {% block content %}
-<link rel="stylesheet" href="{% static 'dressup/styles.css' %}">
-<script src="{% static 'dressup/drag_drop.js' %}" defer></script>
-<script src="{% static 'dressup/avatarmodule.js' %}" defer></script>
-<script src="{% static 'dressup/toastmodule.js' %}" defer></script>
-<script src="{% static 'dressup/navigationmodule.js' %}" defer></script>
-
-<h1>{{ User.sissy_name }}'s Sissy Closet</h1>
+<h1>Your Inventory</h1>
 
 <!-- Avatar Display -->
 <div class="avatar-container" id="avatar-container">
-    <div class="avatar-display">
-        <h2>Pick an outfit so we can go back to the mall, sissy!</h2>
-        <div class="avatar-images" id="avatar">
-            {% for layer in layer_keys %}
-                <img src="{{ image_urls|get_item:layer }}" 
-                     alt="{{ layer|capfirst }}" 
-                     class="layer {{ layer }}"
-                     id="layer-{{ layer }}">
-            {% endfor %}
-        </div>
-    </div>
-    <a href="{% url 'dressup:mall' %}" class="button">Let's go back to the mall</a>
-</div>
-
-<!-- Inventory Section -->
-<div class="container">
-    <h2>Your Inventory</h2>
-    <div class="items" id="inventory">
-        {% for purchased_item in purchased_items %}
-            <div class="item" draggable="true" data-item-id="{{ purchased_item.item.id }}" 
-                 data-category="{{ purchased_item.item.category }}">
-                <img src="{{ purchased_item.item.image.url }}" alt="{{ purchased_item.item.name }}">
-                <h4>{{ purchased_item.item.name }}</h4>
-            </div>
+    <div class="avatar-images">
+        {% for layer in layer_keys %}
+        <img src="{{ image_urls|get_item:layer }}" alt="{{ layer|capfirst }}" class="layer {{ layer }}">
         {% endfor %}
     </div>
 </div>
 
-<form method="POST" enctype="multipart/form-data">
-    {% csrf_token %}
-    <div id="avatar-canvas">
-        {% if avatar.body %}
-            <img src="{{ avatar.body.url }}" id="avatar-body" alt="avatar body">
-        {% else %}
-            <img src="{% static 'dressup/avatars/body/00.png' %}" id="avatar-body" alt="default avatar body">
-        {% endif %}
-
-        {% if avatar.hair %}
-            <img src="{{ avatar.hair.url }}" id="avatar-hair" alt="avatar hair">
-        {% else %}
-            <img src="{% static 'dressup/avatars/hair/00/00.png' %}" id="avatar-hair" alt="default avatar hair">
-        {% endif %}
-
-        {% if avatar.top %}
-            <img src="{{ avatar.top.url }}" id="avatar-top" alt="avatar top">
-        {% else %}
-            <img src="{% static 'dressup/avatars/tops/00.png' %}" id="avatar-top" alt="default avatar top">
-        {% endif %}
-
-        {% if avatar.bottom %}
-            <img src="{{ avatar.bottom.url }}" id="avatar-bottom" alt="avatar bottom">
-        {% else %}
-            <img src="{% static 'dressup/avatars/skirts/00.png' %}" id="avatar-bottom" alt="default avatar bottom">
-        {% endif %}
-
-        {% if avatar.shoes %}
-            <img src="{{ avatar.shoes.url }}" id="avatar-shoes" alt="avatar shoes">
-        {% else %}
-            <img src="{% static 'dressup/avatars/shoes/00.png' %}" id="avatar-shoes" alt="default avatar shoes">
-        {% endif %}
-
-        {% if avatar.accessories %}
-            <img src="{{ avatar.accessories.url }}" id="avatar-accessories" alt="avatar accessories">
-        {% else %}
-            <img src="{% static 'dressup/avatars/accessories/00.png' %}" id="avatar-accessories" alt="default avatar accessories">
-        {% endif %}
+<!-- Inventory Section -->
+<div class="items" id="inventory">
+    <h2>Your Closet</h2>
+    {% for purchased_item in purchased_items %}
+    <div class="item" draggable="true" data-item-id="{{ purchased_item.item.id }}" 
+         data-category="{{ purchased_item.item.category }}">
+        <img src="{% static purchased_item.item.image_path %}" 
+             alt="{{ purchased_item.item.name }}">
+        <h4>{{ purchased_item.item.name }}</h4>
     </div>
-
-    <div id="clothing-selection">
-        <!-- Example for Top Selection -->
-        <div class="clothing-item" id="top-selection">
-            <button type="button" class="prev-arrow" onclick="changeItem('top', 'prev')">&lt;</button>
-            <img src="{% static 'dressup/avatars/tops/00.png' %}" data-image-src="{% static 'dressup/avatars/tops/00.png' %}" id="top-item" class="draggable" alt="top">
-            <button type="button" class="next-arrow" onclick="changeItem('top', 'next')">&gt;</button>
-        </div>
-        <!-- Repeat similar blocks for dresses, skirts, shoes, accessories -->
-    </div>
-
-    <!-- Hidden Inputs to Store Selected Items -->
-    <input type="hidden" name="body" id="body-input" value="{{ avatar.body.url if avatar.body else '' }}">
-    <input type="hidden" name="hair" id="hair-input" value="{{ avatar.hair.url if avatar.hair else '' }}">
-    <input type="hidden" name="top" id="top-input" value="{{ avatar.top.url if avatar.top else '' }}">
-    <input type="hidden" name="bottom" id="bottom-input" value="{{ avatar.bottom.url if avatar.bottom else '' }}">
-    <input type="hidden" name="shoes" id="shoes-input" value="{{ avatar.shoes.url if avatar.shoes else '' }}">
-    <input type="hidden" name="accessories" id="accessories-input" value="{{ avatar.accessories.url if avatar.accessories else '' }}">
-
-    <button type="submit" id="save-outfit">Save Outfit</button>
-</form>
+    {% endfor %}
+</div>
 {% endblock %}

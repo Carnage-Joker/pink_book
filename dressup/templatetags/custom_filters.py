@@ -19,9 +19,6 @@ def replace(value, args):
         return value
 
 
-register = template.Library()
-
-
 @register.filter
 def concat(*args):
     return ''.join(args)
@@ -29,5 +26,7 @@ def concat(*args):
 
 @register.filter
 def get_item(dictionary, key):
-    """Fetches the value of a dictionary key."""
-    return dictionary.get(key, "")
+    try:
+        return dictionary.get(key)
+    except AttributeError:
+        return None

@@ -40,9 +40,9 @@ from .utils.ai_utils import (extract_keywords, get_average_sentiment,
                              get_most_common_emotions, get_most_common_tags,
                              get_peak_journaling_time)
 from .utils.utils import (calculate_penalty, generate_task,
-                          generate_task_truth, send_activation_email)
+                          generate_truth_task, send_activation_email)
 
-# Set up the logger
+# Set up the logger to capture and log application events and errors
 logger = logging.getLogger(__name__)
 
 User = get_user_model()
@@ -352,10 +352,10 @@ class DashboardView(LoginRequiredMixin, TemplateView):
     def get_profile_pic(self):
         """Retrieve the URL of the user's profile picture."""
         user = self.request.user
-        if user.profile_picture:
-            return user.profile_picture.url
-        return "/static/journal/media/default-profile-pic.jpg"
-
+        profile_picture = getattr(user, "profile_picture", None)or "/static/journal/media/default-profile-pic.jpg"
+        if profile_picture:
+            return profile_picture
+       
     def get_quote_of_the_day(self):
         """Select a deterministic quote based on the current day."""
         today = date.today()
@@ -365,63 +365,63 @@ class DashboardView(LoginRequiredMixin, TemplateView):
             return quotes[index].content
         return "Every day is a chance to be fabulous!"
 
-    def get_context_data(self, **kwargs):
-        """Populate context with dashboard data and ensure dynamic updates."""
-        context = super().get_context_data(**kwargs)
-        user = self.request.user
 
-        # Optimize database queries
-        recent_entries = JournalEntry.objects.filter(
-            user=user).order_by("-timestamp")[:3]
-        todos = ToDo.objects.filter(user=user).order_by("-timestamp")[:5]
-        habits = Habit.objects.filter(user=user).order_by("-timestamp")[:5]
-        # Reset habit counters if needed
-        for habit in habits:
-            if habit.check_reset_needed():
-                habit.reset_counter()
+def get_context_data(self, **kwargs):
+    context = super().get_context_data(**kwargs)
+    user = self.request.user
 
-        # Sentiment and journal insights
-        if recent_entries.exists():
-            sentiment_data = get_average_sentiment(recent_entries)
-            context.update({
-                "avg_polarity": sentiment_data.get("avg_polarity", 0),
-                "avg_subjectivity": sentiment_data.get("avg_subjectivity", 0),
-                "streak": get_current_streak(recent_entries),
-                "frequent_keywords": extract_keywords(recent_entries),
-                "common_tags": get_most_common_tags(recent_entries),
-                "most_common_emotions": get_most_common_emotions(recent_entries),
-                "average_word_count": get_average_word_count(recent_entries),
-                "most_active_hour": get_peak_journaling_time(recent_entries),
-            })
-        else:
-            context.update({
-                "avg_polarity": 0,
-                "avg_subjectivity": 0,
-                "streak": 0,
-                "frequent_keywords": [],
-                "common_tags": [],
-                "most_common_emotions": [],
-                "average_word_count": 0,
-                "most_active_hour": None,
-            })
+    # Fetch the recent entries without slicing
+    recent_entries = JournalEntry.objects.filter(
+        user=user).order_by("-timestamp")
+    todos = ToDo.objects.filter(user=user).order_by("-timestamp")[:5]
+    habits = Habit.objects.filter(user=user).order_by("-timestamp")[:5]
 
-        # Profile and points
-        points = getattr(user, "points", 0)
-        profile_pic = self.get_profile_pic()
+    # Reset habit counters if needed
+    for habit in habits:
+        if habit.check_reset_needed():
+            habit.reset_counter()
 
-        # Additional context
+    # Calculate streak using the full queryset
+    if recent_entries.exists():
+        sentiment_data = get_average_sentiment(recent_entries)
         context.update({
-            "user": user,
-            "points": points,
-            "profile_pic": profile_pic,
-            "quote_of_the_day": self.get_quote_of_the_day(),
-            "todos": todos,
-            "habits": habits,
-            "entries": recent_entries,
+            "avg_polarity": sentiment_data.get("avg_polarity", 0),
+            "avg_subjectivity": sentiment_data.get("avg_subjectivity", 0),
+            "streak": get_current_streak(recent_entries),
+            "frequent_keywords": extract_keywords(recent_entries[:3]),
+            "common_tags": get_most_common_tags(recent_entries[:3]),
+            "most_common_emotions": get_most_common_emotions(recent_entries[:3]),
+            "average_word_count": get_average_word_count(recent_entries[:3]),
+            "most_active_hour": get_peak_journaling_time(recent_entries),
+        })
+    else:
+        context.update({
+            "avg_polarity": 0,
+            "avg_subjectivity": 0,
+            "streak": 0,
+            "frequent_keywords": [],
+            "common_tags": [],
+            "most_common_emotions": [],
+            "average_word_count": 0,
+            "most_active_hour": None,
         })
 
-        return context
+    # Profile and points
+    points = getattr(user, "points", 0)
+    profile_pic = self.get_profile_pic()
 
+    # Additional context
+    context.update({
+        "user": user,
+        "points": points,
+        "profile_pic": profile_pic,
+        "quote_of_the_day": self.get_quote_of_the_day(),
+        "todos": todos,
+        "habits": habits,
+        "entries": recent_entries[:3],  # Only pass the sliced entries here
+    })
+
+    return context
 
 class HomeView(SafeMixin, TemplateView):
     """Home page view."""
@@ -439,38 +439,35 @@ class JournalEntryCreateView(LoginRequiredMixin, CreateView):
     form_class = JournalEntryForm
     template_name = "new_entry.html"
 
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self._generated_prompt = None
+
     def get_initial(self) -> dict:
         initial = super().get_initial()
-        generated_prompt = generate_prompt()
-        initial['generated_prompt'] = generated_prompt
+        if self._generated_prompt is None:
+            self._generated_prompt = generate_prompt()
+        initial['generated_prompt'] = self._generated_prompt
         return initial
 
     def get_context_data(self, **kwargs) -> dict:
         context = super().get_context_data(**kwargs)
-        context["generated_prompt"] = self.get_initial().get('generated_prompt')
+        context["generated_prompt"] = self._generated_prompt
         return context
 
-    def form_valid(self, form) -> HttpResponse:
-        form.instance.user = self.request.user
-        form.instance.prompt_text = form.cleaned_data.get("generated_prompt")
-        response = super().form_valid(form)
-
-        # Generate and attach the insight
+    def generate_insight_and_save(self, journal_entry):
         try:
-            insight_text = generate_insight(form.instance.content)
-            form.instance.insight = insight_text
-            form.instance.save(update_fields=['insight'])
-        except Exception:
-            messages.error(self.request, "Error generating insight.")
-            form.instance.insight = "Insight generation failed."
-            form.instance.save(update_fields=['insight'])
+            insight_text = generate_insight(journal_entry.content)
+            journal_entry.insight = insight_text
+            journal_entry.save(update_fields=['insight'])
+        except Exception as e:
+            logger.error(f"Insight generation failed: {e}")
+            journal_entry.insight = "Insight generation failed."
+            journal_entry.save(update_fields=['insight'])
 
-        # Award points to the user
-        points_earned = form.instance.calculate_points()
-        self.request.user.points += points_earned
-        self.request.user.save()
-
-        # Success message
+    def award_user_points(self, user, points_earned):
+        user.points += points_earned
+        user.save()
         if points_earned > 0:
             messages.success(
                 self.request,
@@ -479,13 +476,20 @@ class JournalEntryCreateView(LoginRequiredMixin, CreateView):
         else:
             messages.warning(
                 self.request,
-                f"You need to follow instructions to earn points. You lost {abs(points_earned)} points."
+                f"Follow instructions to earn points. You lost {abs(points_earned)} points."
             )
 
+    def form_valid(self, form) -> HttpResponse:
+        form.instance.user = self.request.user
+        form.instance.prompt_text = form.cleaned_data.get("generated_prompt")
+        response = super().form_valid(form)
+        self.generate_insight_and_save(form.instance)
+        self.award_user_points(
+            self.request.user, form.instance.calculate_points())
         return response
 
-    def get_success_url(self) -> str:
-        return reverse("journal:entry_detail", kwargs={"pk": self.object.pk})
+    def get_success_url(self):
+        return reverse_lazy("journal:entry_detail", kwargs={"pk": self.object.pk})
 
 
 class JournalEntryWithTaskView(LoginRequiredMixin, CreateView):
