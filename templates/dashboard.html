@@ -9,7 +9,7 @@
         <!-- Profile Picture Card -->
         <div class="fluffy-card profile-card">
             <div class="profile-picture">
-                <img src="{{ profile_pic }}" alt="{{ user.sissy_name }}">
+                <img src="{{ profile_pic }}" alt="{{ user.sissy_name }}'s profile picture">
             </div>
             <h2>{{ user.sissy_name }}</h2>
             <div class="profile-stats">
@@ -72,7 +72,7 @@
                     </p>
                     {% if habit.is_completed %}
                         <p class="completed-message">Habit target reached for this {{ habit.frequency }}!</p>
-                    {% endif %}
+    {% endif %}
                     <p id="insight-{{ habit.id }}" class="habit-insight"></p>
                     <button class="cute-btn" onclick="incrementHabit('{{ habit.id }}')">Increment</button>
                 </div>
@@ -80,7 +80,7 @@
             </ul>
             <a href="{% url 'journal:habit_form' %}" class="btn">Add New Habit</a>
         </div>
-        
+
         <!-- Games Card -->
         <div class="fluffy-card games-card">
             <h2>Stressed out girls?</h2>
@@ -92,62 +92,62 @@
                 <a href="{% url 'journal:generate_task_truth' %}" class="btn btn-truth">Play Truth</a>
                 <a href="{% url 'journal:generate_task' %}" class="btn btn-dare">Play Dare</a>
             </div>
-        </div>
-        
+    </div>
+
         <!-- Recent Entries Card -->
         <div class="fluffy-card entries-card">
             <h2>Your Recent Entries</h2>
             <ul class="entry-list">
-                {% for entry in entries %}
-                    <li>
+        {% for entry in entries %}
+            <li>
                         <a href="{% url 'journal:entry_detail' entry.id %}" class="pink-link">{{ entry.title }}</a>
-                        <small>Created on {{ entry.timestamp|date:"d M Y" }}</small>
-                    </li>
-                {% empty %}
-                    <p>You haven't added any recent entries. Start journaling now!</p>
-                {% endfor %}
-            </ul>
+                <small>Created on {{ entry.timestamp|date:"d M Y" }}</small>
+            </li>
+        {% empty %}
+            <p>You haven't added any recent entries. Start journaling now!</p>
+        {% endfor %}
+        </ul>
             <a href="{% url 'journal:new_entry' %}" class="btn">New Entry</a>
-        </div>
-
+    </div>
+    
         <!-- Insights Card -->
         <div class="fluffy-card insights-card">
             <h2>Your Insights</h2>
             <section class="insights-section">
                 {% if entries %}
-                    <ul>
+          <ul>
                         <li><strong>General Feels:</strong>
                             {% if avg_polarity > 0 %} Happy feels Yayyyy!
-                            {% elif avg_polarity == 0 %} Got the Meh feels....
+                {% elif avg_polarity == 0 %} Got the Meh feels....
                             {% elif avg_polarity < 0 %} OMG babe, I'm literally crying rivers 😭
-                            {% endif %}
-                        </li>
+                {% endif %} 
+            </li>
                         <li><strong>Girly Gauge:</strong>
                             {% if avg_subjectivity > 0.51 %} Oh, so girly, Gurl!
                             {% elif avg_subjectivity == 0.5 %} You're girling up honey!
-                            {% elif avg_subjectivity < 0.49 %} Boy alert, write with your heart not your head
+                {% elif avg_subjectivity < 0.49 %} Boy alert, write with your heart not your head
                             {% endif %}
                         </li>
                         <li><strong>Most Talked About:</strong>
                             {% for keyword, count in frequent_keywords %}
-                                {{ keyword }} ({{ count }}),
+                                                 {{ keyword }} ({{ count }}), 
                             {% endfor %}
                         </li>
-                        <li><strong>Most Common Tag:</strong> {{ common_tags.0.0 }}</li>
-                        <li><strong>Most Common Emotion:</strong> {{ most_common_emotions.0.0 }}</li>
-                        <li><strong>Average Word Count:</strong> {{ average_word_count }}</li>
-                        <li><strong>Consistent Journaling:</strong> You've been journaling for {{ streak }} consecutive days!</li>
-                        {% if streak >= 10 %}
+        <li><strong>Most Common Tag:</strong> {{ common_tags.0.0 }}</li>
+        <li><strong>Most Common Emotion:</strong> {{ most_common_emotions.0.0 }}</li>
+        <li><strong>Average Word Count:</strong> {{ average_word_count }}</li>
+        <li><strong>Consistent Journaling:</strong> You've been journaling for {{ streak }} consecutive days!</li>
+        {% if streak >= 10 %}
                             <li>Impressive dedication, {{ user.sissy_name }}, your consistency is commendable. 🚀</li>
-                        {% elif streak >= 5 %}
-                            <li>You're building a strong habit. Keep the momentum alive! 🔥</li>
-                        {% endif %}
-                        <li><strong>Peak Journaling Hour:</strong> You're most active around {{ most_active_hour }}:00. Whether it's morning reflections or evening recaps, keep pouring your thoughts!</li>
-                    </ul>
-                {% else %}
-                    <p>No insights yet, darling. Why not write a new journal entry?</p>
-                {% endif %}
-            </section>
-        </div>
+        {% elif streak >= 5 %}
+            <li>You're building a strong habit. Keep the momentum alive! 🔥</li>
+        {% endif %}
+        <li><strong>Peak Journaling Hour:</strong> You're most active around {{ most_active_hour }}:00. Whether it's morning reflections or evening recaps, keep pouring your thoughts!</li>
+    </ul>
+    {% else %}
+          <p>No insights yet, darling. Why not write a new journal entry?</p>
+        {% endif %}
+</section>    
+    </div>
     </div>
 {% endblock %}
