@@ -40,3 +40,12 @@
 .item p {
     margin: 5px 0;
 }
+
+#avatar-canvas {
+    border: 2px dashed #ccc;
+    transition: border-color 0.3s ease-in-out;
+}
+
+#avatar-canvas.dragover {
+    border-color: #007bff;
+}

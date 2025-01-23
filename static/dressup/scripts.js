@@ -9,6 +9,30 @@ function changeItem(type, direction) {
     // Implement the actual logic to update the item
 }
 
+
+avatarContainer.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    avatarContainer.classList.add('dragover');
+});
+
+avatarContainer.addEventListener('dragleave', () => {
+    avatarContainer.classList.remove('dragover');
+});
+
+avatarContainer.addEventListener('drop', (e) => {
+    e.preventDefault();
+    avatarContainer.classList.remove('dragover');
+    // Existing drop logic...
+});
+function setupDragAndDrop() {
+    // Logic to initialize drag and drop functionality
+    const items = document.querySelectorAll('.item');
+    items.forEach(item => {
+        item.addEventListener('dragstart', (e) => {
+            e.dataTransfer.setData('text/plain', item.id);
+        });
+    });
+}
 // Drag and Drop for Dress-up Game
 document.addEventListener('DOMContentLoaded', function () {
     setupDragAndDrop();
@@ -18,17 +42,10 @@ document.addEventListener('DOMContentLoaded', function () {
     setupToastNotifications();
 });
 
-function setupDragAndDrop() {
-    // Make clothing items draggable
-    const clothingItems = document.querySelectorAll('.draggable');
-    clothingItems.forEach(item => {
-        item.draggable = true;
-
         item.addEventListener('dragstart', function (event) {
             event.dataTransfer.setData('text/plain', event.target.id);
             event.dataTransfer.effectAllowed = 'move';
         });
-    });
 
     // Avatar areas where clothing can be dropped
     const dropAreas = document.querySelectorAll('#avatar-canvas img');

@@ -73,23 +73,7 @@ class Shop(models.Model):
 
 class Avatar(models.Model):
     
-    def get_image_urls(self):
-        """
-        Returns a dictionary of image URLs for each avatar component.
-        """
-        return {
-            'skin': static(f'avatars/skin/{self.skin}.png'),
-            'body': static(f'avatars/body/{self.body}.png'),
-            'hair': static(f'avatars/hair/{self.hair}.png'),
-            'hair_color': static(f'avatars/hair_color/{self.hair_color}.png'),
-            'shoes': static(f'avatars/shoes/{self.shoes}.png'),
-            'accessories': static(f'avatars/accessories/{self.accessories}.png'),
-            'skirt': static(f'avatars/skirt/{self.skirt}.png'),
-            'top': static(f'avatars/top/{self.top}.png'),
-        }
-
-    def __str__(self):
-        return f"{self.user.sissy_name}'s Avatar"
+    
 
     BODY_CHOICES = (
         ('01', 'straight_body'),
@@ -197,7 +181,6 @@ class Avatar(models.Model):
 
     user = models.OneToOneField(
         CustomUser, on_delete=models.CASCADE, related_name='avatar')
-    name = models.CharField(max_length=100)
     image_path = models.CharField(max_length=200, blank=True, null=True)
     body = models.CharField(max_length=2, choices=BODY_CHOICES, default='01')
     skin = models.CharField(
@@ -212,9 +195,31 @@ class Avatar(models.Model):
     skirt = models.CharField(max_length=100, choices=SKIRT_CHOICES, default='00')
     top = models.CharField(max_length=100, choices=TOP_CHOICES, default='00')
 
+    def get_image_urls(self):
+        """
+        Returns a dictionary of image URLs for each avatar component.
+        """
+        return {
+            'body': static(f'dressup/avatars/body/{self.body}/{self.skin}.png'),
+            'hair': static(f'dressup/avatars/hair/{self.hair}/{self.hair_color}.png'),
+            'shoes': static(f'dressup/avatars/shoes/{self.shoes}.png'),
+            'accessories': static(f'dressup/avatars/accessories/{self.accessories}.png'),
+            'skirt': static(f'dressup/avatars/skirt/{self.skirt}.png'),
+            'top': static(f'dressup/avatars/top/{self.top}.png'),
+        }
+
+    def toggle_item(self, item):
+        if item in self.equipped_items.all():
+            self.equipped_items.remove(item)
+            return "unequipped"
+        self.equipped_items.add(item)
+        return "equipped"
     
+    def __str__(self):
+        return f"{self.user.sissy_name}'s Avatar"
     # Optionally, define methods to get image URLs
     
+
 class PurchasedItem(models.Model):
     user = models.ForeignKey(
         CustomUser, on_delete=models.CASCADE, related_name='purchased_items')
@@ -229,6 +234,7 @@ class PurchasedItem(models.Model):
 
 class PhotoShoot(models.Model):
     PHOTOGRAPHER_CHOICES = (
+        ('photo_booth', 'Photo Booth'),
         ('creepy', 'Creepy Photographer'),
         ('hot', 'Hot Photographer'),
     )

@@ -9,7 +9,7 @@ urlpatterns = [
     path('shop/<int:shop_id>/', views.shop_detail, name='shop_detail'),
     path('inventory/', views.inventory_view, name='inventory'),
     path('purchase/<int:item_id>/', views.purchase_item, name='purchase_item'),
-    path('equip/<int:item_id>/', views.equip_item_view, name='equip_item'),
+    path('equip/<int:item_id>/', views.equip_item_ajax, name='equip_item'),
     
     # Add more URLs as needed
 ]

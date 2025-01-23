@@ -1,83 +1,151 @@
-{% extends "base.html" %}
-{% block content %}
+{% extends 'base.html' %}
 {% load static %}
+{% load custom_filters %}
 
-<div class="dashboard-page">
+{% block title %}Dashboard - The Pink Book{% endblock %}
+
+{% block content %}
+    <div class="dashboard-grid">
+        <!-- Profile Picture Card -->
+        <div class="fluffy-card profile-card">
+            <div class="profile-picture">
         {% if user.profile_picture %}
-        <div class="profile-picture">
-            <img src="{{ user.profile_picture.url }}" alt="Profile Picture">
+                    <img src="{{ user.profile_picture.url }}" alt="Profile face">
+                {% else %}
+                    <img src="{% static 'journal/media/default-profile-pic.jpg' %}" alt="Profile">
+                {% endif %}
+            </div>
+            <h2>{{ user.sissy_name }}</h2>
+            <div class="profile-stats">
+                <p><strong>Level:</strong> {{ user.level }}</p>
+                <p><strong>Points:</strong> {{ user.points }}</p>
+                <p><strong>Tasks Completed:</strong> {{ user.tasks_completed }}</p>
         </div>
-    {% else %}
-        <div class="profile-picture">
-            <!-- Default image when no profile picture is set -->
-            <img src="{% static 'default-profile-pic.jpg' %}" alt="Profile Picture">
         </div>
-    {% endif %}
+        <!-- Welcome + Settings Links Card -->
+        <div class="fluffy-card settings-card">
     <h2>Welcome, {{ user.sissy_name }}!</h2>
-
-    <!-- Edit Profile and Settings Links -->
     <div class="profile-links">
-        <a href="{% url 'update_profile_view' %}" class="edit-link">Edit Profile</a>
+                <a href="{% url 'journal:profile_update' %}" class="pink-link">Edit Profile</a>
         <span>|</span>
-        <a href="{% url 'profile_settings_view' %}" class="settings-link">Settings</a>
-    </div>
+                <a href="{% url 'journal:profile_settings' %}" class="pink-link">Settings</a>
+            </div>
+        </div>
 
-    <div class="recent-entries">
-        <ul>
+        <!-- Quote Card -->
+        <div class="fluffy-card quote-card">
+            <h2>Quote of the Day</h2>
+            <p>"{{ quote_of_the_day }}"</p>
+        </div>
+
+        <!-- To-Do List Card -->
+        <div class="fluffy-card todo-card">
+            <h2>Your To-Do List</h2>
+            <ul class="todo-list">
+                {% for todo in todos %}
+                    <li>
+                        <input type="checkbox" data-id="{{ todo.id }}" class="todo-checkbox">
+                        <span>{{ todo.task }}</span>
+                        <small>Due on {{ todo.due_date|date:"d M Y" }}</small>
+                    </li>
+                {% empty %}
+                    <p>No tasks pending. You're all caught up!</p>
+                {% endfor %}
+            </ul>
+            <a href="{% url 'journal:create_todo' %}" class="btn">Add New Task</a>
+        </div>
+
+        <!-- Habits Card -->
+        <div class="fluffy-card habits-card">
+            <h2>Your Habits</h2>
+            <ul class="habit-list">
+                {% load custom_tags %}
+
+{% for habit in habits %}
+<div class="habit" data-id="{{ habit.id }}">
+    <h3>{{ habit.name }} ({{ habit.frequency|capfirst }})</h3>
+    <div id="icons-{{ habit.id }}" class="icons-container">
+        {% for i in habit.increment_counter|make_range %}
+            <span class="icon">❤️</span>
+        {% endfor %}
+    </div>
+    <p>
+        <span id="habit-count-{{ habit.id }}">{{ habit.increment_counter }}</span>/
+        {{ habit.target_count }}
+    </p>
+    {% if habit.is_completed %}
+        <p class="completed-message">Habit target reached for this {{ habit.frequency }}!</p>
+    {% endif %}
+    <p id="insight-{{ habit.id }}" class="habit-insight"></p>
+    <button class="cute-btn" onclick="incrementHabit('{{ habit.id }}')">Increment</button>
+</div>
+{% endfor %}
+
+
+
+            </ul>
+            <a href="{% url 'journal:habit_form' %}" class="btn">Add New Habit</a>
+        </div>
+        <div class="fluffy-card games-card">
+                        <h2>Stressed out girls?</h2>
+                        <div class="game-buttons">
+                        <p>Take a break and try on some cute outfits. You deserve it, babe!</p>
+                        <a href="{% url 'dressup:create_avatar' %}" class="btn btn-dressup">Play Dress-ups</a>
+                        <p>Or, how about a fun game of Truth or Dare? Only if you dare, Sissy! Muhahaha</p>
+                        
+                            <a href="{% url 'journal:generate_task_truth' %}" class="btn btn-truth">Play Truth</a>
+                            <a href="{% url 'journal:generate_task' %}" class="btn btn-dare">Play Dare</a>
+                        </div>
+            </div>
+        <!-- Recent Entries Card -->
+        <div class="fluffy-card entries-card">
+            <h2>Your Recent Entries</h2>
+            <ul class="entry-list">
         {% for entry in entries %}
             <li>
-                <a href="{% url 'entry_detail_view' entry_id=entry.id %}">{{ entry.title }}</a>
+                        <a href="{% url 'journal:entry_detail' entry.id %}" class="pink-link">{{ entry.title }}</a>
                 <small>Created on {{ entry.timestamp|date:"d M Y" }}</small>
             </li>
         {% empty %}
             <p>You haven't added any recent entries. Start journaling now!</p>
         {% endfor %}
         </ul>
-        <div class="dashboard-details-right">
-           
-        </div>
-        <a href="{% url 'new_entry_view' %}" class="btn btn-primary">New Entry</a>
+            <a href="{% url 'journal:new_entry' %}" class="btn">New Entry</a>
     </div>
     
-   
-  
-
-        <div class="diary-page-details-right">
-            <!-- Insights Section -->
+        <!-- Insights Card -->
+        <div class="fluffy-card insights-card">
+            <h2>Your Insights</h2>
             <section class="insights-section">
-                {% if avg_polarity and avg_subjectivity %}
-          <!-- Display insights here, glam queen! -->
-        
-        
+                {% if entries %}
           <ul>
-            <li><strong>General feels:</strong>  
-                {% if avg_polarity > 0 %}  Happy feels Yayyyy!
+                        <li><strong>General Feels:</strong>
+                            {% if avg_polarity > 0 %} Happy feels Yayyyy!
                 {% elif avg_polarity == 0 %} Got the Meh feels....
-                {% elif avg_polarity < 0 %} OMG babe, I got a sissy shoulder to cry on
+                            {% elif avg_polarity < 0 %} OMG babe, I'm literally crying rivers 😭
                 {% endif %} 
             </li>
-            <li><strong>Girly Guage:</strong>  
-                {% if avg_subjectivity > 0.51 %}  Oh, so girly, Gurl!
-                {% elif avg_subjectivity == 0.5 %} you're girling up honey!
+                        <li><strong>Girly Gauge:</strong>
+                            {% if avg_subjectivity > 0.51 %} Oh, so girly, Gurl!
+                            {% elif avg_subjectivity == 0.5 %} You're girling up honey!
                 {% elif avg_subjectivity < 0.49 %} Boy alert, write with your heart not your head
-                {% endif %} </li>
-            
-        <li><strong>Most talked about:</strong>  {% for keyword, count in frequent_keywords %}
+                            {% endif %}
+                        </li>
+                        <li><strong>Most Talked About:</strong>
+                            {% for keyword, count in frequent_keywords %}
                                                  {{ keyword }} ({{ count }}), 
-                                                 {% endfor %}</li>
+                            {% endfor %}
+                        </li>
         <li><strong>Most Common Tag:</strong> {{ common_tags.0.0 }}</li>
         <li><strong>Most Common Emotion:</strong> {{ most_common_emotions.0.0 }}</li>
         <li><strong>Average Word Count:</strong> {{ average_word_count }}</li>
         <li><strong>Consistent Journaling:</strong> You've been journaling for {{ streak }} consecutive days!</li>
         {% if streak >= 10 %}
-            <li>Impressive dedication, {{user.sissy_name}}, Your consistency is commendable. 🚀</li>
+                            <li>Impressive dedication, {{ user.sissy_name }}, your consistency is commendable. 🚀</li>
         {% elif streak >= 5 %}
             <li>You're building a strong habit. Keep the momentum alive! 🔥</li>
         {% endif %}
         <li><strong>Peak Journaling Hour:</strong> You're most active around {{ most_active_hour }}:00. Whether it's morning reflections or evening recaps, keep pouring your thoughts!</li>
-        {% for entry in entries_with_insights %}
-              <li>{{ entry.insight }}</li>  <!-- Again, replace 'insight' with actual field name -->
-        {% endfor %}
     </ul>
     {% else %}
           <p>No insights yet, darling. Why not write a new journal entry?</p>
@@ -86,8 +154,6 @@
     </div>
    
 
-    
-         
-
-
+        </div>
+    </div>
 {% endblock %}

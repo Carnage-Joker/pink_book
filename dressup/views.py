@@ -1,77 +1,16 @@
-# dressup/views.py
-
-from django.shortcuts import render, get_object_or_404, redirect
-from django.contrib.auth.decorators import login_required
-from .models import Item, PurchasedItem, Shop
-from django.contrib import messages
-from .decorators import avatar_required
-
-from .forms import AvatarCreationForm
-
-
-from django.http import HttpRequest, HttpResponse
-
-
-# dressup/views.py
-
-from django.shortcuts import render, redirect
+from django.http import HttpRequest, HttpResponse, JsonResponse
+from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
-from django.http import HttpRequest, HttpResponse
+from django.views.decorators.cache import cache_page
 
-from .models import Avatar, Shop, Item, PurchasedItem
+from .models import Shop, Item, PurchasedItem
 from .forms import AvatarCreationForm
 from .decorators import avatar_required
+from .utils import handle_error  # Centralized error handling
 
 
-# dressup/views.py
-
-from django.shortcuts import render, redirect
-from django.contrib.auth.decorators import login_required
-from django.contrib import messages
-from django.http import HttpRequest, HttpResponse
-
-from .models import Avatar, Shop, Item, PurchasedItem
-from .forms import AvatarCreationForm
-from .decorators import avatar_required
-
-
-# dressup/views.py
-
-from django.shortcuts import render, redirect
-from django.contrib.auth.decorators import login_required
-from django.contrib import messages
-from django.http import HttpRequest, HttpResponse
-
-from .models import Avatar, Shop, Item, PurchasedItem
-from .forms import AvatarCreationForm
-from .decorators import avatar_required
-
-
-# dressup/views.py
-
-from django.shortcuts import render, redirect
-from django.contrib.auth.decorators import login_required
-from django.contrib import messages
-from django.http import HttpRequest, HttpResponse
-
-from .models import Avatar, Shop, Item, PurchasedItem
-from .forms import AvatarCreationForm
-from .decorators import avatar_required
-
-
-# dressup/views.py
-
-from django.shortcuts import render, redirect
-from django.contrib.auth.decorators import login_required
-from django.contrib import messages
-from django.http import HttpRequest, HttpResponse
-
-from .models import Avatar, Shop, Item, PurchasedItem
-from .forms import AvatarCreationForm
-from .decorators import avatar_required  # Ensure this decorator exists
-
-
+@cache_page(60 * 15)  # Cache for 15 minutes
 @login_required
 def create_avatar_view(request: HttpRequest) -> HttpResponse:
     """
@@ -82,24 +21,20 @@ def create_avatar_view(request: HttpRequest) -> HttpResponse:
     """
     # Check if the user already has an avatar
     if hasattr(request.user, 'avatar'):
-        messages.info(
-            request, "You already have an avatar. Redirecting to the mall.")
-        return redirect('dressup:mall')
+        return handle_error(request, "You already have an avatar. Redirecting to the mall.", 'dressup:mall')
 
     if request.method == 'POST':
         form = AvatarCreationForm(request.POST)
         if form.is_valid():
-            # Create the avatar without saving to assign the user and set defaults
             avatar = form.save(commit=False)
             avatar.user = request.user
             # Set default values
-            avatar.hair = '00'  # Default hair choice
-            avatar.hair_color = '00'  # Default hair color
-            avatar.shoes = '00'  # Default shoes
-            avatar.accessories = '00'  # Default accessories
-            avatar.skirt = '00'  # Default skirt
-            avatar.top = '00'  # Default top
-            # Set a default name or allow user input
+            avatar.hair = '00'
+            avatar.hair_color = '00'
+            avatar.shoes = '00'
+            avatar.accessories = '00'
+            avatar.skirt = '00'
+            avatar.top = '00'
             avatar.name = f"{request.user.sissy_name}'s Avatar"
             avatar.save()
             messages.success(
@@ -110,79 +45,49 @@ def create_avatar_view(request: HttpRequest) -> HttpResponse:
     else:
         form = AvatarCreationForm()
 
-    context = {
-        'form': form,
-    }
+    context = {'form': form}
     return render(request, 'dressup/create_avatar.html', context)
+
 
 @login_required
 def purchase_item(request: HttpRequest, item_id: int) -> HttpResponse:
+    """
+    Handles purchasing an item for the user's avatar.
+    """
     item = get_object_or_404(Item, id=item_id)
-    user = request.user  # type: User
+    user = request.user
 
-    # Check if item is premium and user is not a premium subscriber
-    if item.premium_only and not user.is_premium():  # type: ignore
-        messages.error(
-            request, "This item is available for premium subscribers only.")
-        return redirect('shop')
+    # Check if item is premium-only and user is not premium
+    if item.premium_only and not user.is_premium():
+        return handle_error(request, "This item is for premium users only.", 'dressup:shop_detail', {'shop_id': item.shop.id})
 
-    # Check if user has enough points or if the item requires real money
-    if item.price_points and user.points >= item.price_points:
-        user.deduct_points(item.price_points)  # type: ignore
+    # Check if user has enough points or money
+    if item.price_points and user.points < item.price_points:
+        return handle_error(request, "You do not have enough points to purchase this item.", 'dressup:shop_detail', {'shop_id': item.shop.id})
+
+    # Deduct points or handle payment
+    if item.price_points:
+        user.deduct_points(item.price_points)
         PurchasedItem.objects.create(user=user, item=item)
         messages.success(request, f"You have purchased {item.name}!")
-        return redirect('inventory')
-    elif item.price_dollars:
-        # Redirect to payment processing
-        pass  # Implement payment gateway logic here
-    else:
-        messages.error(
-            request, "You do not have enough points to purchase this item.")
-        return redirect('dressup:shop')
+        return redirect('dressup:inventory')
 
-# dressup/views.py
+    # Payment gateway logic for real money purchases
+    # ...
 
+    return handle_error(request, "An unexpected error occurred. Please try again.", 'dressup:shop_detail', {'shop_id': item.shop.id})
 
-# dressup/views.py
 
 @login_required
 @avatar_required
-def equip_item_view(request: HttpRequest, item_id: int) -> HttpResponse:
+def equip_item_ajax(request, item_id: int) -> JsonResponse:
     """
-    View to equip a purchased item to the user's avatar.
+    AJAX View: Equip an item via drag-and-drop interaction.
     """
     item = get_object_or_404(Item, id=item_id)
-    avatar = request.user.avatar
+    status = request.user.avatar.toggle_item(item)
+    return JsonResponse({'status': status, 'message': f"Item {status} successfully."})
 
-    # Check if the item is purchased
-    purchased = PurchasedItem.objects.filter(avatar=avatar, item=item).first()
-    if not purchased:
-        messages.error(request, "You have not purchased this item.")
-        return redirect('dressup:mall')
-
-    # Equip the item based on its category
-    category = item.category  # Ensure 'category' field exists in Item model
-
-    if category == 'hair':
-        avatar.hair = item.value  # 'value' corresponds to hair choices
-    elif category == 'hair_color':
-        avatar.hair_color = item.value
-    elif category == 'shoes':
-        avatar.shoes = item.value
-    elif category == 'accessories':
-        avatar.accessories = item.value
-    elif category == 'skirt':
-        avatar.skirt = item.value
-    elif category == 'top':
-        avatar.top = item.value
-    # Add more categories as needed
-
-    avatar.save()
-    messages.success(request, f"You have equipped {item.name} to your avatar.")
-    return redirect('dressup:mall')
-
-
-# dressup/views.py
 
 @login_required
 @avatar_required
@@ -193,29 +98,43 @@ def mall_view(request: HttpRequest) -> HttpResponse:
     shops = Shop.objects.all()
     avatar = request.user.avatar
     image_urls = avatar.get_image_urls()
-    context = {
-        'shops': shops,
-        'avatar': avatar,
-        'image_urls': image_urls,
-    }
+    context = {'shops': shops, 'avatar': avatar, 'image_urls': image_urls}
     return render(request, 'dressup/mall.html', context)
 
 
 @login_required
-def shop_detail(request, shop_id):
+@avatar_required
+def shop_detail(request: HttpRequest, shop_id: int) -> HttpResponse:
+    """
+    View to display details of a specific shop.
+    """
     shop = get_object_or_404(Shop, id=shop_id)
     items = shop.items.all()
-    context = {
-        'shop': shop,
-        'items': items,
-    }
+    context = {'shop': shop, 'items': items}
     return render(request, 'dressup/shop_detail.html', context)
 
 
 @login_required
-def inventory_view(request):
+@avatar_required
+def inventory_view(request: HttpRequest) -> HttpResponse:
+    """
+    View to display the user's inventory of purchased items.
+    """
+    avatar = request.user.avatar
     purchased_items = PurchasedItem.objects.filter(user=request.user)
-    context = {
-        'purchased_items': purchased_items,
-    }
+    equipped_items = avatar.equipped_items.all()
+
+    if request.method == 'POST':
+        item_id = request.POST.get('item_id')
+        item = get_object_or_404(Item, id=item_id)
+
+        if item in equipped_items:
+            avatar.unequip_item(item)
+            messages.success(request, f"{item.name} has been unequipped.")
+        else:
+            avatar.equip_item(item)
+            messages.success(request, f"{item.name} has been equipped.")
+
+    context = {'purchased_items': purchased_items,
+               'equipped_items': equipped_items}
     return render(request, 'dressup/inventory.html', context)
