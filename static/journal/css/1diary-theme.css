@@ -1,0 +1,192 @@
+/* Importing Google Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;600&display=swap');
+
+/* Root Variables for Easy Updates */
+:root {
+    --primary-bg: #121212;
+    --card-bg: #1e1e1e;
+    --primary-color: #bb86fc;
+    --secondary-color: #03dac6;
+    --neutral-bg: #121212;
+    --neutral-text: #e0e0e0;
+    --border-radius: 10px;
+    --font-color: #e0e0e0;
+    --font-family-body: 'Quicksand', Arial, sans-serif;
+    --font-family-title: Arial, sans-serif;
+    --hover-transition: background-color 0.3s ease, color 0.3s ease;
+    --spacing-small: 0.5rem;
+    --spacing-medium: 1rem;
+    --spacing-large: 2rem;
+}
+
+/* General Styling */
+body {
+    font-family: var(--font-family-body);
+    background: var(--primary-bg);
+    color: var(--font-color);
+    margin: 0;
+    padding: 0;
+    overflow-x: hidden;
+    line-height: 1.6;
+    padding: 0 var(--spacing-medium);
+}
+
+h1 {
+    font-size: clamp(2rem, 5vw, 3rem);
+}
+
+/* Panic Mode Overrides */
+body.panic-mode {
+    --primary-bg: #ffffff;
+    --card-bg: #f8f8f8;
+    --primary-color: #000000;
+    --secondary-color: #555555;
+    --neutral-bg: #ffffff;
+    --neutral-text: #000000;
+    --font-color: #000000;
+}
+
+/* Hide Panic Button in Panic Mode */
+body.panic-mode .panic-button {
+    display: none;
+}
+
+/* Panic Button Styling */
+.panic-button {
+    position: fixed;
+    top: 10px;
+    right: 10px;
+    background-color: var(--primary-color);
+    color: white;
+    padding: 10px 20px;
+    border-radius: 15px;
+    cursor: pointer;
+    z-index: 1000;
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.2);
+    transition: background-color 0.3s ease-in-out, transform 0.2s;
+    font-family: var(--font-family-body);
+    font-size: 1em;
+}
+
+.panic-button:hover {
+    background-color: #6200ea;
+    transform: scale(1.05);
+}
+
+/* Card Styling */
+.fluffy-card {
+    width: 80%;
+    max-width: 600px;
+    padding: 20px;
+    background-color: var(--card-bg);
+    font-family: var(--font-family-body);
+    border-radius: var(--border-radius);
+    border: 1px solid var(--neutral-text);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+    margin: 20px auto;
+}
+
+.fluffy-card:hover {
+    transform: scale(1.05);
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.7);
+}
+
+/* Post-It Note Style Navigation */
+.post-it-notes {
+    display: flex;
+    justify-content: center;
+    flex-wrap: wrap;
+    padding: 10px 0;
+    gap: 10px;
+    background-color: var(--card-bg);
+    border-bottom: 2px solid var(--primary-color);
+}
+
+.post-it {
+    background-color: var(--primary-bg);
+    color: var(--neutral-text);
+    border-radius: 10px;
+    padding: 10px 20px;
+    box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2);
+    transition: background-color 0.3s ease, transform 0.2s ease;
+    font-family: var(--font-family-body);
+    font-size: 1em;
+    text-decoration: none;
+}
+
+.post-it:hover {
+    background-color: var(--primary-color);
+    color: #fff;
+}
+
+/* Footer Styling */
+.footer {
+    background-color: var(--card-bg);
+    border-top: 2px solid var(--primary-color);
+    color: var(--neutral-text);
+    padding: 20px;
+    text-align: center;
+    font-size: 1em;
+    margin-top: 20px;
+}
+
+/* Cute Buttons */
+.cute-btn {
+    background-color: var(--primary-color);
+    border: none;
+    color: #fff;
+    padding: 10px 20px;
+    border-radius: 10px;
+    font-size: clamp(0.8rem, 2vw, 1rem);
+    font-family: var(--font-family-body);
+    transition: background-color 0.3s, box-shadow 0.3s;
+}
+
+.cute-btn:hover {
+    box-shadow: 0 3px 10px rgba(187, 134, 252, 0.4);
+    background-color: #3700b3;
+    transform: translateY(-2px);
+}
+
+/* Toast Notifications */
+.toast {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background-color: var(--primary-color);
+    color: #fff;
+    padding: 10px 20px;
+    border-radius: 15px;
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.2);
+    opacity: 1;
+    transition: opacity 0.5s ease-in-out;
+    z-index: 1000;
+}
+
+.toast-success {
+    background-color: #66bb6a;
+}
+
+.toast-error {
+    background-color: #e57373;
+}
+
+.toast.fade-out {
+    opacity: 0;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 992px) {
+    .dashboard-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+
+@media (max-width: 768px) {
+    .dashboard-grid {
+        grid-template-columns: 1fr;
+    }
+}

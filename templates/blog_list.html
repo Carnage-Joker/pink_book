@@ -6,7 +6,7 @@
 <div class="two-columns">
     <!-- Left Column - Sissies Say Content -->
     <div class="left-column">
-        <h1 class="pink-title">Sissies Say</h1>
+        <h1 class>Sissies Say</h1>
         <p class="pink-description">From one sissy to another...</p>
         {% for post in blog_posts %}
         <div class="fluffy-card">
@@ -27,7 +27,7 @@
             <ul class="latest-posts">
                 {% for post in latest_posts %}
                 <li>
-                    <a href="{% url 'journal:blog_detail' post.id %}">{{ post.title }}</a>
+                <t1 class><a href="{% url 'journal:blog_detail' post.id %}">{{ post.title }}</a></t1>
                 </li>
                 {% endfor %}
             </ul>

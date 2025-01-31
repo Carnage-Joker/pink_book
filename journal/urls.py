@@ -1,3 +1,7 @@
+from django.conf.urls.static import static
+from django.conf import settings
+from journal.consumers import PointsConsumer
+from django.urls import re_path
 from django.urls import path
 from .views import (
     # Import your views without duplication
@@ -19,6 +23,7 @@ from .views import (
 )
 
 app_name = 'journal'
+
 
 urlpatterns = [
     # General
@@ -113,3 +118,12 @@ urlpatterns = [
     path('feedback/', FeedbackView.as_view(), name='feedback'),
     path('error/', some_error_page, name='some_error_page'),
 ]
+
+
+websocket_urlpatterns = [
+    re_path(r'ws/points/$', PointsConsumer.as_asgi()),
+]
+
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL,
+                          document_root=settings.MEDIA_ROOT)

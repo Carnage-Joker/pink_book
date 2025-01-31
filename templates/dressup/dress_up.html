@@ -11,37 +11,37 @@
         {% if avatar.body %}
             <img src="{{ avatar.body.url }}" id="avatar-body" alt="avatar body">
         {% else %}
-            <img src="{% static 'dressup/avatars/body/light/hourglass.png' %}" id="avatar-body" alt="default avatar body">
+            <img src="{% static 'dressup/avatars/body/00.png' %}" id="avatar-body" alt="default avatar body">
         {% endif %}
 
         {% if avatar.hair %}
             <img src="{{ avatar.hair.url }}" id="avatar-hair" alt="avatar hair">
         {% else %}
-            <img src="{% static 'dressup/avatars/hair/long_straight/blonde.png' %}" id="avatar-hair" alt="default avatar hair">
+            <img src="{% static 'dressup/avatars/hair/00/00.png' %}" id="avatar-hair" alt="default avatar hair">
         {% endif %}
 
         {% if avatar.top %}
             <img src="{{ avatar.top.url }}" id="avatar-top" alt="avatar top">
         {% else %}
-            <img src="{% static 'dressup/garmets/tops/default.png' %}" id="avatar-top" alt="default avatar top">
+            <img src="{% static 'dressup/avatars/tops/00.png' %}" id="avatar-top" alt="default avatar top">
         {% endif %}
 
         {% if avatar.bottom %}
             <img src="{{ avatar.bottom.url }}" id="avatar-bottom" alt="avatar bottom">
         {% else %}
-            <img src="{% static 'dressup/garmets/skirts/default.png' %}" id="avatar-bottom" alt="default avatar bottom">
+            <img src="{% static 'dressup/avatars/skirts/00.png' %}" id="avatar-bottom" alt="default avatar bottom">
         {% endif %}
 
         {% if avatar.shoes %}
             <img src="{{ avatar.shoes.url }}" id="avatar-shoes" alt="avatar shoes">
         {% else %}
-            <img src="{% static 'dressup/garmets/shoes/default.png' %}" id="avatar-shoes" alt="default avatar shoes">
+            <img src="{% static 'dressup/avatars/shoes/00.png' %}" id="avatar-shoes" alt="default avatar shoes">
         {% endif %}
 
         {% if avatar.accessories %}
             <img src="{{ avatar.accessories.url }}" id="avatar-accessories" alt="avatar accessories">
         {% else %}
-            <img src="{% static 'dressup/garmets/accessories/default.png' %}" id="avatar-accessories" alt="default avatar accessories">
+            <img src="{% static 'dressup/avatars/accessories/00.png' %}" id="avatar-accessories" alt="default avatar accessories">
         {% endif %}
     </div>
 
@@ -49,7 +49,7 @@
         <!-- Example for Top Selection -->
         <div class="clothing-item" id="top-selection">
             <button type="button" class="prev-arrow" onclick="changeItem('top', 'prev')">&lt;</button>
-            <img src="{% static 'dressup/garmets/tops/default.png' %}" data-image-src="{% static 'dressup/garmets/tops/default.png' %}" id="top-item" class="draggable" alt="top">
+            <img src="{% static 'dressup/avatars/tops/00.png' %}" data-image-src="{% static 'dressup/avatars/tops/00.png' %}" id="top-item" class="draggable" alt="top">
             <button type="button" class="next-arrow" onclick="changeItem('top', 'next')">&gt;</button>
         </div>
         <!-- Repeat similar blocks for dresses, skirts, shoes, accessories -->

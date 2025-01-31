@@ -1,47 +1,44 @@
-# dressup/models.py
 from django.db import models
-from journal.models import CustomUser
+from django.templatetags.static import static
+from django.contrib.auth import get_user_model
+
+User = get_user_model()
 
 
 class Item(models.Model):
     CATEGORY_CHOICES = (
         ('body', 'Body'),
         ('hair', 'Hair'),
-        ('top', 'Top'),
-        ('bottom', 'Bottom'),
+        ('top', 'Tops'),
+        ('skirt', 'Skirts'),
         ('shoes', 'Shoes'),
-        ('accessory', 'Accessory'),
+        ('accessory', 'Accessories'),
         ('makeup', 'Makeup'),
-        ('wig', 'Wig'),
+        ('wig', 'Wigs'),
         ('jewellery', 'Jewellery'),
         ('lingerie', 'Lingerie'),
-        ('background', 'Background'),
-        # Add more categories as needed
+        ('background', 'Backgrounds'),
     )
 
-    category = models.CharField(max_length=50, choices=CATEGORY_CHOICES)
     name = models.CharField(max_length=100)
-    # If items have static images, use image_path
+    category = models.CharField(max_length=50, choices=CATEGORY_CHOICES)
     image_path = models.CharField(max_length=200, blank=True, null=True)
-    # If items have dynamic uploads, use ImageField (requires Pillow)
-    image = models.ImageField(upload_to='items/', blank=True, null=True)
     price_points = models.IntegerField(default=0, blank=True, null=True)
     price_dollars = models.DecimalField(
         max_digits=6, decimal_places=2, blank=True, null=True)
     premium_only = models.BooleanField(default=False)
-    shop = models.ForeignKey(
-        'Shop', on_delete=models.CASCADE, related_name='products', blank=True, null=True)
+    is_locked = models.BooleanField(default=False)
+    description = models.TextField(blank=True)
+
+    def save(self, *args, **kwargs):
+        if self.image_path and not self.image_path.startswith('dressup/'):
+            raise ValueError(f"Invalid image path '{self.image_path}': must start with 'dressup/'.")
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return self.name
 
-    def get_image_url(self):
-        if self.image:
-            return self.image.url
-        elif self.image_path:
-            return f'items/{self.image_path}'
-        else:
-            return 'items/default.png'  # Path to a default image
+
 class Shop(models.Model):
     SHOP_TYPE_CHOICES = (
         ('salon', 'Salon'),
@@ -56,24 +53,38 @@ class Shop(models.Model):
         ('gym', 'Gym'),
         ('bank', 'Bank'),
         ('photography_studio', 'Photography Studio'),
-        # Add more shop types as needed
+    )
+    SHOP_LEVEL_CHOICES = (
+        ('basic', 'Basic'),
+        ('premium', 'Premium'),
+        ('cute', 'Cute'),
+        ('hawt', 'Hawt'),
+        ('sexy', 'Sexy'),
     )
 
     name = models.CharField(max_length=100)
+    shop_id = models.CharField(max_length=100, blank=True, null=True)
     shop_type = models.CharField(max_length=50, choices=SHOP_TYPE_CHOICES)
-    items = models.ManyToManyField(Item, related_name='shops')
+    shop_level = models.CharField(
+        max_length=50, choices=SHOP_LEVEL_CHOICES, default='basic')
+    items = models.ManyToManyField(Item, related_name='shop_items')
     premium_only = models.BooleanField(default=False)
+    is_locked = models.BooleanField(default=False)
     description = models.TextField(blank=True)
+    image_path = models.CharField(max_length=200, blank=True, null=True)
+
+    def get_image_url(self):
+        default_image = 'dressup/shops/default.svg'
+        try:
+            return static(f'dressup/shops/{self.shop_level}/{self.shop_type}.svg')
+        except Exception:
+            return static(default_image)
 
     def __str__(self):
         return self.name
 
 
-# dressup/models.py
-
 class Avatar(models.Model):
-    
-    
 
     BODY_CHOICES = (
         ('01', 'straight_body'),
@@ -180,7 +191,7 @@ class Avatar(models.Model):
     ]
 
     user = models.OneToOneField(
-        CustomUser, on_delete=models.CASCADE, related_name='avatar')
+        User, on_delete=models.CASCADE, related_name='sissy_avatar')
     image_path = models.CharField(max_length=200, blank=True, null=True)
     body = models.CharField(max_length=2, choices=BODY_CHOICES, default='01')
     skin = models.CharField(
@@ -189,7 +200,8 @@ class Avatar(models.Model):
     hair_color = models.CharField(
         max_length=10, choices=HAIR_COLOR_CHOICES, default='black')
     created_at = models.DateTimeField(auto_now_add=True, null=True)
-    purchased_items = models.ManyToManyField(Item, blank=True)
+    purchased_items = models.ManyToManyField('Item', blank=True)
+    equipped_items = models.ManyToManyField('Item', related_name='equipped_items', blank=True)
     shoes = models.CharField(max_length=100, choices=SHOES_CHOICES, default='00')
     accessories = models.CharField(max_length=100, choices=ACCESSORIES_CHOICES, default='00')
     skirt = models.CharField(max_length=100, choices=SKIRT_CHOICES, default='00')
@@ -222,11 +234,18 @@ class Avatar(models.Model):
 
 class PurchasedItem(models.Model):
     user = models.ForeignKey(
-        CustomUser, on_delete=models.CASCADE, related_name='purchased_items')
+        User, on_delete=models.CASCADE, related_name='purchased_items')
     item = models.ForeignKey(Item, on_delete=models.CASCADE)
     purchased_at = models.DateTimeField(auto_now_add=True, null=True)
-    # For one-time use items like photoshoots
-    used = models.BooleanField(default=False)
+    is_equipped = models.BooleanField(default=False)
+
+    class Meta:
+        unique_together = ('user', 'item')
+
+    def equip(self):
+        if not self.is_equipped:
+            self.is_equipped = True
+            self.save()
 
     def __str__(self):
         return f"{self.user.sissy_name} purchased {self.item.name}"
@@ -239,7 +258,7 @@ class PhotoShoot(models.Model):
         ('hot', 'Hot Photographer'),
     )
 
-    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
     photographer_type = models.CharField(
         max_length=20, choices=PHOTOGRAPHER_CHOICES)
     # Assuming backdrops are items
@@ -254,6 +273,6 @@ class PhotoShoot(models.Model):
 
 # Optionally, you can create a model to cache leaderboard data
 class LeaderboardEntry(models.Model):
-    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
     points = models.IntegerField()
     updated_at = models.DateTimeField(auto_now=True)

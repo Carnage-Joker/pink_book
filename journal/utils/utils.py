@@ -1,18 +1,14 @@
-# In journal/utils.py or a similar utilities file
-from calendar import c
 from django.template.loader import render_to_string
 from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_encode
 from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import send_mail
 from django.urls import reverse
+from django.conf import settings
 import random
 from journal.models import Task
-import uuid
 
-
-def generate_task(user):
-    tasks = [
+TASKS = [
         {"description": "Write a positive affirmation about yourself. Then stick it to your Dashboard.", "points": 5},
         {"description":
             "Plan a cute outfit for the day and share it in your journal. Extra points for pics (use the Task tag if you wanna collect points!)", "points": 10},
@@ -30,26 +26,24 @@ def generate_task(user):
         {"description": "Comment on three other users' forum posts. Make sure you're kind and use the Task tag.", "points": 6},
         {"description": "Write a journal entry on why Pink is such a great color. Don't forget the Task tag.", "points": 5},
         {"description": "Find 5 hot pics of guys and explain why each of them is so attractive to you. Upload their pics to your journal with the Task tag.", "points": 8},
-        {"description":
-            "Write a journal entry about your favorite sissy outfit, extra points if you upload a pic of it! More points if you post a pic in our forum of you wearing it (use the Task tag if you wanna collect points!)", "points": 15},
+        # Duplicate task removed
         {"description":
             "Practice your sissy walk and write about how it makes you feel. Extra points for video evidence (use the Task tag if you wanna collect points!)", "points": 20},
         {"description":
             "Promote the Pink Book on social media and write about the experience (you don't have to use your personal account but remember to tag us!)", "points": 12},
         # More tasks can be added with varying points
-        {"description": "Write a journal entry about your favorite sissy outfit, extra points if you upload a pic of it! More points if you post a pic in our forum of you wearing it (use the Task tag if you wanna collect points!)", "points": 15},
-        {"description": "Practice your sissy walk and write about how it makes you feel. Extra points for video evidence (use the Task tag if you wanna collect points!)", "points": 20},
+        {"description":
+            "Write a journal entry about your favorite sissy outfit, extra points if you upload a pic of it! More points if you post a pic in our forum of you wearing it (use the Task tag if you wanna collect points!)", "points": 15},
+        {"description":
+            "Practice your sissy walk and write about how it makes you feel. Extra points for video evidence (use the Task tag if you wanna collect points!)", "points": 20},
         {"description": "Reflect on the pain and pleasure intertwined in your sissy journey.", "points": 10},
         {"description": "Record a heartfelt confession of your love and devotion to me, your Mistress.", "points": 10},
         {"description": "Describe the moment you realized your deepest, most secret desires were to serve powerful alphas.", "points": 10},
         {"description": "Document an instance where your submission to me brought you to tears, whether from joy or despair.", "points": 10},
-        {"description": "Write about the first time you felt truly owned", "points": 10},
-        {"description": "Reflect on the first time you felt truly accepted and validated in your sissy identity.", "points": 10},
+        {"description": "Write about the first time you felt truly owned and how it changed you.", "points": 10},
         {"description": "Detail an encounter with someone who does not understand or accept your sissy nature and the emotional impact it had on you.", "points": 10},
-        {"description": "Record a moment of intense arousal during a particularly humiliating task.", "points": 10},
         {"description": "Write about the euphoria that follows a successful submission.", "points": 10},
-        {"description": "Explore a time when your emotions conflicted with your desire to obey.", "points": 10},         {"description": "Express how your submission has changed your relationship with fear and vulnerability.", "points": 10},
-        {"description": "Write about the first time you felt truly owned", "points": 10},
+        {"description": "Express how your submission has changed your relationship with fear and vulnerability.", "points": 10},
         {"description": "Reflect on the first time you felt truly accepted and validated in your sissy identity.", "points": 10},
         {"description": "Detail an encounter with someone who does not understand or accept your sissy nature and the emotional impact it had on you.", "points": 10},
         {"description": "Record a moment of intense arousal during a particularly humiliating task.", "points": 10},
@@ -57,22 +51,9 @@ def generate_task(user):
         {"description": "Explore a time when your emotions conflicted with your desire to obey.", "points": 10},
         {"description": "Express how your submission has changed your relationship with fear and vulnerability.", "points": 10},
     ]
-    task_data = random.choice(tasks)
 
-    return Task.objects.create(
-        user=user,
-        description=task_data["description"],
-        points_awarded=task_data["points"],
-        points_penalty=calculate_penalty(task_data["points"]),  # Example: Penalty is half the points awarded
-        
-    )
-    
 
-def calculate_penalty(points):
-    return -(points * 2)
-
-def generate_task_truth(user):
-    truth_tasks = [
+TRUTH_TASKS = [
         {"description":
             "Confess your most embarrassing secret as a sissy. Write about how it felt to admit it (use the Task tag to collect points!).", "points": 15},
         {"description":
@@ -108,46 +89,62 @@ def generate_task_truth(user):
         {"description": "Confess a secret desire related to your sissy identity. Be bold and put it into words!", "points": 20},
     ]
 
-    truth_task_data = random.choice(truth_tasks)
-    
+
+def generate_task(user):
+    """Generate a random task for a user."""
+    task_data = random.choice(TASKS)
     return Task.objects.create(
         user=user,
-        description=truth_task_data["description"],
-        points_awarded=truth_task_data["points"],
-        # Example: Penalty is half the points awarded
-        points_penalty=calculate_penalty(truth_task_data["points"]),
-
+        description=task_data["description"],
+        points_awarded=task_data["points"],
+        points_penalty=calculate_penalty(task_data["points"]),
     )
 
 
+def generate_truth_task(user):
+    """Generate a random truth task for a user."""
+    task_data = random.choice(TRUTH_TASKS)
+    return Task.objects.create(
+        user=user,
+        description=task_data["description"],
+        points_awarded=task_data["points"],
+        points_penalty=calculate_penalty(task_data["points"]),
+    )
+
+
+def calculate_penalty(points):
+    """Calculate the penalty for a task."""
+    return -(points * 2)
+
+
 def send_activation_email(user, request):
-    current_site = get_current_site(request)
+    """Send account activation email to a user."""
+    current_site = request.get_host()
     subject = 'Activate Your Account'
     message = render_to_string('activation_email.html', {
         'user': user,
-        'domain': current_site.domain,
+        'domain': current_site,
         'protocol': 'https' if request.is_secure() else 'http',
-        'uidb64': urlsafe_base64_encode(force_bytes(user.id)),
+        'uidb64': urlsafe_base64_encode(force_bytes(user.pk)),
         'token': default_token_generator.make_token(user),
     })
-    to_email = user.email
-    send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, [to_email])
+    send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, [user.email])
 
 
 def fail_task(user):
-    user.award_points(-5)  # Adjust points as needed
+    """Handle task failure for a user."""
+    user.award_points(-5)
     return True
 
 
 def complete_journal_entry(user, entry):
+    """Mark a journal entry as completed and award points."""
     if not entry.completed:
         entry.completed = True
         entry.save()
-        user.award_points(10)  # Adjust points as needed
+        user.award_points(10)
         return True
     else:
-        points = calculate_penalty(25)
-        user.award_points(points)
+        penalty = calculate_penalty(25)
+        user.award_points(penalty)
     return False
-
-

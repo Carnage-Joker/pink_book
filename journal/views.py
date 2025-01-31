@@ -1,7 +1,14 @@
-# Standard imports
+
+from journal.utils.ai_utils import (
+    extract_keywords, get_average_sentiment, get_current_streak,
+    get_most_common_tags, get_most_common_emotions, get_peak_journaling_time,
+    get_average_word_count
+)
+from journal.models import Habit, JournalEntry, ToDo, Quote
+from django.utils.timezone import now
+from django.views.generic import TemplateView
 import json
 import logging
-import random
 from datetime import date
 from typing import Any, Dict
 
@@ -23,6 +30,9 @@ from django.views import View
 from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import (CreateView, DeleteView, DetailView, FormView,
                                   ListView, TemplateView, UpdateView)
+from django.views.generic.edit import CreateView
+
+from journal.models import CustomUser, Habit, JournalEntry, ToDo
 
 # Local application imports
 from .forms import (CommentForm, CustomUserCreationForm, CustomUserLoginForm,
@@ -38,9 +48,9 @@ from .utils.ai_utils import (extract_keywords, get_average_sentiment,
                              get_most_common_emotions, get_most_common_tags,
                              get_peak_journaling_time)
 from .utils.utils import (calculate_penalty, generate_task,
-                          generate_task_truth, send_activation_email)
+                          generate_truth_task, send_activation_email)
 
-# Set up the logger
+# Set up the logger to capture and log application events and errors
 logger = logging.getLogger(__name__)
 
 User = get_user_model()
@@ -343,50 +353,57 @@ class ProfileSettingsView(LoginRequiredMixin, SafeMixin, TemplateView):
         return context
 
 
-class DashboardView(LoginRequiredMixin, SafeMixin, TemplateView):
-    """View for the user dashboard."""
+# Import models
+
+# Import AI & analytics utilities
+
+
+class DashboardView(LoginRequiredMixin, TemplateView):
+    """Enhanced View for the user dashboard."""
     template_name = "dashboard.html"
 
+    def get_profile_pic(self):
+        """Retrieve the URL of the user's profile picture."""
+        user = self.request.user
+        return user.profile_picture.url if user.profile_picture else "/static/journal/media/default-profile-pic.jpg"
+
     def get_quote_of_the_day(self):
+        """Select a deterministic quote based on the current day."""
         today = date.today()
-        quotes = Quote.objects.all()
-        if quotes.exists():
-            random.seed(today.toordinal())  # Ensure the same quote for the day
-            quote = random.choice(quotes)
-            return quote.content
-        return "No quote available"
+        quotes = list(Quote.objects.all())  # Fetch all quotes
+        if quotes:
+            index = today.toordinal() % len(quotes)
+            return quotes[index].content
+        return "Every day is a chance to be fabulous!"
 
     def get_context_data(self, **kwargs):
+        """Populate context with dashboard data and ensure dynamic updates."""
         context = super().get_context_data(**kwargs)
         user = self.request.user
 
-        # Fetch recent data
+        # Fetch user data
         recent_entries = JournalEntry.objects.filter(
-            user=user).order_by("-timestamp")[:3]
-        todos = ToDo.objects.filter(user=user).order_by("-timestamp")[:5]
+            user=user).order_by("-timestamp")[:5]
+        todos = ToDo.objects.filter(
+            user=user, completed=False).order_by("-timestamp")[:5]
         habits = Habit.objects.filter(user=user).order_by("-timestamp")[:5]
 
-        # Check if habits need a reset
-        if habits.exists():
-            for habit in habits:
-                if habit.check_reset_needed():
-                    habit.reset_counter()
+        # Reset habit counters if needed
+        for habit in habits:
+            if habit.check_reset_needed():
+                habit.reset_counter()
 
-        # Generate Truth or Dare tasks
-        dare_task = generate_task(user)
-        truth_task = generate_task_truth(user)
-
-        # Sentiment and journal insights
+        # Calculate insights only if there are journal entries
         if recent_entries.exists():
             sentiment_data = get_average_sentiment(recent_entries)
             context.update({
                 "avg_polarity": sentiment_data.get("avg_polarity", 0),
                 "avg_subjectivity": sentiment_data.get("avg_subjectivity", 0),
                 "streak": get_current_streak(recent_entries),
-                "frequent_keywords": extract_keywords(recent_entries),
-                "common_tags": get_most_common_tags(recent_entries),
-                "most_common_emotions": get_most_common_emotions(recent_entries),
-                "average_word_count": get_average_word_count(recent_entries),
+                "frequent_keywords": extract_keywords(recent_entries[:3]),
+                "common_tags": get_most_common_tags(recent_entries[:3]),
+                "most_common_emotions": get_most_common_emotions(recent_entries[:3]),
+                "average_word_count": get_average_word_count(recent_entries[:3]),
                 "most_active_hour": get_peak_journaling_time(recent_entries),
             })
         else:
@@ -401,37 +418,18 @@ class DashboardView(LoginRequiredMixin, SafeMixin, TemplateView):
                 "most_active_hour": None,
             })
 
-        # Profile and points
-        profile = getattr(user, "profile", None)
-        points = getattr(profile, "points", 0) if profile else 0
-        profile_pic = get_profile_pic(self.request)
-
-        # General context update
+        # Add profile and points data
         context.update({
             "user": user,
-            "profile": profile,
-            "points": points,
+            "points": user.points,
+            "profile_pic": self.get_profile_pic(),
             "quote_of_the_day": self.get_quote_of_the_day(),
             "todos": todos,
             "habits": habits,
             "entries": recent_entries,
-            "entries_with_insights": recent_entries,
-            "dare_task": dare_task,  # Add the dare task to context
-            "truth_task": truth_task,
-            "profile_pic": profile_pic,
         })
 
         return context
-
-
-def get_profile_pic(request):
-    """Get the user's profile picture."""
-    user = request.user
-    if hasattr(user, 'profile'):
-        profile = user.profile
-        if hasattr(profile, 'profile_pic') and profile.profile_pic:
-            return profile.profile_pic.url
-    return None
 
 
 class HomeView(SafeMixin, TemplateView):
@@ -450,39 +448,35 @@ class JournalEntryCreateView(LoginRequiredMixin, CreateView):
     form_class = JournalEntryForm
     template_name = "new_entry.html"
 
-    def get_initial(self):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self._generated_prompt = None
+
+    def get_initial(self) -> dict:
         initial = super().get_initial()
-        generated_prompt = generate_prompt()
-        initial['generated_prompt'] = generated_prompt
+        if self._generated_prompt is None:
+            self._generated_prompt = generate_prompt()
+        initial['generated_prompt'] = self._generated_prompt
         return initial
 
-    def get_context_data(self, **kwargs):
+    def get_context_data(self, **kwargs) -> dict:
         context = super().get_context_data(**kwargs)
-        context["generated_prompt"] = self.get_initial().get(
-            'generated_prompt', '')
+        context["generated_prompt"] = self._generated_prompt
         return context
 
-    def form_valid(self, form):
-        form.instance.user = self.request.user
-        form.instance.prompt_text = form.cleaned_data.get("generated_prompt")
-        response = super().form_valid(form)
-
-        # Generate and attach the insight
+    def generate_insight_and_save(self, journal_entry):
         try:
-            insight_text = generate_insight(form.instance.content)
-            form.instance.insight = insight_text
-            form.instance.save(update_fields=['insight'])
+            insight_text = generate_insight(journal_entry.content)
+            journal_entry.insight = insight_text
+            journal_entry.save(update_fields=['insight'])
         except Exception as e:
-            messages.error(self.request, "Error generating insight.")
-            form.instance.insight = "Insight generation failed."
-            form.instance.save(update_fields=['insight'])
+            logger.error(f"Insight generation failed: {e}")
+            journal_entry.insight = "Insight generation failed."
+            journal_entry.save(update_fields=['insight'])
 
-        # Award points to the user
-        points_earned = form.instance.calculate_points()
-        self.request.user.points += points_earned
-        self.request.user.save()
-
-        # Success message
+    def award_user_points(self, user, points_earned):
+        user.points += points_earned
+        user.save()
         if points_earned > 0:
             messages.success(
                 self.request,
@@ -491,13 +485,20 @@ class JournalEntryCreateView(LoginRequiredMixin, CreateView):
         else:
             messages.warning(
                 self.request,
-                f"You need to follow instructions to earn points. You lost {abs(points_earned)} points."
+                f"Follow instructions to earn points. You lost {abs(points_earned)} points."
             )
 
+    def form_valid(self, form) -> HttpResponse:
+        form.instance.user = self.request.user
+        form.instance.prompt_text = form.cleaned_data.get("generated_prompt")
+        response = super().form_valid(form)
+        self.generate_insight_and_save(form.instance)
+        self.award_user_points(
+            self.request.user, form.instance.calculate_points())
         return response
 
     def get_success_url(self):
-        return reverse("journal:entry_detail", kwargs={"pk": self.object.pk})
+        return reverse_lazy("journal:entry_detail", kwargs={"pk": self.object.pk})
 
 
 class JournalEntryWithTaskView(LoginRequiredMixin, CreateView):

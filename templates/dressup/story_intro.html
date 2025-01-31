@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Your Sissy Adventure Begins!{% endblock %}
+
+{% block content %}
+<div class="container mt-4 text-center">
+    <h1 class="cute-title">Welcome to Your Sissy Journey, {{ request.user.sissy_name }}!</h1>
+    
+    <div class="story-intro">
+        <p class="lead">
+            ✨ Oh, darling! The moment you’ve been waiting for is finally here! ✨<br>
+            You’ve just arrived in **Femmeville**, a dazzling city where **sissies bloom, dreams come true,** 
+            and every choice you make shapes your transformation. 💖
+        </p>
+        
+        <img src="{% static 'images/story_intro.jpg' %}" alt="Femmeville" class="img-fluid rounded shadow">
+
+        <p class="story-text">
+            You step off the **Pink Express**, your heart fluttering with excitement (and maybe just a touch of nervousness). 
+            The scent of **sweet perfume and freshly painted nails** fills the air as you clutch your little pink suitcase.
+            A mysterious note is tucked inside... written in elegant cursive:
+        </p>
+
+        <blockquote class="sissy-note">
+            "Welcome, cutie! Your journey to becoming the most fabulous version of yourself starts NOW! 💋<br>
+            But first, you need the perfect outfit! Head to the mall, find a look that speaks to your inner princess, 
+            and show the world the new you!"
+        </blockquote>
+
+        <p class="story-text">
+            With a blush on your cheeks and a flutter in your heart, you take a deep breath.
+            It’s time to **explore, transform, and embrace your sissy destiny!** 🎀
+        </p>
+        
+        <a href="{% url 'dressup:mall' %}" class="btn btn-pink btn-lg mt-3">Go to the Mall</a>
+    </div>
+</div>
+
+{% endblock %}

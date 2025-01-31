@@ -1,25 +1,28 @@
-<!-- dressup/templates/dressup/inventory.html -->
-
 {% extends 'base.html' %}
 {% load static %}
+{% load custom_filters %}
 {% block content %}
-<div class="container">
-    <h2>Your Inventory</h2>
-    <div class="items">
-        {% for purchased_item in purchased_items %}
-            <div class="item">
-                <img src="{{ purchased_item.item.image.url }}" alt="{{ purchased_item.item.name }}">
-                <h4>{{ purchased_item.item.name }}</h4>
-                {% if purchased_item.item in avatar.equipped_items.all %}
-                    <p>Currently Equipped</p>
-                {% else %}
-                    <form action="{% url 'equip_item' purchased_item.item.id %}" method="post">
-                        {% csrf_token %}
-                        <button type="submit">Equip</button>
-                    </form>
-                {% endif %}
-            </div>
+<h1>Your Inventory</h1>
+
+<!-- Avatar Display -->
+<div class="avatar-container" id="avatar-container">
+    <div class="avatar-images">
+        {% for layer in layer_keys %}
+        <img src="{{ image_urls|get_item:layer }}" alt="{{ layer|capfirst }}" class="layer {{ layer }}">
         {% endfor %}
     </div>
+</div>
+
+<!-- Inventory Section -->
+<div class="items" id="inventory">
+    <h2>Your Closet</h2>
+    {% for purchased_item in purchased_items %}
+    <div class="item" draggable="true" data-item-id="{{ purchased_item.item.id }}" 
+         data-category="{{ purchased_item.item.category }}">
+        <img src="{% static purchased_item.item.image_path %}" 
+             alt="{{ purchased_item.item.name }}">
+        <h4>{{ purchased_item.item.name }}</h4>
+    </div>
+    {% endfor %}
 </div>
 {% endblock %}

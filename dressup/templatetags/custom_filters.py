@@ -17,3 +17,16 @@ def replace(value, args):
     except ValueError:
         # If the format is incorrect, return the original value
         return value
+
+
+@register.filter
+def concat(*args):
+    return ''.join(args)
+
+
+@register.filter
+def get_item(dictionary, key):
+    try:
+        return dictionary.get(key)
+    except AttributeError:
+        return None

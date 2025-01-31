@@ -75,7 +75,7 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
     location = models.CharField(
         _('location'), max_length=100, blank=True, null=True)
     profile_picture = models.ImageField(
-        _('profile picture'), upload_to=profile_pic_upload_path, default='default.jpg')
+        _('profile picture'), upload_to=profile_pic_upload_path, default='default-profile-pic.jpg')
 
     PRONOUN_CHOICES = (
         ('he/him', _('he/him')),
@@ -137,6 +137,13 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
 
     objects = CustomUserManager()
 
+    avatar = models.OneToOneField(
+        'dressup.Avatar',
+        on_delete=models.CASCADE,
+        related_name='user_avatar',  # Optional: allows reverse lookup
+        null=True,  # Allow null for users without an avatar
+        blank=True,
+    )
     USERNAME_FIELD = 'sissy_name'
     REQUIRED_FIELDS = ['email']
 

@@ -1,0 +1,169 @@
+/* Cleaned and Optimized DressUp Stylesheet */
+
+.avatar-creation,
+.avatar-dress-up,
+.mall {
+    text-align: center;
+}
+
+.mall_map {
+    display: flex;
+    justify-content: center;
+    margin-block-start: 2%;
+}
+
+.shop-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(20%, 1fr));
+    grid-gap: 2%;
+    justify-content: center;
+    margin: 2%;
+}
+
+.shop-item {
+    margin: 1%;
+    cursor: pointer;
+    text-align: center;
+    transition: transform 0.2s ease, border-color 0.2s ease;
+}
+
+.shop-item img {
+    inline-size: 80%;
+    block-size: 80%;
+}
+
+.shop-item:hover {
+    transform: scale(1.05);
+    border-color: #007bff;
+}
+
+.avatar-container {
+    position: relative;
+    max-inline-size: 30%;
+    max-block-size: 50%;
+    margin: auto;
+    overflow: hidden;
+    border: 3px dashed pink;
+    border-radius: 5%;
+    background: rgba(255, 245, 245, 0.5);
+    box-shadow: 0 5% 5% rgba(0, 0, 0, 0.2);
+}
+
+.avatar-images {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    margin-block-start: 2%;
+    inset-inline-start: 0;
+    inset-block-start: 0;
+    inline-size: 90%;
+    block-size: 90%;
+}
+
+.layer {
+    position: absolute;
+    inline-size: 75%;
+    block-size: auto;
+    inset-inline-start: 12.5%;
+}
+
+.layer.body {
+    z-index: 1;
+}
+
+.layer.skirt {
+    z-index: 2;
+}
+
+.layer.top {
+    z-index: 3;
+    inline-size: 50%;
+}
+
+.layer.shoes {
+    z-index: 4;
+}
+
+.layer.hair {
+    z-index: 5;
+    inline-size: 50%;
+}
+
+.layer.accessories {
+    z-index: 6;
+}
+
+.item-selection,
+.items {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.item {
+    margin: 2%;
+    padding: 2%;
+    border: 1px solid #ccc;
+    cursor: pointer;
+    text-align: center;
+    transition: transform 0.2s ease, border-color 0.2s ease;
+}
+
+.item img {
+    inline-size: 80%;
+    block-size: 80%;
+    border-radius: 8%;
+}
+
+.item:hover {
+    border-color: #007bff;
+    transform: scale(1.05);
+}
+
+.shop-card {
+    position: relative;
+    overflow: hidden;
+    border-radius: 5%;
+    transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+}
+
+.shop-card:hover {
+    transform: scale(1.05);
+    box-shadow: 0 10% 20% rgba(255, 105, 180, 0.5);
+}
+
+.shop-image {
+    border-radius: 5%;
+    inline-size: 100%;
+    block-size: auto;
+    transition: filter 0.3s ease;
+}
+
+.shop-image:hover {
+    filter: brightness(1.2);
+}
+
+/* Responsive Adjustments */
+@media (max-width: 768px) {
+    .avatar-container {
+        max-inline-size: 50%;
+        max-block-size: 60%;
+    }
+
+    .shop-item img {
+        inline-size: 70%;
+        block-size: 70%;
+    }
+}
+
+@media (max-width: 576px) {
+    .avatar-container {
+        max-inline-size: 80%;
+        max-block-size: 80%;
+    }
+
+    .shop-item img {
+        inline-size: 60%;
+        block-size: 60%;
+    }
+}

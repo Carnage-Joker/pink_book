@@ -1,4 +1,4 @@
-from journal.models import BlogPost, Comment
+from journal.models import BlogPost, Comment, CustomUser
 from django.contrib.auth import get_user_model
 from django.contrib.contenttypes.models import ContentType
 import os
