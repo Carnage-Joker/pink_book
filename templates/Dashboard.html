@@ -52,18 +52,18 @@
     </div>
 
     <!--ToDp List Card -->
-    <div class="fluffy-card todo-card">
-        <h2>Your To-Do List</h2>
-        <ul class="todo-list">
-            {% for todo in todos %}
-                <li>
-                    <input type="checkbox" id="task-{{ todo.id }}" {% if todo.is_completed %}checked{% endif %}>
-                    <label for="task-{{ todo.id }}">{{ todo.task }}</label>
-                </li>
-            {% endfor %}
-        </ul>
-        <a href="{% url 'journal:create_todo' %}" class="btn">Add New Task</a>
-    </div>
+        <div class="fluffy-card todo-card">
+            <h2>Your To-Do List</h2>
+            <ul class="todo-list">
+                {% for todo in todos %}
+                    <li>
+                        <input type="checkbox" id="task-{{ todo.id }}" {% if todo.is_completed %}checked{% endif %}>
+                        <label for="task-{{ todo.id }}">{{ todo.task }}</label>
+                    </li>
+                {% endfor %}
+            </ul>
+            <a href="{% url 'journal:create_todo' %}" class="btn">Add New Task</a>
+        </div>
 
         <!-- Games Card -->
     <div class="fluffy-card games-card">
