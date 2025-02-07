@@ -1,12 +1,4 @@
 
-from journal.utils.ai_utils import (
-    extract_keywords, get_average_sentiment, get_current_streak,
-    get_most_common_tags, get_most_common_emotions, get_peak_journaling_time,
-    get_average_word_count
-)
-from journal.models import Habit, JournalEntry, ToDo, Quote
-from django.utils.timezone import now
-from django.views.generic import TemplateView
 import json
 import logging
 from datetime import date
@@ -26,13 +18,12 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse, reverse_lazy
 from django.utils.encoding import force_str
 from django.utils.http import urlsafe_base64_decode
+from django.utils.timezone import now
 from django.views import View
 from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import (CreateView, DeleteView, DetailView, FormView,
                                   ListView, TemplateView, UpdateView)
 from django.views.generic.edit import CreateView
-
-from journal.models import CustomUser, Habit, JournalEntry, ToDo
 
 # Local application imports
 from .forms import (CommentForm, CustomUserCreationForm, CustomUserLoginForm,
@@ -44,9 +35,8 @@ from .models import (ActivityLog, Answer, Billing, BlogPost, Comment,
                      Post, Question, Quote, Resource, ResourceCategory, Task,
                      TaskCompletion, Thread, ToDo)
 from .utils.ai_utils import (extract_keywords, get_average_sentiment,
-                             get_average_word_count, get_current_streak,
-                             get_most_common_emotions, get_most_common_tags,
-                             get_peak_journaling_time)
+                            get_current_streak, get_average_word_count,
+                             get_most_common_tags, get_peak_journaling_time)
 from .utils.utils import (calculate_penalty, generate_task,
                           generate_truth_task, send_activation_email)
 
@@ -365,7 +355,12 @@ class DashboardView(LoginRequiredMixin, TemplateView):
     def get_profile_pic(self):
         """Retrieve the URL of the user's profile picture."""
         user = self.request.user
-        return user.profile_picture.url if user.profile_picture else "/static/journal/media/default-profile-pic.jpg"
+        profile = getattr(user, "profile", None)
+        if profile and getattr(profile, "profile_picture", None):
+            return profile.profile_picture.url
+        elif getattr(user, "profile_picture", None):
+            return user.profile_picture.url
+        return "/static/journal/media/default-profile-pic.jpg"
 
     def get_quote_of_the_day(self):
         """Select a deterministic quote based on the current day."""
@@ -381,29 +376,35 @@ class DashboardView(LoginRequiredMixin, TemplateView):
         context = super().get_context_data(**kwargs)
         user = self.request.user
 
-        # Fetch user data
+        # ✅ Apply ordering first, then slice
         recent_entries = JournalEntry.objects.filter(
-            user=user).order_by("-timestamp")[:5]
+            user=user).order_by('-timestamp')
+        recent_entries_sliced = recent_entries[:3]  # Slicing after ordering
+
         todos = ToDo.objects.filter(
             user=user, completed=False).order_by("-timestamp")[:5]
         habits = Habit.objects.filter(user=user).order_by("-timestamp")[:5]
 
-        # Reset habit counters if needed
+        # ✅ Reset habit counters if needed
         for habit in habits:
             if habit.check_reset_needed():
                 habit.reset_counter()
 
-        # Calculate insights only if there are journal entries
+        # ✅ Compute insights if entries exist
         if recent_entries.exists():
             sentiment_data = get_average_sentiment(recent_entries)
+
             context.update({
+                # ✅ Safe now
+                "common_tags": get_most_common_tags(recent_entries),
                 "avg_polarity": sentiment_data.get("avg_polarity", 0),
                 "avg_subjectivity": sentiment_data.get("avg_subjectivity", 0),
                 "streak": get_current_streak(recent_entries),
-                "frequent_keywords": extract_keywords(recent_entries[:3]),
-                "common_tags": get_most_common_tags(recent_entries[:3]),
-                "most_common_emotions": get_most_common_emotions(recent_entries[:3]),
-                "average_word_count": get_average_word_count(recent_entries[:3]),
+                # ✅ Safe now
+                "frequent_keywords": extract_keywords(recent_entries_sliced),
+                # ✅ Safe now
+                # ✅ Safe now
+                "average_word_count": get_average_word_count(recent_entries_sliced),
                 "most_active_hour": get_peak_journaling_time(recent_entries),
             })
         else:
@@ -413,12 +414,11 @@ class DashboardView(LoginRequiredMixin, TemplateView):
                 "streak": 0,
                 "frequent_keywords": [],
                 "common_tags": [],
-                "most_common_emotions": [],
                 "average_word_count": 0,
                 "most_active_hour": None,
             })
 
-        # Add profile and points data
+        # ✅ Add profile and points data
         context.update({
             "user": user,
             "points": user.points,
@@ -430,7 +430,6 @@ class DashboardView(LoginRequiredMixin, TemplateView):
         })
 
         return context
-
 
 class HomeView(SafeMixin, TemplateView):
     """Home page view."""

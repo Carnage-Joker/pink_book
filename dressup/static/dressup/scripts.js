@@ -3,8 +3,8 @@
 // ==============================
 import { avatarModule } from './avatarModule.js';
 import { toastModule } from './toastModule.js';
-import { navigationModule } from './navigationModule.js';
-import { dragDrop } from './dragDrop.js';
+
+
 
 document.addEventListener('DOMContentLoaded', () => {
     avatarModule.init();

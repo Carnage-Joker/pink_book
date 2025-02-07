@@ -64,9 +64,9 @@
 
     <!-- Include External Scripts -->
     {% block scripts %}
-    <script type="module" src="dressup/static/dressup/scripts.js"></script>
+    <script type="module" src="{% static 'dressup/scripts.js' %}"></script>
 
-    <script src="{% static 'journal/scripts/scripts.js' %}"></script>
+    <script type="module" src="{% static 'journal/scripts/scripts.js' %}"></script>
     {% endblock %}
 </body>
 </html>

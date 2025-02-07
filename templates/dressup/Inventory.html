@@ -13,12 +13,14 @@
     </div>
 </div>
 
-<!-- Inventory Section -->
 <div class="items" id="inventory">
     <h2>Your Closet</h2>
     {% for purchased_item in purchased_items %}
-    <div class="item" draggable="true" data-item-id="{{ purchased_item.item.id }}" 
-         data-category="{{ purchased_item.item.category }}">
+    <div class="item draggable" 
+         draggable="true" 
+         data-item-id="{{ purchased_item.item.id }}" 
+         data-category="{{ purchased_item.item.category }}"
+         ondragstart="drag(event)">
         <img src="{% static purchased_item.item.image_path %}" 
              alt="{{ purchased_item.item.name }}">
         <h4>{{ purchased_item.item.name }}</h4>
@@ -26,3 +28,4 @@
     {% endfor %}
 </div>
 {% endblock %}
+<!-- Inventory Section -->

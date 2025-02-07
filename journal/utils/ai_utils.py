@@ -9,31 +9,20 @@ from django.utils.timezone import now
 from nltk.corpus import stopwords
 from nltk.sentiment.vader import SentimentIntensityAnalyzer
 from nltk.tokenize import word_tokenize
-
 logger = logging.getLogger(__name__)
 
 NO_DATA_AVAILABLE = 'No data available'
 
 
-def get_dashboard_insights(entries, habits, todos):
+from typing import Dict, List, Union, Optional
+
+
+def get_dashboard_insights(entries: QuerySet['JournalEntry'], habits: QuerySet, todos: QuerySet) -> Dict[str, Union[int, str, None, List[str]]]:
     """Collect all insights for the user's dashboard."""
     if not entries.exists():
-        return {
-            'habit_consistency': 0,
-            'weekly_reflection_count': 0,
-            'chores_completed': 0,
-            'avg_sentiment': NO_DATA_AVAILABLE,
-            'most_common_tags': NO_DATA_AVAILABLE,
-            'current_streak': 0,
-            'peak_journaling_time': NO_DATA_AVAILABLE,
-        }
+        return get_default_insights()
 
-    avg_sentiment_score = entries.aggregate(Avg('polarity'))['polarity__avg']
-    avg_sentiment = (
-        'positive' if avg_sentiment_score > 0 else
-        'negative' if avg_sentiment_score < 0 else
-        'neutral'
-    ) if avg_sentiment_score is not None else NO_DATA_AVAILABLE
+    avg_sentiment = calculate_avg_sentiment(entries)
 
     return {
         'habit_consistency': get_habit_consistency(habits),
@@ -43,55 +32,91 @@ def get_dashboard_insights(entries, habits, todos):
         'most_common_tags': get_most_common_tags(entries),
         'current_streak': get_current_streak(entries),
         'peak_journaling_time': get_peak_journaling_time(entries),
+        'habit_sentiment': analyze_habit_sentiment_correlation(entries, habits)
     }
+
+def get_default_insights() -> Dict[str, Union[int, str, None, List[str]]]:
+    """Return default insights when no entries are available."""
+    return {
+        'habit_consistency': 0,
+        'weekly_reflection_count': 0,
+        'chores_completed': 0,
+        'avg_sentiment': NO_DATA_AVAILABLE,
+        'most_common_tags': NO_DATA_AVAILABLE,
+        'current_streak': 0,
+        'peak_journaling_time': NO_DATA_AVAILABLE,
+        'habit_sentiment': NO_DATA_AVAILABLE
+    }
+def calculate_avg_sentiment(entries: QuerySet) -> str:
+    """Calculate the average sentiment from entries."""
+    avg_sentiment_score = entries.aggregate(Avg('polarity'))['polarity__avg']
+    if avg_sentiment_score is None:
+        return NO_DATA_AVAILABLE
+
+    if avg_sentiment_score > 0:
+        return 'positive'
+    elif avg_sentiment_score < 0:
+        return 'negative'
+    else:
+        return 'neutral'
 
 
 def get_most_common_tags(entries: QuerySet) -> str:
-    """Get the most common tags from entries."""
-    from django.db.models import Count
-    
-    tag_counts = entries.values('tags__name').annotate(tag_count=Count('tags__name')).order_by('-tag_count')
+    """Get the most common tags from journal entries."""
+    if not entries.exists():
+        return NO_DATA_AVAILABLE
+
+    # Convert QuerySet to a list if it has been sliced
+    if hasattr(entries, '_result_cache') and entries._result_cache is not None:
+        tag_counts = list(
+            entries.values('tags__name')
+            .annotate(tag_count=Count('tags__name'))
+        )
+        # Use Python sorting
+        tag_counts.sort(key=lambda x: x['tag_count'], reverse=True)
+    else:
+        tag_counts = (
+            entries.values('tags__name')
+            .annotate(tag_count=Count('tags__name'))
+            .order_by('-tag_count')  # Safe only if slicing has not occurred
+        )
+
     return tag_counts[0]['tags__name'] if tag_counts else NO_DATA_AVAILABLE
 
 def get_habit_consistency(habits):
     """Calculate habit consistency as a percentage."""
     if not habits.exists():
         return 0
-    habit_streaks = [
-        habit.increment_counter
-        for habit in habits
-        if hasattr(habit, 'increment_counter')
-    ]
-    return round(sum(habit_streaks) / len(habit_streaks) * 100) if habit_streaks else 0
+
+    total_habits = len(habits)
+    completed_habits = sum(1 for habit in habits if habit.is_completed())
+
+    return round((completed_habits / total_habits) * 100) if total_habits else 0
 
 
-def get_weekly_reflection_count(entries):
+def get_weekly_reflection_count(entries: QuerySet) -> int:
     """Calculate the number of reflections made in the past week."""
     one_week_ago = now() - timedelta(days=7)
     return entries.filter(timestamp__gte=one_week_ago).count()
 
 
+
 def get_chores_completed(todos: QuerySet) -> int:
-    """Calculate the number of chores completed."""
-    return todo.filter(task_type='chore', completed=True).count()
+    """Calculate the number of completed chores."""
+    return todos.filter(category="chore_tasks", completed=True).count()
 
-    def get_most_common_tags(entries: QuerySet) -> str:
-        """Get the most common tags from entries."""
-        from django.db.models import Count
-        
-        tag_counts = entries.values('tags__name').annotate(tag_count=Count('tags__name')).order_by('-tag_count')
-        return tag_counts[0]['tags__name'] if tag_counts else NO_DATA_AVAILABLE
 
-def get_current_streak(entries):
-    """Get the current streak of journaling entries."""
+def get_current_streak(entries: QuerySet) -> int:
     if not entries.exists():
         return 0
 
+    # ✅ Apply order_by first
+    entries = entries.order_by('-timestamp')
+
     streak = 0
     current_date = now().date()
-    sorted_entries = entries.order_by('-timestamp')
 
-    for entry in sorted_entries:
+    for entry in entries:
         if entry.timestamp.date() != current_date:
             break
 
@@ -101,18 +126,24 @@ def get_current_streak(entries):
     return streak
 
 
-
-def get_peak_journaling_time(entries: QuerySet) -> int | None:
+def get_peak_journaling_time(entries: QuerySet) -> Optional[int]:
     """Get the peak journaling time."""
     if not entries.exists():
         return None
 
-    peak_hour = entries.annotate(hour=ExtractHour('timestamp')).values('hour').annotate(count=Count('id')).order_by('-count').first()
+    peak_hour = (
+        entries.annotate(hour=ExtractHour('timestamp'))
+        .values('hour')
+        .annotate(count=Count('id'))
+        .order_by('-count')
+        .first()
+    )
     return peak_hour['hour'] if peak_hour else None
 
 
 def extract_keywords(entries, num_keywords=10):
-    if not entries:
+    """Extract the most common keywords from journal entries."""
+    if not entries.exists():
         return []
 
     text = ' '.join(entry.content for entry in entries)
@@ -125,72 +156,75 @@ def extract_keywords(entries, num_keywords=10):
     ) and word not in stopwords.words('english')]
     most_common = Counter(filtered_tokens).most_common(num_keywords)
     return most_common  # List of tuples (keyword, count)
-def get_sentiment(text: str):
-    """
-    Analyze the sentiment of the given text using VADER.
 
-    Parameters:
-    text (str): The text to be analyzed.
-    
-    Returns:
-    tuple: A tuple containing the sentiment ('positive', 'negative', 'neutral'),
-           polarity (float), and subjectivity (approximate confidence score).
-    """
+
+def get_sentiment(text: str) -> tuple[str, float, float]:
+    """Analyze the sentiment of a given text using VADER."""
     if not isinstance(text, str) or not text.strip():
         raise ValueError("Input text must be a non-empty string.")
 
     analyzer = SentimentIntensityAnalyzer()
     sentiment_scores = analyzer.polarity_scores(text)
 
-    # Extracting polarity and subjectivity
-    # Compound score is a normalized score between -1 and 1
-    # Extracting polarity and subjectivity
-    # Compound score is a normalized score between -1 and 1
     polarity = sentiment_scores['compound']
-    subjectivity = (sentiment_scores['pos'] + sentiment_scores['neg'] + sentiment_scores['neu']) / 3  # Approximate subjectivity
-    if polarity > 0:
-        sentiment = 'positive'
-    elif polarity < 0:
-        sentiment = 'negative'
-    else:
-        sentiment = 'neutral'
+    subjectivity = (sentiment_scores['pos'] + sentiment_scores['neg'] +
+                    sentiment_scores['neu']) / 3  # Approximate subjectivity
+    sentiment = 'positive' if polarity > 0 else 'negative' if polarity < 0 else 'neutral'
 
     return sentiment, polarity, subjectivity
 
-# Example usage
-sentiment, polarity, subjectivity = None, None, None
-try:
-    text = "I love this new feature! It's amazing."
-    sentiment, polarity, subjectivity = get_sentiment(text)
-    print(f"Sentiment: {sentiment}, Polarity: {polarity}, Subjectivity: {subjectivity}")
-except Exception as e:
-    print(f"Sentiment: {sentiment}, Polarity: {polarity}, Subjectivity: {subjectivity}")
-    print(f"Sentiment: {sentiment}, Polarity: {polarity}, Subjectivity: {subjectivity}")
 
 def get_average_sentiment(entries: QuerySet):
-    """Calculate the average sentiment of queryset entries."""
+    """Calculate the average sentiment of journal entries."""
     if not entries.exists():
         return {'avg_polarity': None, 'avg_subjectivity': None}
+
     return {
         'avg_polarity': entries.aggregate(Avg('polarity'))['polarity__avg'],
         'avg_subjectivity': entries.aggregate(Avg('subjectivity'))['subjectivity__avg']
     }
 
-
-def get_most_common_emotions(entries):
-    """Get the most common emotions from entries."""
+def get_average_word_count(entries: QuerySet):
+    """Calculate the average word count of journal entries."""
     if not entries.exists():
+        return None
+
+    return entries.aggregate(avg_word_count=Avg(Length('content', output_field=IntegerField())))['avg_word_count']
+
+def analyze_habit_sentiment_correlation(entries, habits):
+    """Determine whether habits are improving or worsening the user's mood."""
+    if not entries.exists() or not habits.exists():
         return NO_DATA_AVAILABLE
 
-    emotion_counts = entries.values('sentiment').annotate(emotion_count=Count('sentiment')).order_by('-emotion_count')
-    return emotion_counts[0] if emotion_counts else NO_DATA_AVAILABLE
+    habit_names = [habit.name for habit in habits]
+    habit_related_entries = entries.filter(content__icontains=habit_names[0])
+    for habit_name in habit_names[1:]:
+        habit_related_entries = habit_related_entries | entries.filter(content__icontains=habit_name)
 
+    sentiment_data = {habit_name: [] for habit_name in habit_names}
 
+    for entry in habit_related_entries:
+        for habit_name in habit_names:
+            if habit_name in entry.content:
+                sentiment_data[habit_name].append(get_sentiment(entry.content)[1])
 
+    positive_habits = 0
+    neutral_habits = 0
+    negative_habits = 0
 
-def get_average_word_count(entries):
-    if not entries.exists():
-        return 0
+    for habit_name, sentiments in sentiment_data.items():
+        if sentiments:
+            avg_polarity = sum(sentiments) / len(sentiments)
+            if avg_polarity > 0.5:
+                positive_habits += 1
+            elif avg_polarity < -0.3:
+                negative_habits += 1
+            else:
+                neutral_habits += 1
 
-    total_words = entries.annotate(word_count=Length(F('content')) - Length(F('content')) + Value(1)).aggregate(total=Sum('word_count'))['total']
-    return total_words // entries.count() if total_words else 0
+    if positive_habits > negative_habits:
+        return "Your habits are making a **positive impact** on your mood! Keep it up! 😊"
+    elif negative_habits > positive_habits:
+        return "Some habits seem to be **affecting your mood negatively**. Consider adjusting them. 💭"
+    else:
+        return "Your habits have a **neutral** impact on your emotions. Maybe try writing about them more? ✍️"

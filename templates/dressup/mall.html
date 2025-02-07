@@ -2,17 +2,20 @@
 {% load custom_filters %}
 {% load static %}
 {% block content %}
+
 <h1>Welcome to the Mall</h1>
 
 <!-- Avatar Display -->
 <div class="avatar-container">
     <div class="avatar-images">
         {% for layer in layer_keys %}
-            {% if image_urls|get_item:layer %}
-                <img src="{{ image_urls|get_item:layer }}" alt="{{ layer|capfirst }} for avatar" class="layer {{ layer }}">
-            {% else %}
-                <img src="{% static 'avatars/default.png' %}" alt="Default Avatar Layer" class="layer {{ layer }}">
-            {% endif %}
+            {% with image_url=image_urls|get_item:layer %}
+                {% if image_url %}
+                    <img src="{{ image_url }}" alt="{{ layer|capfirst }} for avatar" class="layer {{ layer }}">
+                {% else %}
+                    <img src="{% static 'dressup/avatars/default.png' %}" alt="Default Avatar Layer" class="layer {{ layer }}">
+                {% endif %}
+            {% endwith %}
         {% endfor %}
     </div>
 </div>
@@ -36,16 +39,4 @@
     </div>
 </div>
 
-<!-- Pagination Controls -->
-<div class="pagination">
-    {% if shops.has_previous %}
-    <a href="?page={{ shops.previous_page_number }}" class="btn btn-outline-secondary">&laquo; Previous</a>
-    {% endif %}
-
-    <span>Page {{ shops.number }} of {{ shops.paginator.num_pages }}</span>
-
-    {% if shops.has_next %}
-    <a href="?page={{ shops.next_page_number }}" class="btn btn-outline-secondary">Next &raquo;</a>
-    {% endif %}
-</div>
 {% endblock %}

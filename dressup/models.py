@@ -76,7 +76,7 @@ class Shop(models.Model):
     def get_image_url(self):
         default_image = 'dressup/shops/default.svg'
         try:
-            return static(f'dressup/shops/{self.shop_level}/{self.shop_type}.svg')
+            return static(f'dressup/shops/{self.shop_level}/{self.shop_type}.jpg')
         except Exception:
             return static(default_image)
 
@@ -84,153 +84,112 @@ class Shop(models.Model):
         return self.name
 
 
-class Avatar(models.Model):
+User = get_user_model()
 
-    BODY_CHOICES = (
-        ('01', 'straight_body'),
+
+class Avatar(models.Model):
+    BODY_CHOICES = [
+        ('00', 'straight_body'),
+        ('01', 'petite_body'),
         ('02', 'curvy_body'),
         ('03', 'hourglass_body'),
-        ('04', 'pear_body'),
-        ('05', 'apple_body'),
-        ('06', 'athletic_body'),
-        ('07', 'petite_body'),
+    ]
 
-        # Add more body types as needed
-    )
-    SKIN_CHOICES = (
-        ('01', 'light'),
-        ('02', 'medium'),
-        ('03', 'dark'),
-        ('04', 'pale'),
-        ('05', 'tan'),
-    )
-    HAIR_CHOICES = (
-        ('01', 'short_hair'),
+    SKIN_CHOICES = [
+        ('00', 'light'),
+        ('01', 'tan'),
+        ('02', 'dark'),
+    ]
+
+    HAIR_CHOICES = [
+        ('00', 'short_hair'),
+        ('01', 'short_wavy_bangs'),
         ('02', 'long_straight_hair'),
-        ('03', 'long_curly_hair'),
-        ('04', 'long_wavy_hair'),
-        ('05', 'bob_cut'),
-        ('06', 'pig_tails'),
-        # add more feminine hair styles
-        ('07', 'bald'),  # for wigs
-        ('08', 'short_curly_hair'),
-        ('09', 'short_wavy_hair'),
-        ('10', 'long_straight_bangs'),
-        ('11', 'long_curly_bangs'),
-        ('12', 'long_wavy_bangs'),
-        ('13', 'bob_cut_bangs'),
-        ('14', 'pig_tails_bangs'),
-        ('15', 'short_curly_bangs'),
-        ('16', 'short_wavy_bangs'),
-        # Add more hair styles as needed
-    )
-    HAIR_COLOR_CHOICES = (
-        ('01', 'black'),
-        ('02', 'brown'),
-        ('03', 'blonde'),
-        ('04', 'red'),
-        ('05', 'blue'),
-        ('06', 'green'),
-        ('07', 'purple'),
-        ('08', 'pink'),
-        ('09', 'rainbow'),
-    )
-
-    SHOES_CHOICES = [
-        ('00', 'ugly shoes'),  # for sissies who don't deserve nice shoes
-        ('01', 'Sneakers'),
-        ('02', 'Boots'),
-        # Add other girly shoe types
-        ('03', 'Heels'),
-        ('04', 'Flats'),
-        ('05', 'Sandals'),
-        ('06', 'Wedges'),
-        ('07', 'Mules'),
-        ('08', 'Pumps'),
-        ('09', 'Platforms'),
-        ('10', 'Ankle Boots'),
-        ('11', 'Thigh High Boots'),
-        ('12', 'Knee High Boots'),
     ]
 
-    ACCESSORIES_CHOICES = [
-        ('00', 'None'),
-        ('01', 'Hat'),
-        ('02', 'Scarf'),
-        # Add other feminine accessories
-        ('03', 'Gloves'),
-        ('04', 'Sunglasses'),
-        ('05', 'Handbag'),
-        ('06', 'Necklace'),
-        ('07', 'Bracelet'),
-        ('08', 'Earrings'),
-        ('09', 'collar'),
-        ('10', 'Belt'),
-    ]
-
-    SKIRT_CHOICES = [
-        ('00', 'ugly shorts'),  # for sissies who don't deserve skirts
-        ('01', 'Mini Skirt'),
-        ('02', 'Midi Skirt'),
-        # Add other skirt types
-        ('03', 'Maxi Skirt'),
-        ('04', 'Pencil Skirt'),
-        ('05', 'Pleated Skirt'),
-        ('06', 'A-Line Skirt'),
-    ]
-
-    TOP_CHOICES = [
-        ('00', 'ugly top'),  # for sissies who don't deserve nice tops
-        ('01', 'T-Shirt'),
-        ('02', 'Blouse'),
-        ('03', 'Crop Top'),
-        # Add other top types
-        ('04', 'Bra'),
-        ('05', 'Corset'),
-        ('06', 'Bustier'),
+    HAIR_COLOR_CHOICES = [
+        ('00', 'Black'),
+        ('01', 'Brunette'),
+        ('02', 'Blonde'),
+        ('03', 'Red'),
+        ('04', 'Pink'),
     ]
 
     user = models.OneToOneField(
-        User, on_delete=models.CASCADE, related_name='sissy_avatar')
-    image_path = models.CharField(max_length=200, blank=True, null=True)
-    body = models.CharField(max_length=2, choices=BODY_CHOICES, default='01')
-    skin = models.CharField(
-        max_length=10, choices=SKIN_CHOICES, default='light')
-    hair = models.CharField(max_length=2, choices=HAIR_CHOICES, default='01')
+        User, on_delete=models.CASCADE, related_name='sissy_avatar'
+    )
+    name = models.CharField(max_length=100, default="Sissy Avatar")
+
+    # Avatar core attributes
+    body = models.CharField(max_length=2, choices=BODY_CHOICES, default='00')
+    skin = models.CharField(max_length=2, choices=SKIN_CHOICES, default='00')
+    hair = models.CharField(max_length=2, choices=HAIR_CHOICES, default='00')
     hair_color = models.CharField(
-        max_length=10, choices=HAIR_COLOR_CHOICES, default='black')
-    created_at = models.DateTimeField(auto_now_add=True, null=True)
-    purchased_items = models.ManyToManyField('Item', blank=True)
-    equipped_items = models.ManyToManyField('Item', related_name='equipped_items', blank=True)
-    shoes = models.CharField(max_length=100, choices=SHOES_CHOICES, default='00')
-    accessories = models.CharField(max_length=100, choices=ACCESSORIES_CHOICES, default='00')
-    skirt = models.CharField(max_length=100, choices=SKIRT_CHOICES, default='00')
-    top = models.CharField(max_length=100, choices=TOP_CHOICES, default='00')
+        max_length=20, choices=HAIR_COLOR_CHOICES, default='00')
+    story_started = models.BooleanField(default=False)
+
+    # Equipped items
+    equipped_items = models.ManyToManyField(
+        'Item',
+        related_name='equipped_on_avatars',
+        blank=True,
+        help_text="Items currently equipped on the avatar."
+    )
 
     def get_image_urls(self):
         """
         Returns a dictionary of image URLs for each avatar component.
+        Uses equipped items where available, falling back to default images.
         """
-        return {
+        layers = ['body', 'hair', 'skirt', 'top', 'shoes', 'accessories']
+        urls = {
             'body': static(f'dressup/avatars/body/{self.body}/{self.skin}.png'),
             'hair': static(f'dressup/avatars/hair/{self.hair}/{self.hair_color}.png'),
-            'shoes': static(f'dressup/avatars/shoes/{self.shoes}.png'),
-            'accessories': static(f'dressup/avatars/accessories/{self.accessories}.png'),
-            'skirt': static(f'dressup/avatars/skirt/{self.skirt}.png'),
-            'top': static(f'dressup/avatars/top/{self.top}.png'),
         }
 
-    def toggle_item(self, item):
-        if item in self.equipped_items.all():
-            self.equipped_items.remove(item)
-            return "unequipped"
+        # Default images for unequipped items
+        for layer in layers:
+            if layer not in urls:
+                urls[layer] = static(f'dressup/avatars/{layer}/00.png')
+
+        # Override with equipped items
+        for item in self.equipped_items.all():
+            if item.category in layers:
+                urls[item.category] = static(item.image_path)
+
+        return urls
+
+    def equip_item(self, item):
+        """
+        Equips an item, ensuring only one item per category is equipped.
+        """
+        if not item.category:
+            raise ValueError("Item must have a category to be equipped.")
+
+        # Unequip any existing item in the same category
+        self.equipped_items.filter(category=item.category).delete()
+
+        # Equip the new item
         self.equipped_items.add(item)
-        return "equipped"
-    
+        self.save()
+
+    def unequip_item(self, item):
+        """
+        Unequips an item from the avatar.
+        """
+        self.equipped_items.remove(item)
+        self.save()
+
+    @property
+    def equipped_display_names(self):
+        """
+        Returns a dictionary of display names for equipped items.
+        """
+        return {item.category: item.name for item in self.equipped_items.all()}
+
     def __str__(self):
         return f"{self.user.sissy_name}'s Avatar"
-    # Optionally, define methods to get image URLs
-    
+
 
 class PurchasedItem(models.Model):
     user = models.ForeignKey(

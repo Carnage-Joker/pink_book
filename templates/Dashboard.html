@@ -44,7 +44,8 @@
                     <p class="completed-message">Habit target reached for this {{ habit.frequency }}!</p>
                 {% endif %}
                 <p id="insight-{{ habit.id }}" class="habit-insight"></p>
-                <button class="cute-btn" onclick="incrementHabit('{{ habit.id }}')">Increment</button>
+               <button class="cute-btn" onclick="incrementHabit('{{ habit.id }}')">Increment</button>
+
             </div>
             {% endfor %}
         </ul>
@@ -72,8 +73,10 @@
             <p>Take a break and try on some cute outfits. You deserve it, babe!</p>
             <a href="{% url 'dressup:create_avatar' %}" class="btn btn-dressup">Play Dress-ups</a>
             <p>Or, how about a fun game of Truth or Dare? Only if you dare, Sissy! Muhahaha</p>
-            <a href="#" class="btn btn-truth" onclick="generateTask()">Play Truth</a>
-            <a href="#" class="btn btn-dare" onclick="generateTask()">Play Dare</a>
+            <a href="#" class="btn btn-truth" id="generate-task-truth">Play Truth</a>
+            <a href="#" class="btn btn-dare" id="generate-task-dare">Play Dare</a>
+
+
         </div>
     </div>
 
@@ -135,11 +138,11 @@
 </div>
 
 <!-- JavaScript -->
-<script src="{% static 'journal/scripts/fetch_utils.js' %}"></script>
-<script src="{% static 'journal/scripts/ui_helpers.js' %}"></script>
-<script src="{% static 'journal/scripts/tasks.js' %}"></script>
-<script src="{% static 'journal/scripts/habits.js' %}"></script>
-<script src="{% static 'journal/scripts/points.js' %}"></script>
-<script src="{% static 'journal/scripts/scripts.js' %}"></script>
+<script type="module" src="{% static 'journal/scripts/fetch_utils.js' %}"></script>
+<script type="module" src="{% static 'journal/scripts/ui_helpers.js' %}"></script>
+<script type="module" src="{% static 'journal/scripts/tasks.js' %}"></script>
+<script type="module" src="{% static 'journal/scripts/habits.js' %}"></script>
+<script type="module" src="{% static 'journal/scripts/points.js' %}"></script>
+<script type="module" src="{% static 'journal/scripts/scripts.js' %}"></script>
 
 {% endblock %}
