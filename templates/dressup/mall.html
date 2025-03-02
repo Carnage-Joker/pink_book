@@ -9,13 +9,16 @@
 <div class="avatar-container">
     <div class="avatar-images">
         {% for layer in layer_keys %}
-            {% with image_url=image_urls|get_item:layer %}
-                {% if image_url %}
-                    <img src="{{ image_url }}" alt="{{ layer|capfirst }} for avatar" class="layer {{ layer }}">
-                {% else %}
-                    <img src="{% static 'dressup/avatars/default.png' %}" alt="Default Avatar Layer" class="layer {{ layer }}">
-                {% endif %}
-            {% endwith %}
+           {% with image_url=image_urls|get_item:layer %}
+    {% if image_url %}
+        <img src="{{ image_url }}" alt="{{ layer|capfirst }} for avatar" class="layer {{ layer }}">
+    {% else %}
+        <img src="{% static 'dressup/avatars/'|add:layer|add:'/default.png' %}" 
+             alt="Default {{ layer|capfirst }} Layer" 
+             class="layer {{ layer }}">
+    {% endif %}
+{% endwith %}
+
         {% endfor %}
     </div>
 </div>

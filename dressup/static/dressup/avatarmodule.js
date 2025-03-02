@@ -1,33 +1,95 @@
-// ==============================
-// Module: Avatar Customization
-// ==============================
 export const avatarModule = (() => {
-    const items = {
-        'dresses': ['00.png', '01.png', '02.png'],
-        'skirts': ['00.png', '01.png', '02.png'],
-        'tops': ['00.png', '01.png', '02.png'],
-        'shoes': ['00.png', '01.png', '02.png'],
-        'accessories': ['00.png', '01.png', '02.png']
-    };
+    let equippedItems = {};  // Stores equipped items per category
 
-    let currentIndex = {
-        'dresses': 0,
-        'skirts': 0,
-        'tops': 0,
-        'shoes': 0,
-        'accessories': 0
-    };
-
-    function changeItem(category, direction) {
-        const categoryItems = items[category];
-        if (!categoryItems) return;
-
-        currentIndex[category] = (direction === 'next')
-            ? (currentIndex[category] + 1) % categoryItems.length
-            : (currentIndex[category] - 1 + categoryItems.length) % categoryItems.length;
-
-        document.getElementById(category).src = `/static/dressup/avatars/${categoryItems[currentIndex[category]]}`;
+    async function loadEquippedItems() {
+        try {
+            let response = await fetch('/dressup/get_equipped_items/');
+            let data = await response.json();
+            equippedItems = data;
+            updateAvatarDisplay();
+        } catch (error) {
+            console.error("Error fetching equipped items:", error);
+        }
     }
 
-    return { changeItem };
+    async function equipItem(itemId, button) {
+        if (button.disabled) return;
+        button.disabled = true;
+
+        try {
+            let response = await fetch(`/dressup/equip_item/${itemId}/`, {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': getCSRFToken(),
+                    'Content-Type': 'application/json',
+                },
+                credentials: 'include'
+            });
+
+            let data = await response.json();
+            if (data.status) {
+                button.innerText = data.status === "equipped" ? "Unequip" : "Equip";
+            }
+        } catch (error) {
+            console.error("Error:", error);
+        } finally {
+            button.disabled = false;
+        }
+    }
+
+    function changeItem(category, direction) {
+        if (!equippedItems[category] || !equippedItems[category].items.length) return;
+
+        let categoryItems = equippedItems[category].items;
+        let targetLayer = document.getElementById(`layer-${category}`);
+        if (!targetLayer) return;
+
+        let currentIndex = parseInt(targetLayer.dataset.index) || 0;
+
+        currentIndex = (direction === 'next')
+            ? (currentIndex + 1) % categoryItems.length
+            : (currentIndex - 1 + categoryItems.length) % categoryItems.length;
+
+        targetLayer.dataset.index = currentIndex;
+
+        // Preload new image
+        let newImage = new Image();
+        newImage.src = categoryItems[currentIndex].image_path;
+        newImage.onload = () => {
+            targetLayer.src = newImage.src;  // Update only after it's loaded
+        };
+
+        // Send AJAX request to update equipped item in Django
+        fetch(`/dressup/equip_item/${categoryItems[currentIndex].id}/`, {
+            method: 'POST',
+            headers: {
+                'X-CSRFToken': getCSRFToken(),
+                'Content-Type': 'application/json',
+            },
+            credentials: 'include'
+        }).catch(error => console.error("Error equipping item:", error));
+    }
+
+    function updateAvatarDisplay() {
+        Object.keys(equippedItems).forEach(category => {
+            const categoryData = equippedItems[category];
+            const targetLayer = document.getElementById(`layer-${category}`);
+            if (targetLayer && categoryData.items.length > 0) {
+                let currentIndex = parseInt(targetLayer.dataset.index) || 0;
+                targetLayer.src = categoryData.items[currentIndex].image_path;
+            }
+        });
+    }
+
+    function getCSRFToken() {
+        const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]');
+        return csrfToken ? csrfToken.value : '';
+    }
+
+    return { loadEquippedItems, changeItem, equipItem };
 })();
+
+// Load equipped items on page load
+document.addEventListener('DOMContentLoaded', () => {
+    avatarModule.loadEquippedItems();
+});
