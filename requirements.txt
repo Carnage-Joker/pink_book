@@ -115,7 +115,7 @@ requests==2.32.3
 requests-oauthlib==2.0.0
 rich==13.9.1
 rsa==4.9
-safetensors==0.4.5
+safetensors==0.5.3
 sentencepiece==0.2.0
 setuptools==72.1.0
 six==1.16.0
