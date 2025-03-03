@@ -124,7 +124,7 @@ SQLAlchemy==2.0.36
 sqlparse==0.5.0
 starlette==0.41.2
 sympy
-tbb==2021.12.0
+tbb==2022.0.0
 textblob==0.17.1
 tokenizers
 torch
