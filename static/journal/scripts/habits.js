@@ -1,3 +1,4 @@
+import e from express;
 import { fetchUtils } from "./fetch_utils.js";
 
 async function incrementHabit(habitId) {
@@ -10,7 +11,7 @@ async function incrementHabit(habitId) {
             habitCounter.textContent = parseInt(habitCounter.textContent) + 1;
         }
 
-        const response = await fetchUtils.fetchWithCSRF(`/journal/habits/${habitId}/increment/`, {
+        const response = await fetchUtils.fetchWithCSRF(`/journal/habits/${habitId}/increment`, {
             method: "POST",
         });
 
@@ -41,7 +42,6 @@ async function incrementHabit(habitId) {
                 heartIcon.className = "icon";
                 heartIcon.textContent = "❤️";
                 iconsContainer.appendChild(heartIcon);
-            }
         }
 
         showToast("Habit incremented!", "success");
@@ -55,3 +55,51 @@ async function incrementHabit(habitId) {
 
 // Ensure global access
 window.incrementHabit = incrementHabit;
+export { incrementHabit };
+async function decrementHabit(habitId) {
+    try {
+        const response = await fetchUtils.fetchWithCSRF(`/api/habits/${habitId}/decrement`, {
+            method: "POST",
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error || "Failed to decrement habit.");
+                }
+        const data = await response.json();
+        showToast("Habit decremented successfully!", "success");
+        return data;
+    } catch (error) {
+        console.error("Error decrementing habit:", error);
+        showToast(error.message || "Error decrementing habit.", "error");
+        throw error;
+    }
+}
+
+// Ensure global access
+(window as any).decrementHabit = decrementHabit;
+async function deleteHabit(habitId) {
+    try {
+        const response = await fetchUtils.fetchWithCSRF(`/api/habits/${habitId}/delete`, {
+            method: "DELETE",
+        });
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error || "Failed to delete habit.");
+        }
+        const data = await response.json();
+        showToast("Habit deleted successfully!", "success");
+        return data;
+    } catch (error) {
+        console.error("Error deleting habit:", error);
+        showToast(error.message || "Error deleting habit.", "error");
+        throw error;
+    }
+}
+}
+
+// Ensure global access
+window.deleteHabit = deleteHabit;
+// Ensure global access
+(window as any).deleteHabit = deleteHabit;
+export { deleteHabit };

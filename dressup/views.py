@@ -87,6 +87,20 @@ def mall_view(request):
         'layer_keys': layer_keys,
     })
 
+# In views.py
+
+
+@login_required
+@avatar_required
+def dress_up_view(request):
+    avatar = request.user.sissy_avatar
+    # Optionally, you can handle POST here if saving outfit changes directly from this page
+    if request.method == 'POST':
+        # Process outfit changes if needed (or use AJAX for real-time changes)
+        # For instance, update hidden fields or call equip_item_ajax via JavaScript.
+        messages.success(request, "Your outfit has been saved!")
+        return redirect('dressup:mall')
+    return render(request, 'dressup/dress_up.html', {'avatar': avatar})
 
 @login_required
 @avatar_required
@@ -125,7 +139,11 @@ def inventory_view(request):
 
     if request.method == 'POST' or request.GET.get('item_id'):
         item_id = request.POST.get('item_id') or request.GET.get('item_id')
-        item = get_object_or_404(Item, id=item_id)
+        try:
+            item = Item.objects.get(id=item_id)
+        except Item.DoesNotExist:
+            messages.error(request, "The item does not exist.")
+            return redirect('dressup:shop_detail', shop_id=shop_id)
 
         if item in equipped_items:
             avatar.unequip_item(item)
@@ -149,7 +167,7 @@ def equip_item_ajax(request, item_id):
     item = get_object_or_404(Item, id=item_id)
     avatar = request.user.sissy_avatar
 
-    if item in avatar.equipped_items.all():
+    if avatar.equipped_items.filter(id=item.id).exists():
         avatar.unequip_item(item)
         status = "unequipped"
     else:
@@ -166,9 +184,16 @@ def equip_item_ajax(request, item_id):
 
 @login_required
 @avatar_required
-def unequip_item(request, item_id):
+def unequip_item(request: HttpRequest, item_id: int) -> HttpResponse:
     """
     Unequips an item from the avatar.
+
+    Parameters:
+    request (HttpRequest): The HTTP request object.
+    item_id (int): The ID of the item to be unequipped.
+
+    Returns:
+    HttpResponse: Redirects to the inventory page with a success or error message.
     """
     item = get_object_or_404(Item, id=item_id)
     avatar = request.user.sissy_avatar

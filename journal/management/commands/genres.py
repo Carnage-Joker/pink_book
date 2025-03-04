@@ -50,15 +50,19 @@ class Command(BaseCommand):
 
     def handle(self, *args, **kwargs):
         # Iterate through categories and populate resources
-        for category, resources in RESOURCE_DATA.items():
+        for categories, resources in RESOURCE_DATA.items():
             for resource in resources:
                 # Check if the resource already exists to avoid duplicates
-                if not Resource.objects.filter(title=resource['title']).exists():
+                if not Resource.objects.filter(
+                    title=resource['title'], category=categories).exists():
                     Resource.objects.create(
-                        category=ResourceCategory,
                         title=resource['title'],
                         description=resource['description'],
                         link=resource['link'],
+                        category=categories,
                     )
-                    print(f"Resource '{resource['title']}' added to {category} section.")
-        print("Resources successfully populated!")
+                    self.stdout.write(self.style.SUCCESS(f"Resource '{resource['title']}' in category '{category}' added."))
+                else:
+                    self.stdout.write(self.style.WARNING(f"Resource '{resource['title']}' in category '{category}' already exists."))
+                    
+

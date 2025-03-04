@@ -1,32 +1,30 @@
-from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin, Group, Permission
-from .utils.ai_utils import get_sentiment  # AI module for insights
-from datetime import timedelta
-from django.db.models import F
-from django.db import models, transaction
-from django.db import transaction
-from django.db.models import F, Max, Value
-from django.contrib.auth import get_user_model
 import logging
+# from .utils.ai_utils import get_sentiment  # AI module for insights
 import os
 import uuid
 from datetime import date, timedelta
+from typing import Optional
 from uuid import uuid4
 
 from dateutil.relativedelta import relativedelta
 from django.conf import settings
+from django.contrib.auth import get_user_model
 from django.contrib.auth.models import (AbstractBaseUser, BaseUserManager,
                                         Group, Permission, PermissionsMixin)
 from django.contrib.contenttypes.fields import (GenericForeignKey,
                                                 GenericRelation)
 from django.contrib.contenttypes.models import ContentType
 from django.core.mail import send_mail
-from django.db import models
+from django.db import models, transaction
+from django.db.models import F, Max, Value
 from django.urls import reverse
 from django.utils import timezone
-from django.utils.translation import gettext_lazy as _
 from django.utils.timezone import localdate
-from .generate import check_content_topic_with_openai  # Placeholder for AI analysis function
-from .utils.ai_utils import get_sentiment
+from django.utils.translation import gettext_lazy as _
+
+# Placeholder for AI analysis function
+from .generate import check_content_topic_with_openai
+from .utils.ai_utils import get_sentiment  # AI module for insights
 
 LEVEL_UP_THRESHOLD = 100
 
@@ -39,7 +37,7 @@ def current_timestamp():
     return timezone.now()
 
 
-LEVEL_UP_THRESHOLD = 100  # Define level-up threshold
+
 
 
 def current_timestamp():
@@ -49,11 +47,24 @@ def current_timestamp():
 def profile_pic_upload_path(instance, filename):
     ext = filename.split('.')[-1]
     new_filename = f"{uuid4()}.{ext}"
-    return os.path.join('profile_pics', instance.sissy_name, new_filename)
+    sissy_name = instance.sissy_name if instance.sissy_name else 'default_sissy_name'
+    return os.path.join('profile_pics', sissy_name, new_filename)
 
 
 class CustomUserManager(BaseUserManager):
-    def create_user(self, email, password=None, **extra_fields):
+
+    def create_user(self, email: str, password: Optional[str] = None, **extra_fields):
+        """
+        Create and return a regular user with an email and password.
+
+        Args:
+            email (str): The email address of the user.
+            password (Optional[str]): The password for the user.
+            **extra_fields: Additional fields for the user.
+
+        Returns:
+            CustomUser: The created user instance.
+        """
         if not email:
             raise ValueError('The Email field must be set')
         email = self.normalize_email(email)
@@ -165,7 +176,8 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
     def profile_picture_url(self):
         if self.profile_picture:
             return self.profile_picture.url
-        return "/static/journal/media/default-profile-pic.jpg"
+        else:
+            return "/static/journal/media/default-profile-pic.jpg"
 
     def award_points(self, points):
         self.points += points
@@ -215,7 +227,6 @@ PENALTY_CHOICES = [
     ('points_loss', 'Lose Points'),
     ('none', 'None')
 ]
-logger = logging.getLogger(__name__)
 
 
 logger = logging.getLogger(__name__)
