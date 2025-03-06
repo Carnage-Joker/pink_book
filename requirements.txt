@@ -128,7 +128,7 @@ tbb==2022.0.0
 textblob==0.17.1
 tokenizers
 torch
-tqdm==4.66.4
+tqdm==4.67.1
 transformers
 typing_extensions==4.12.2
 tzdata==2025.1
