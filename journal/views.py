@@ -638,8 +638,7 @@ class TruthTaskGenerateView(LoginRequiredMixin, TemplateView):
 class TaskGenerateView(LoginRequiredMixin, TemplateView):
 
     def get(self, request, *args, **kwargs):
-        task = generate_task(request.user)
-        if task:
+        if task := generate_task(request.user):
             return redirect('journal:new_entry_with_task', task_id=str(task.task_id))
 
         messages.error(
