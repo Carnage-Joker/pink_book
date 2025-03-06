@@ -46,7 +46,6 @@ async function incrementHabit(habitId) {
             iconsContainer.appendChild(fragment);
         showToast(`Habit ${habitId} incremented successfully!`, "success");
 
-        showToast("Habit incremented!", "success");
         return data;
     } catch (error) {
         console.error("Error incrementing habit counter:", error);
