@@ -1,29 +1,44 @@
 from django.shortcuts import redirect, render, get_object_or_404
 from django.http import JsonResponse, HttpRequest, HttpResponse
 from django.core.paginator import Paginator
-from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from .decorators import avatar_required
 from .forms import AvatarCreationForm
 from .models import Avatar, Item, PurchasedItem, Shop
 from django.templatetags.static import static
+# Import our custom message functions
+from .utils import sassy_info, sassy_error, sassy_success
+
+# Constants
+STARTER_ITEMS = ["Barely Boyish", "Tight Jeans", "Tank Top", "Sneakers"]
+
+
+def handle_existing_avatar(request, avatar):
+    """
+    Helper function to redirect if an avatar already exists.
+    """
+    if not avatar.story_started:
+        sassy_info(
+            request, "You already have an avatar. Redirecting to your story introduction!")
+        return redirect('dressup:story_intro')
+    else:
+        sassy_error(
+            request, "You already have an avatar. Redirecting to the mall!")
+        return redirect('dressup:mall')
 
 
 @login_required
 def create_avatar_view(request: HttpRequest) -> HttpResponse:
     """
-    Handles the creation of a new Avatar for the logged-in user.
+    Creates a new avatar for the user if one does not already exist.
     """
     avatar, created = Avatar.objects.get_or_create(user=request.user)
 
+    # If the avatar already exists, handle redirection with a sassy message.
     if not created:
-        if not avatar.story_started:
-            return redirect('dressup:story_intro')
-        else:
-            messages.error(
-                request, "You already have an avatar. Redirecting to the mall.")
-            return redirect('dressup:mall')
+        return handle_existing_avatar(request, avatar)
 
+    # Process POST request for avatar customization.
     if request.method == 'POST':
         form = AvatarCreationForm(request.POST)
         if form.is_valid():
@@ -31,19 +46,17 @@ def create_avatar_view(request: HttpRequest) -> HttpResponse:
             avatar.skin = form.cleaned_data['skin']
             avatar.save()
 
-            # Equip the default starter outfit
-            starter_items = ["Barely Boyish",
-                             "Tight Jeans", "Tank Top", "Sneakers"]
-            for item_name in starter_items:
+            # Equip the default starter outfit.
+            for item_name in STARTER_ITEMS:
                 item = Item.objects.filter(name=item_name).first()
                 if item:
                     avatar.equip_item(item)
 
-            messages.success(
-                request, "Your avatar has been created successfully with the default outfit!")
+            sassy_success(
+                request, "Your avatar has been created with a fab default outfit!")
             return redirect('dressup:story_intro')
         else:
-            messages.error(request, "Please correct the errors below.")
+            sassy_error(request, "Please correct the errors below, darling!")
     else:
         form = AvatarCreationForm()
 
@@ -57,22 +70,21 @@ def story_intro_view(request: HttpRequest) -> HttpResponse:
     Displays the introduction to the story mode.
     """
     avatar = request.user.sissy_avatar
-
     if not avatar.story_started:
         avatar.story_started = True
         avatar.save()
-
-    messages.success(request, "Your avatar is ready for the adventure!")
+    sassy_success(request, "Your avatar is ready for a fabulous adventure!")
     return render(request, 'dressup/story_intro.html')
 
 
 @login_required
 @avatar_required
-def mall_view(request):
+def mall_view(request: HttpRequest) -> HttpResponse:
+    """
+    Displays the mall with shop listings and the current state of the avatar.
+    """
     avatar = request.user.sissy_avatar
     layer_keys = ['body', 'skirt', 'top', 'shoes', 'hair', 'accessories']
-
-    # Ensure image URLs are properly fetched
     image_urls = avatar.get_image_urls() if avatar else {}
 
     shops = Shop.objects.all().order_by('id')
@@ -80,31 +92,32 @@ def mall_view(request):
     page_number = request.GET.get('page')
     shops_page = paginator.get_page(page_number)
 
-    return render(request, 'dressup/mall.html', {
+    context = {
         'shops': shops_page,
         'avatar': avatar,
         'image_urls': image_urls,
         'layer_keys': layer_keys,
-    })
-
-# In views.py
+    }
+    return render(request, 'dressup/mall.html', context)
 
 
 @login_required
 @avatar_required
-def dress_up_view(request):
+def dress_up_view(request: HttpRequest) -> HttpResponse:
+    """
+    Displays the interactive dress-up page.
+    """
     avatar = request.user.sissy_avatar
-    # Optionally, you can handle POST here if saving outfit changes directly from this page
     if request.method == 'POST':
-        # Process outfit changes if needed (or use AJAX for real-time changes)
-        # For instance, update hidden fields or call equip_item_ajax via JavaScript.
-        messages.success(request, "Your outfit has been saved!")
+        # Process outfit changes here (via AJAX or form submission)
+        sassy_success(request, "Your outfit has been saved, looking chic!")
         return redirect('dressup:mall')
     return render(request, 'dressup/dress_up.html', {'avatar': avatar})
 
+
 @login_required
 @avatar_required
-def shop_detail(request, shop_id):
+def shop_detail(request: HttpRequest, shop_id: int) -> HttpResponse:
     """
     Displays details of a specific shop and handles item purchases.
     """
@@ -114,14 +127,11 @@ def shop_detail(request, shop_id):
     if request.method == 'POST':
         item_id = request.POST.get('item_id')
         item = get_object_or_404(shop.items, id=item_id)
-        avatar = request.user.sissy_avatar
-
         if PurchasedItem.objects.filter(user=request.user, item=item).exists():
-            messages.info(request, "You have already purchased this item.")
+            sassy_info(request, "You already own this fabulous item!")
         else:
             PurchasedItem.objects.create(user=request.user, item=item)
-            messages.success(
-                request, f"You have successfully purchased {item.name}!")
+            sassy_success(request, f"You have snagged {item.name}! Enjoy!")
             return redirect('dressup:mall')
 
     return render(request, 'dressup/shop_detail.html', {'shop': shop, 'items': items})
@@ -129,9 +139,9 @@ def shop_detail(request, shop_id):
 
 @login_required
 @avatar_required
-def inventory_view(request):
+def inventory_view(request: HttpRequest) -> HttpResponse:
     """
-    Displays the user's purchased items and their equip status.
+    Displays the user's purchased items and allows equipping/unequipping.
     """
     avatar = request.user.sissy_avatar
     purchased_items = PurchasedItem.objects.filter(user=request.user)
@@ -142,27 +152,30 @@ def inventory_view(request):
         try:
             item = Item.objects.get(id=item_id)
         except Item.DoesNotExist:
-            messages.error(request, "The item does not exist.")
-            return redirect('dressup:shop_detail', shop_id=shop_id)
+            sassy_error(request, "Oops! That item doesn't exist, sweetie!")
+            return redirect('dressup:inventory')
 
         if item in equipped_items:
             avatar.unequip_item(item)
-            messages.success(request, f"{item.name} has been unequipped.")
+            sassy_success(
+                request, f"{item.name} has been unequipped. Mix it up!")
         else:
             avatar.equip_item(item)
-            messages.success(request, f"{item.name} has been equipped.")
+            sassy_success(
+                request, f"{item.name} is now on point and equipped!")
 
-    return render(request, 'dressup/inventory.html', {
+    context = {
         'purchased_items': purchased_items,
         'equipped_items': avatar.equipped_items.all(),
-    })
+    }
+    return render(request, 'dressup/inventory.html', context)
 
 
 @login_required
 @avatar_required
-def equip_item_ajax(request, item_id):
+def equip_item_ajax(request: HttpRequest, item_id: int) -> JsonResponse:
     """
-    AJAX View: Equip an item via drag-and-drop interaction.
+    AJAX view: Toggles equipping or unequipping an item.
     """
     item = get_object_or_404(Item, id=item_id)
     avatar = request.user.sissy_avatar
@@ -177,7 +190,7 @@ def equip_item_ajax(request, item_id):
     return JsonResponse({
         'status': status,
         'item_id': item_id,
-        'message': f"{item.name} has been {status}.",
+        'message': f"{item.name} has been {status}!",
         'image_url': static(item.image_path)
     })
 
@@ -187,24 +200,15 @@ def equip_item_ajax(request, item_id):
 def unequip_item(request: HttpRequest, item_id: int) -> HttpResponse:
     """
     Unequips an item from the avatar.
-
-    Parameters:
-    request (HttpRequest): The HTTP request object.
-    item_id (int): The ID of the item to be unequipped.
-
-    Returns:
-    HttpResponse: Redirects to the inventory page with a success or error message.
     """
     item = get_object_or_404(Item, id=item_id)
     avatar = request.user.sissy_avatar
 
     if item in avatar.equipped_items.all():
         avatar.unequip_item(item)
-        messages.success(
-            request, f"{item.name} has been successfully unequipped.")
+        sassy_success(request, f"{item.name} has been unequipped!")
     else:
-        messages.error(request, f"{item.name} is not equipped.")
-
+        sassy_error(request, f"{item.name} isn't even equipped, darling!")
     return redirect('dressup:inventory')
 
 
@@ -218,20 +222,20 @@ def purchase_item(request: HttpRequest, item_id: int) -> HttpResponse:
     user = request.user
 
     if item.premium_only and not user.is_premium():
-        messages.error(request, "This item is for premium users only.")
+        sassy_error(request, "This item is for premium users only, sweetie!")
         return redirect('dressup:shop_detail', shop_id=item.shop.id)
 
     if PurchasedItem.objects.filter(user=user, item=item).exists():
-        messages.info(request, "You have already purchased this item.")
+        sassy_info(request, "You've already purchased this stylish item!")
         return redirect('dressup:shop_detail', shop_id=item.shop.id)
 
     if item.price_points and user.points < item.price_points:
-        messages.error(
-            request, "You do not have enough points to purchase this item.")
+        sassy_error(
+            request, "Not enough points, darling. Time to earn more sparkle!")
         return redirect('dressup:shop_detail', shop_id=item.shop.id)
 
     user.deduct_points(item.price_points)
     PurchasedItem.objects.create(user=user, item=item)
-    messages.success(request, f"You have successfully purchased {item.name}!")
-
+    sassy_success(
+        request, f"You have successfully purchased {item.name}! Enjoy your new look!")
     return redirect('dressup:shop_detail', shop_id=item.shop.id)

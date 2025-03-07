@@ -7,12 +7,27 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}The Pink Book{% endblock %}</title>
     <link rel="icon" type="image/x-icon" href="{% static 'journal/images/favicon.ico' %}">
-{% if messages %}
-  <ul class="messages">
+    {% if messages %}
+  <div id="sassy-messages">
     {% for message in messages %}
-      <li class="{{ message.tags }}">{{ message }}</li>
+      <div class="sassy-message {{ message.tags }}">
+        {{ message }}
+      </div>
     {% endfor %}
-  </ul>
+  </div>
+  <script>
+    // Fade out messages after 5 seconds
+    setTimeout(function(){
+      var messagesDiv = document.getElementById('sassy-messages');
+      if(messagesDiv){
+        messagesDiv.style.transition = "opacity 1s ease-out";
+        messagesDiv.style.opacity = 0;
+        setTimeout(function() {
+          messagesDiv.remove();
+        }, 1000);
+      }
+    }, 5000);
+  </script>
 {% endif %}
     <!-- Stylesheets -->
     <link rel="stylesheet" href="{% static 'journal/css/diary-theme.css' %}">
@@ -29,6 +44,30 @@
         <h1>The Pink Book</h1>
         <div class="neon-accent-bottom"></div>
     </header>
+
+    <!-- Sassy Messages Container -->
+    {% if messages %}
+      <div id="sassy-messages">
+        {% for message in messages %}
+          <div class="sassy-message {{ message.tags }}">
+            {{ message }}
+          </div>
+        {% endfor %}
+      </div>
+      <script>
+        // Fade out messages after 5 seconds
+        setTimeout(function(){
+          var messagesDiv = document.getElementById('sassy-messages');
+          if(messagesDiv){
+            messagesDiv.style.transition = "opacity 1s ease-out";
+            messagesDiv.style.opacity = 0;
+            setTimeout(function() {
+              messagesDiv.remove();
+            }, 1000);
+          }
+        }, 5000);
+      </script>
+    {% endif %}
 
     <!-- Navigation Tabs (Post-it Notes) -->
     <nav class="post-it-notes">
@@ -49,24 +88,14 @@
 
     <!-- Footer -->
     <footer class="footer">
-        <div class="neon-accent-top"></div>
-        <nav class="footer-nav">
-            <a href="{% url 'journal:about' %}"><i class="fas fa-info-circle sparkle-icon"></i> About Us</a>
-            <a href="{% url 'journal:contact' %}"><i class="fas fa-envelope sparkle-icon"></i> Contact</a>
-            <a href="{% url 'journal:privacy_policy' %}"><i class="fas fa-user-secret sparkle-icon"></i> Privacy Policy</a>
-            <a href="{% url 'journal:terms_of_service' %}"><i class="fas fa-file-contract sparkle-icon"></i> Terms of Service</a>
-            <a href="{% url 'journal:faq' %}"><i class="fas fa-question-circle sparkle-icon"></i> FAQ</a>
-            <a href="{% url 'journal:feedback' %}"><i class="fas fa-comment-dots sparkle-icon"></i> Feedback</a>
-            <a href="{% url 'journal:logout' %}"><i class="fas fa-sign-out-alt sparkle-icon"></i> Logout</a>
-        </nav>
-        <p class="footer-text">&copy; 2024 The Pink Book. Be the best version of yourself.</p>
+        <!-- ... footer content ... -->
     </footer>
 
     <!-- Include External Scripts -->
     {% block scripts %}
     <script type="module" src="{% static 'dressup/scripts.js' %}"></script>
-
     <script type="module" src="{% static 'journal/scripts/scripts.js' %}"></script>
     {% endblock %}
 </body>
+
 </html>

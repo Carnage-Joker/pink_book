@@ -425,7 +425,16 @@ button:focus {
 .toast.fade-out {
     opacity: 0;
 }
-
+.sassy-message {
+    background: #ffb6c1;
+    /* light pink */
+    border-radius: 20px;
+    padding: 15px;
+    margin: 10px auto;
+    max-width: 400px;
+    text-align: center;
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+}
 /* Responsive Adjustments */
 @media (max-width: 992px) {
     .dashboard-grid {

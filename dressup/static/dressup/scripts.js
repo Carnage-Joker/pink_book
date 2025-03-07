@@ -3,7 +3,19 @@
 // ==============================
 import { avatarModule } from './avatarModule.js';
 import { toastModule } from './toastModule.js';
+import { avatarModule } from './avatarModule.js';
+import { toastModule } from './toastModule.js';
+import { navigationModule } from './navigationModule.js';
+import { dragDrop } from './drag_drop.js';
+import { initCycling } from './itemCycling.js';
 
+document.addEventListener('DOMContentLoaded', () => {
+    avatarModule.init();
+    navigationModule.init();
+    toastModule.showToast('Welcome to the Avatar Customization!', 'success');
+    dragDrop.init();
+    initCycling();
+});
 
 
 document.addEventListener('DOMContentLoaded', () => {

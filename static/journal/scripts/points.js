@@ -1,7 +1,4 @@
-
-const socket = new WebSocket(
-    'wss://' + window.location.host + '/ws/points/'
-);
+const socket = new WebSocket('wss://' + window.location.host + '/ws/points/');
 
 const pointsDisplay = document.querySelector("#points-display");
 
@@ -15,12 +12,6 @@ socket.onmessage = function (event) {
         pointsDisplay.textContent = `Points: ${data.points}`;
     }
 };
-    
-    
-    if (pointsDisplay) {
-        pointsDisplay.textContent = `Points: ${data.points}`;
-    }
-;
 
 socket.onclose = function () {
     console.error("Points WebSocket closed unexpectedly");
@@ -31,4 +22,3 @@ socket.onerror = function (error) {
 };
 
 export { socket };
-

@@ -36,17 +36,15 @@ def default_due_date():
 def current_timestamp():
     return timezone.now()
 
-
-
-
-
 def current_timestamp():
     return timezone.now()
 
 
 def profile_pic_upload_path(instance, filename):
+    if not hasattr(instance, '_profile_pic_uuid'):
+        instance._profile_pic_uuid = uuid4()
     ext = filename.split('.')[-1]
-    new_filename = f"{uuid4()}.{ext}"
+    new_filename = f"{instance._profile_pic_uuid}.{ext}"
     sissy_name = instance.sissy_name if instance.sissy_name else 'default_sissy_name'
     return os.path.join('profile_pics', sissy_name, new_filename)
 
