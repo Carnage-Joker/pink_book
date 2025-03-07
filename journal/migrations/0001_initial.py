@@ -16,7 +16,6 @@ class Migration(migrations.Migration):
     dependencies = [
         ("auth", "0012_alter_user_first_name_max_length"),
         ("contenttypes", "0002_remove_content_type_name"),
-        ("dressup", "0001_initial"),
     ]
 
     operations = [
@@ -34,7 +33,13 @@ class Migration(migrations.Migration):
                 ),
                 ("title", models.CharField(max_length=200)),
                 ("content", models.TextField()),
-                ("author", models.CharField(default="Sissy Sparkles", max_length=100)),
+                (
+                    "author",
+                    models.CharField(
+                        default="Sissy Sparkles",
+                        max_length=100
+                    )
+                ),
                 ("timestamp", models.DateTimeField(auto_now_add=True)),
                 ("published", models.BooleanField(default=False)),
             ],
@@ -181,7 +186,7 @@ class Migration(migrations.Migration):
                     "last_login",
                     models.DateTimeField(
                         blank=True, null=True, verbose_name="last login"
-                    ),
+                ),
                 ),
                 (
                     "is_superuser",

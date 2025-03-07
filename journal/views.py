@@ -430,7 +430,8 @@ class DashboardView(LoginRequiredMixin, TemplateView):
             "entries": recent_entries,
         })
 
-    return context
+        return context
+
 
 class HomeView(SafeMixin, TemplateView):
     """Home page view."""

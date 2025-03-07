@@ -29,14 +29,17 @@ def generate_insight(journal_entry: str) -> str:
     Returns:
     - str: A thoughtful, kind, and encouraging message.
     """
+    from openai.types.chat import ChatCompletion
+    
     # Define the system message
     system_message = {
         "role": "system",
         "content": (
-            "You are a supportive and empathetic mental health assistant catering to the BDSM community. "
-            "Read the following journal entry and respond with a thoughtful, kind, and encouraging message "
-            "that helps the user reflect on their emotions and experiences relating to their sissification journey "
-            "and/or sissy identity. Keep your response under 500 characters."
+            "You are a supportive and empathetic mental health assistant. "
+            "Read the following journal entry and respond with a thoughtful, "
+            "kind, and encouraging message that helps the user reflect on "
+            "their emotions and experiences relating to their personal journey. "
+            "Keep your response under 500 characters."
         )
     }
 
@@ -48,8 +51,8 @@ def generate_insight(journal_entry: str) -> str:
 
     # Create the chat completion
     try:
-        response = openai.ChatCompletion.create(
-            model="gpt-4",  # Use the appropriate model
+        client = openai.OpenAI(api_key=openai.api_key)
+        response: ChatCompletion = client.chat.completions.create(
             model="gpt-4",  # Use the appropriate model
             messages=[system_message, user_message],
             max_tokens=150,  # Adjust to ensure the response is concise
@@ -60,17 +63,8 @@ def generate_insight(journal_entry: str) -> str:
         )
 
         # Extract the assistant's response
-        choices = response.get("choices", [])
-        if choices and "message" in choices[0] and "content" in choices[0]["message"]:
-            insight = choices[0]["message"]["content"].strip()
-        else:
-            raise RuntimeError("Unexpected response structure from OpenAI API")
-        )
-
-        # Extract the assistant's response
-        choices = response.get("choices", [])
-        if choices and "message" in choices[0] and "content" in choices[0]["message"]:
-            insight = choices[0]["message"]["content"].strip()
+        if response.choices and response.choices[0].message.content:
+            insight = response.choices[0].message.content.strip()
         else:
             raise RuntimeError("Unexpected response structure from OpenAI API")
     except Exception as e:
@@ -134,7 +128,7 @@ def check_content_topic_with_openai(entry_content, prompt_text):
             max_tokens=50,  # Sufficient for a one-word response.
             temperature=0.2  # Low temperature for consistency.
         )
-
+        
         # Extract and log the response.
         result = response.choices[0].message['content'].strip()
         logger.info(f"OpenAI response for topic check: {result}")
@@ -142,7 +136,6 @@ def check_content_topic_with_openai(entry_content, prompt_text):
         # Return True if the answer starts with 'yes' (case-insensitive).
         return result.lower().startswith('yes')
 
-    except openai.OpenAIError as e:
     except openai.OpenAIError as e:
         logger.error(f"Error while sending content to OpenAI API: {str(e)}")
         return False

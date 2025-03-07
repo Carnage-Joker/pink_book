@@ -133,7 +133,6 @@ def get_current_streak(entries: QuerySet) -> int:
 def get_peak_journaling_time(entries: QuerySet) -> Optional[int]:
     """Get the peak journaling time."""
     if not entries.exists():
-    if not entries.exists():
         return None
 
     peak_hour = (
