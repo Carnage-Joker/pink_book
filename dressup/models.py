@@ -11,15 +11,21 @@ class Item(models.Model):
         ('hair', 'Hair'),
         ('top', 'Tops'),
         ('skirt', 'Skirts'),
+        ('top', 'Tops'),
+        ('skirt', 'Skirts'),
         ('shoes', 'Shoes'),
         ('accessory', 'Accessories'),
+        ('accessory', 'Accessories'),
         ('makeup', 'Makeup'),
+        ('wig', 'Wigs'),
         ('wig', 'Wigs'),
         ('jewellery', 'Jewellery'),
         ('lingerie', 'Lingerie'),
         ('background', 'Backgrounds'),
+        ('background', 'Backgrounds'),
     )
 
+    name = models.CharField(max_length=100)
     name = models.CharField(max_length=100)
     category = models.CharField(max_length=50, choices=CATEGORY_CHOICES)
     image_path = models.CharField(max_length=200, blank=True, null=True)
@@ -37,6 +43,7 @@ class Item(models.Model):
 
     def __str__(self):
         return self.name
+
 
 
 class Shop(models.Model):
@@ -61,14 +68,26 @@ class Shop(models.Model):
         ('hawt', 'Hawt'),
         ('sexy', 'Sexy'),
     )
+    SHOP_LEVEL_CHOICES = (
+        ('basic', 'Basic'),
+        ('premium', 'Premium'),
+        ('cute', 'Cute'),
+        ('hawt', 'Hawt'),
+        ('sexy', 'Sexy'),
+    )
 
     name = models.CharField(max_length=100)
+    shop_id = models.CharField(max_length=100, blank=True, null=True)
     shop_id = models.CharField(max_length=100, blank=True, null=True)
     shop_type = models.CharField(max_length=50, choices=SHOP_TYPE_CHOICES)
     shop_level = models.CharField(
         max_length=50, choices=SHOP_LEVEL_CHOICES, default='basic')
     items = models.ManyToManyField(Item, related_name='shop_items')
+    shop_level = models.CharField(
+        max_length=50, choices=SHOP_LEVEL_CHOICES, default='basic')
+    items = models.ManyToManyField(Item, related_name='shop_items')
     premium_only = models.BooleanField(default=False)
+    is_locked = models.BooleanField(default=False)
     is_locked = models.BooleanField(default=False)
     description = models.TextField(blank=True)
     image_path = models.CharField(max_length=200, blank=True, null=True)
@@ -196,6 +215,15 @@ class PurchasedItem(models.Model):
         User, on_delete=models.CASCADE, related_name='purchased_items')
     item = models.ForeignKey(Item, on_delete=models.CASCADE)
     purchased_at = models.DateTimeField(auto_now_add=True, null=True)
+    is_equipped = models.BooleanField(default=False)
+
+    class Meta:
+        unique_together = ('user', 'item')
+
+    def equip(self):
+        if not self.is_equipped:
+            self.is_equipped = True
+            self.save()
     is_equipped = models.BooleanField(default=False)
 
     class Meta:

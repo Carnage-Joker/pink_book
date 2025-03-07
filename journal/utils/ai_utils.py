@@ -4,6 +4,8 @@ from datetime import timedelta
 
 from django.db.models import Avg, Count, F, IntegerField, Sum, Value
 from django.db.models.functions import ExtractHour, Length
+from django.db.models import Avg, Count, F, IntegerField, Sum, Value
+from django.db.models.functions import ExtractHour, Length
 from django.db.models.query import QuerySet
 from django.utils.timezone import now
 from nltk.corpus import stopwords
@@ -115,19 +117,22 @@ def get_current_streak(entries: QuerySet) -> int:
 
     streak = 0
     current_date = now().date()
+    sorted_entries = entries.order_by('-timestamp')
 
-    for entry in entries:
+    for entry in sorted_entries:
         if entry.timestamp.date() != current_date:
             break
 
         streak += 1
         current_date -= timedelta(days=1)
 
+
     return streak
 
 
 def get_peak_journaling_time(entries: QuerySet) -> Optional[int]:
     """Get the peak journaling time."""
+    if not entries.exists():
     if not entries.exists():
         return None
 

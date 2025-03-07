@@ -11,7 +11,7 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.CreateModel(
-            name="Avatar",
+            name='Avatar',
             fields=[
                 (
                     "id",
@@ -235,7 +235,7 @@ class Migration(migrations.Migration):
             ],
         ),
         migrations.CreateModel(
-            name="PhotoShoot",
+            name='PhotoShoot',
             fields=[
                 (
                     "id",
@@ -263,7 +263,7 @@ class Migration(migrations.Migration):
             ],
         ),
         migrations.CreateModel(
-            name="PurchasedItem",
+            name='PurchasedItem',
             fields=[
                 (
                     "id",
@@ -279,7 +279,7 @@ class Migration(migrations.Migration):
             ],
         ),
         migrations.CreateModel(
-            name="Shop",
+            name='Shop',
             fields=[
                 (
                     "id",

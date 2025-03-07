@@ -50,12 +50,21 @@ def generate_insight(journal_entry: str) -> str:
     try:
         response = openai.ChatCompletion.create(
             model="gpt-4",  # Use the appropriate model
+            model="gpt-4",  # Use the appropriate model
             messages=[system_message, user_message],
             max_tokens=150,  # Adjust to ensure the response is concise
             temperature=0.7,
             top_p=1,
             frequency_penalty=0.7,
             presence_penalty=0.6
+        )
+
+        # Extract the assistant's response
+        choices = response.get("choices", [])
+        if choices and "message" in choices[0] and "content" in choices[0]["message"]:
+            insight = choices[0]["message"]["content"].strip()
+        else:
+            raise RuntimeError("Unexpected response structure from OpenAI API")
         )
 
         # Extract the assistant's response
@@ -133,6 +142,7 @@ def check_content_topic_with_openai(entry_content, prompt_text):
         # Return True if the answer starts with 'yes' (case-insensitive).
         return result.lower().startswith('yes')
 
+    except openai.OpenAIError as e:
     except openai.OpenAIError as e:
         logger.error(f"Error while sending content to OpenAI API: {str(e)}")
         return False

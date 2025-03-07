@@ -192,7 +192,9 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
             self.award_badge(f'Level {self.level} Achiever')
 
     def award_badge(self, badge_name):
-        self.badges[badge_name] = timezone.now().strftime('%Y-%m-%d')
+        """Award a badge to the user."""
+        self.badges[badge_name] = timezone.now().strftime(
+            '%Y-%m-%d')  # Stores the date badge was earned
         self.save()
 
     def is_premium(self) -> bool:

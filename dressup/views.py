@@ -28,7 +28,7 @@ def handle_existing_avatar(request, avatar):
 
 
 @login_required
-def create_avatar_view(request: HttpRequest) -> HttpResponse:
+def create_avatar_view(request):
     """
     Creates a new avatar for the user if one does not already exist.
     """
@@ -117,7 +117,7 @@ def dress_up_view(request: HttpRequest) -> HttpResponse:
 
 @login_required
 @avatar_required
-def shop_detail(request: HttpRequest, shop_id: int) -> HttpResponse:
+def shop_detail(request, shop_id):
     """
     Displays details of a specific shop and handles item purchases.
     """
@@ -139,14 +139,17 @@ def shop_detail(request: HttpRequest, shop_id: int) -> HttpResponse:
 
 @login_required
 @avatar_required
-def inventory_view(request: HttpRequest) -> HttpResponse:
+def inventory_view(request):
     """
     Displays the user's purchased items and allows equipping/unequipping.
     """
     avatar = request.user.sissy_avatar
     purchased_items = PurchasedItem.objects.filter(user=request.user)
-    equipped_items = avatar.equipped_items.all()
+    equipped_items = avatar.equipped_items.all() if avatar else []
 
+    if request.method == 'POST' or request.GET.get('item_id'):
+        item_id = request.POST.get('item_id') or request.GET.get('item_id')
+        item = get_object_or_404(Item, id=item_id)
     if request.method == 'POST' or request.GET.get('item_id'):
         item_id = request.POST.get('item_id') or request.GET.get('item_id')
         try:
@@ -155,6 +158,7 @@ def inventory_view(request: HttpRequest) -> HttpResponse:
             sassy_error(request, "Oops! That item doesn't exist, sweetie!")
             return redirect('dressup:inventory')
 
+        # Toggle equip/unequip status
         if item in equipped_items:
             avatar.unequip_item(item)
             sassy_success(
