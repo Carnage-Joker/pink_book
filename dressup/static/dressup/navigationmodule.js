@@ -1,27 +1,27 @@
-// ==============================
-// Module: Mobile Navigation
-// ==============================
-export const navigationModule = () => {
-    const mobileNav = document.getElementById('mobile-nav');
+                                                // ==============================
+                                                // Module: Mobile Navigation
+                                                // ==============================
+                                                export const navigationModule = () => {
+                                                    const mobileNav = document.getElementById('mobile-nav');
 
-    function toggleMobileNavigation() {
-        if (mobileNav) {
-            mobileNav.classList.toggle('active');
-        }
-    }
+                                                    function toggleMobileNavigation() {
+                                                        if (mobileNav) {
+                                                            mobileNav.classList.toggle('active');
+                                                        }
+                                                    }
 
-    const hamburgerMenu = document.getElementById('hamburger-menu');
+                                                    const hamburgerMenu = document.getElementById('hamburger-menu');
 
-    if (hamburgerMenu) {
-        hamburgerMenu.addEventListener('click', toggleMobileNavigation);
-    }
+                                                    if (hamburgerMenu) {
+                                                        hamburgerMenu.addEventListener('click', toggleMobileNavigation);
+                                                    }
 
-    if (mobileNav) {
-        document.querySelectorAll('.mobile-nav a').forEach(link => {
-            link.addEventListener('click', () => mobileNav.classList.remove('active'));
-        });
-    }
+                                                    if (mobileNav) {
+                                                        document.querySelectorAll('.mobile-nav a').forEach(link => {
+                                                            link.addEventListener('click', () => mobileNav.classList.remove('active'));
+                                                        });
+                                                    }
 
-    return { init: setupNavigation };
-};
-})();
+                                                    return { init: setupNavigation };
+                                                };
+                                                })();
