@@ -100,7 +100,7 @@ pycparser==2.22
 pydantic
 pydantic_core
 pyflakes==3.2.0
-Pygments==2.18.0
+Pygments==2.19.1
 pyparsing==3.2.0
 pypng==0.20220715.0
 python-dateutil==2.9.0.post0
