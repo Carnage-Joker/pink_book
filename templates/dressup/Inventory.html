@@ -1,16 +1,278 @@
 {% extends 'base.html' %}
 {% load static %}
-{% load custom_filters %}
-{% block content %}
-<h1>Your Inventory</h1>
+{% load custom_filters %} {# We assume you have a custom filter get_item or similar #}
 
-<!-- Avatar Display -->
-<div class="avatar-container" id="avatar-container">
-    <div class="avatar-images">
-        {% for layer in layer_keys %}
-        <img src="{{ image_urls|get_item:layer }}" alt="{{ layer|capfirst }}" class="layer {{ layer }}">
-        {% endfor %}
+{% block content %}
+
+<!-- Sissy-Sexy Pink Styling (Inline for Example) -->
+<style>
+  .inventory-container {
+    display: flex;
+    gap: 2rem;
+    margin-top: 2rem;
+  }
+  .avatar-section, .purchased-items-section {
+    background-color: #ffe6f3;
+    border: 3px dashed hotpink;
+    padding: 1rem;
+    border-radius: 10px;
+  }
+  .avatar-section {
+    flex: 1;
+    text-align: center;
+  }
+  .purchased-items-section {
+    flex: 1;
+  }
+  .category-control {
+    margin: 1rem 0;
+  }
+  .category-control button {
+    background-color: #ff90c1;
+    color: #fff;
+    border: none;
+    margin: 0 0.5rem;
+    padding: 0.5rem 1rem;
+    cursor: pointer;
+    font-weight: bold;
+    border-radius: 5px;
+    transition: transform 0.2s;
+  }
+  .category-control button:hover {
+    transform: scale(1.05);
+  }
+  .category-control span {
+    font-weight: bold;
+    color: deeppink;
+  }
+  .avatar-layers {
+    position: relative;
+    width: 200px;
+    height: 400px;
+    margin: 0 auto;
+    border: 2px solid pink;
+    border-radius: 10px;
+    overflow: hidden;
+  }
+  .avatar-layers img {
+    position: absolute;
+    top: 0; left: 0;
+    width: 100%; 
+    height: 100%;
+    object-fit: contain;
+  }
+  .save-button {
+    background-color: hotpink;
+    color: #fff;
+    border: none;
+    padding: 0.7rem 1.5rem;
+    font-weight: bold;
+    cursor: pointer;
+    margin-top: 1rem;
+    border-radius: 5px;
+    transition: transform 0.2s;
+  }
+  .save-button:hover {
+    transform: scale(1.05);
+  }
+  .purchased-items-list ul {
+    list-style: none;
+    padding: 0;
+  }
+  .purchased-items-list li {
+    margin: 0.5rem 0;
+    background-color: #ffeaf5;
+    padding: 0.5rem;
+    border-radius: 5px;
+  }
+  .purchased-items-list button {
+    background-color: #ff90c1;
+    border: none;
+    color: white;
+    padding: 0.3rem 0.7rem;
+    margin-left: 0.5rem;
+    cursor: pointer;
+    font-weight: bold;
+    border-radius: 3px;
+    transition: transform 0.2s;
+  }
+  .purchased-items-list button:hover {
+    transform: scale(1.03);
+  }
+</style>
+
+<h1 style="text-align:center; color: deeppink; margin-top:1rem;">
+  <strong>Fabulous Sissy Inventory</strong>
+</h1>
+
+<div class="inventory-container">
+  <!-- Avatar + Next/Prev Section -->
+  <div class="avatar-section">
+    <h2 style="color: hotpink; text-transform: uppercase;">
+      Your Sassy Avatar
+    </h2>
+    
+    <!-- Next/Prev Controls for Direct-Coded Fields -->
+    <!-- Each category has left (prev) arrow, label, right (next) arrow -->
+    <div class="category-control">
+      <button type="button" class="prev-arrow" data-category="hair">←</button>
+      <span>Hair</span>
+      <button type="button" class="next-arrow" data-category="hair">→</button>
     </div>
-</div>
+    
+    <div class="category-control">
+      <button type="button" class="prev-arrow" data-category="top">←</button>
+      <span>Top</span>
+      <button type="button" class="next-arrow" data-category="top">→</button>
+    </div>
+    
+    <div class="category-control">
+      <button type="button" class="prev-arrow" data-category="skirt">←</button>
+      <span>Skirt</span>
+      <button type="button" class="next-arrow" data-category="skirt">→</button>
+    </div>
+    
+    <div class="category-control">
+      <button type="button" class="prev-arrow" data-category="shoes">←</button>
+      <span>Shoes</span>
+      <button type="button" class="next-arrow" data-category="shoes">→</button>
+    </div>
+    
+    <div class="category-control">
+      <button type="button" class="prev-arrow" data-category="accessory">←</button>
+      <span>Accessory</span>
+      <button type="button" class="next-arrow" data-category="accessory">→</button>
+    </div>
+
+    <!-- The layered avatar preview -->
+    <div class="avatar-layers">
+      {% for layer in layer_keys %}
+        <img 
+          id="layer-{{ layer }}" 
+          src="{{ image_urls|get_item:layer }}"
+          alt="{{ layer|capfirst }}"
+        >
+      {% endfor %}
+    </div>
+
+    <!-- Save the final code selection to your Avatar fields -->
+    <form method="POST" style="margin-top:1rem;">
+      {% csrf_token %}
+      <!-- Hidden inputs to store final codes for top/skirt/shoes/accessory/hair -->
+      <input type="hidden" id="hair-input" name="hair" value="{{ avatar.hair }}">
+      <input type="hidden" id="top-input" name="top" value="{{ avatar.top }}">
+      <input type="hidden" id="skirt-input" name="skirt" value="{{ avatar.skirt }}">
+      <input type="hidden" id="shoes-input" name="shoes" value="{{ avatar.shoes }}">
+      <input type="hidden" id="accessory-input" name="accessory" value="{{ avatar.accessory }}">
+
+      <button type="submit" name="save_outfit" class="save-button">
+        Save Outfit
+      </button>
+    </form>
+    
+  </div> <!-- end avatar-section -->
+
+  <!-- Purchased Items Section (Equipping M2M) -->
+  <div class="purchased-items-section">
+    <h2 style="color:deeppink;">Your Purchased Items</h2>
+    <div class="purchased-items-list">
+      {% if purchased_items %}
+        <ul>
+          {% for purchased_item in purchased_items %}
+            <li>
+              <strong>{{ purchased_item.item.name }}</strong> 
+               (Category: {{ purchased_item.item.category }})
+              <form method="POST" style="display:inline-block;">
+                {% csrf_token %}
+                <input type="hidden" name="item_id" value="{{ purchased_item.item.id }}">
+                {% if purchased_item.item in equipped_items %}
+                  <button type="submit">Unequip</button>
+                {% else %}
+                  <button type="submit">Equip</button>
+                {% endif %}
+              </form>
+            </li>
+          {% endfor %}
+        </ul>
+      {% else %}
+        <p>No purchased items yet, sweetie!</p>
+      {% endif %}
+    </div>
+    <a href="{% url 'dressup:mall' %}" class="save-button" style="text-decoration:none;">
+      Back to Mall
+    </a>
+  </div> <!-- end purchased-items-section -->
+</div> <!-- end inventory-container -->
+
 {% endblock %}
-<!-- Inventory Section -->
+
+{% block scripts %}
+{{ block.super }}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Next/Prev Arrows
+  document.querySelectorAll('.prev-arrow').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const category = btn.dataset.category; // e.g. "top", "skirt", "shoes"
+      changeItem(category, 'prev'); // itemCycling.js global function
+    });
+  });
+
+  document.querySelectorAll('.next-arrow').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const category = btn.dataset.category;
+      changeItem(category, 'next');
+    });
+  });
+});
+
+/**
+ * Overwrite the global changeItem(...) function or define your own logic
+ * so it also updates hidden inputs to store the final code for saving.
+ */
+function changeItem(category, direction) {
+    // For example, we can reference the same arrays you have in itemCycling.js:
+    // But here, let's define them inline:
+    const categoryMap = {
+      'hair':      ['00.png','01.png','02.png'],
+      'top':       ['00.png','01.png','02.png'],
+      'skirt':     ['00.png','01.png','02.png'],
+      'shoes':     ['00.png','01.png','02.png'],
+      'accessory': ['00.png','01.png','02.png']
+    };
+    // We'll keep an index store in JS to track the user’s picks
+    // If you'd prefer reusing itemCycling.js arrays, remove these lines
+    // and rely on itemCycling.js directly
+
+    if(!categoryMap[category]) return;
+    if(!window.currentIndex) window.currentIndex = {};
+    if(!window.currentIndex[category]) window.currentIndex[category] = 0;
+
+    const items = categoryMap[category];
+    const total = items.length;
+    let idx = window.currentIndex[category];
+
+    if(direction === 'next') {
+      idx = (idx + 1) % total;
+    } else {
+      idx = (idx - 1 + total) % total;
+    }
+    window.currentIndex[category] = idx;
+
+    // Update the <img>
+    const newFile = items[idx];
+    const imageElement = document.getElementById(`layer-${category}`);
+    if(imageElement) {
+      imageElement.src = `/static/dressup/avatars/${category}/${newFile}`;
+    }
+
+    // Update the hidden <input> for saving
+    // remove ".png" or keep it, depending on how you store codes
+    const code = newFile.replace('.png','');
+    const hiddenInput = document.getElementById(`${category}-input`);
+    if(hiddenInput) {
+      hiddenInput.value = code; // e.g. "01"
+    }
+}
+</script>
+{% endblock %}

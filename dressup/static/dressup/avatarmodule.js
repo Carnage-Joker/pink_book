@@ -1,7 +1,8 @@
-// ==============================
-// Module: Avatar Customization
-// ==============================
-const avatarModule = () => {
+// avatarModule.js
+
+// We wrap everything in an IIFE (Immediately Invoked Function Expression)
+// and return an object with a single method: changeItem.
+const avatarModule = (() => {
     const items = {
         dresses: ['00.png', '01.png', '02.png'],
         skirts: ['00.png', '01.png', '02.png'],
@@ -10,7 +11,8 @@ const avatarModule = () => {
         accessories: ['00.png', '01.png', '02.png']
     };
 
-    let currentIndex = {
+    // Track the current index for each category
+    const currentIndex = {
         dresses: 0,
         skirts: 0,
         tops: 0,
@@ -22,30 +24,38 @@ const avatarModule = () => {
      * Changes the current item in the specified category.
      * @param {string} category - The category of the item (e.g., 'dresses', 'skirts').
      * @param {string} direction - The direction to change the item ('next' or 'prev').
-     * @returns {void}
      */
     function changeItem(category, direction) {
+        // Ensure the category exists in our items dictionary
         const categoryItems = items[category];
         if (!categoryItems) {
             console.warn(`Invalid category: ${category}`);
             return;
         }
+
+        // Update currentIndex[category] based on 'next' or 'prev'
+        if (direction === 'next') {
+            currentIndex[category] = (currentIndex[category] + 1) % categoryItems.length;
         } else if (direction === 'prev') {
             currentIndex[category] = (currentIndex[category] - 1 + categoryItems.length) % categoryItems.length;
-        }
         } else {
-            currentIndex[category] = (currentIndex[category] - 1 + categoryItems.length) % categoryItems.length;
+            console.warn(`Invalid direction: ${direction}. Use 'next' or 'prev'.`);
+            return;
         }
 
+        // Update the corresponding <img> element on the page
         const element = document.getElementById(category);
         if (element) {
-            element.src = `/static/dressup/avatars/${categoryItems[currentIndex[category]]}`;
+            // Example path: /static/dressup/avatars/dresses/01.png
+            element.src = `/static/dressup/avatars/${category}/${categoryItems[currentIndex[category]]}`;
         } else {
-            console.warn(`Element with ID ${category} not found.`);
+            console.warn(`Element with ID "${category}" not found in the DOM.`);
         }
     }
 
+    // Expose public methods
     return { changeItem };
-};
+})();
 
-export const avatarModule = avatarModule();
+// Named export so you can import { avatarModule } from "./avatarModule.js";
+export { avatarModule };

@@ -16,9 +16,9 @@ def get_default_user():
 
 
 def handle_error(request, message, redirect_url):
-    from django.contrib import messages
-    messages.error(request, message)
+    sassy_error(request, message)
     return redirect(redirect_url)
+
 
 # utils.py
 
