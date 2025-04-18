@@ -32,9 +32,11 @@ def get_equipped_items(request):
 
     data = {}
     for category in ['body', 'hair', 'skirt', 'top', 'shoes', 'accessory']:  # Fixed category name
-        category_items = list(avatar.equipped_items.filter(
-            category=category).values('id', 'name', 'image_path'))
-        if category_items:
+        if category_items := list(
+            avatar.equipped_items.filter(category=category).values(
+                'id', 'name', 'image_path'
+            )
+        ):
             data[category] = {
                 "items": category_items,
                 "currentIndex": 0
