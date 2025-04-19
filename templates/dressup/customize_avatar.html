@@ -1,120 +1,168 @@
 <!-- dressup/templates/dressup/customize_avatar.html -->
-
 {% extends 'base.html' %}
 {% load static %}
 {% load custom_filters %}
 
 {% block content %}
 <div class="container mt-4">
+
     <h2>Customize Your Avatar</h2>
     
     <!-- Live Avatar Preview -->
     <div class="mt-5">
         <h3>Live Avatar Preview:</h3>
         <div id="avatar-preview" class="position-relative" style="width: 200px; height: 400px;">
-            <!-- Skin Tone Layer -->
-            <img id="preview-skin" src="{{ image_urls.skin }}" alt="Skin Tone" class="position-absolute top-0 start-0">
-            <!-- Body Layer -->
-            <img id="preview-body" src="{{ image_urls.body }}" alt="Body" class="position-absolute top-0 start-0">
-            <!-- Hair Color Layer -->
-            <img id="preview-hair_color" src="{{ image_urls.hair_color }}" alt="Hair Color" class="position-absolute top-0 start-0">
-            <!-- Hair Layer -->
-            <img id="preview-hair" src="{{ image_urls.hair }}" alt="Hair" class="position-absolute top-0 start-0">
+
+            <!-- Single Image for Body+Skin -->
+            <img 
+                id="preview-body" 
+                src="{% static 'dressup/avatars/body/' %}{{ avatar.body }}/{{ avatar.skin }}.png" 
+                alt="Body + Skin" 
+                class="position-absolute top-0 start-0 w-100 h-100"
+            >
+
+            <!-- Single Image for Hair (Style + Color) -->
+            <img 
+                id="preview-hair" 
+                src="{% static 'dressup/avatars/hair/' %}{{ avatar.hair }}/{{ avatar.hair_color }}.png" 
+                alt="Hair" 
+                class="position-absolute top-0 start-0 w-100 h-100"
+            >
+
             <!-- Top Layer -->
-            <img id="preview-top" src="{{ image_urls.top }}" alt="Top" class="position-absolute top-0 start-0">
+            <img 
+                id="preview-top" 
+                src="{% static 'dressup/avatars/top/' %}{{ avatar.top }}.png" 
+                alt="Top" 
+                class="position-absolute top-0 start-0 w-100 h-100"
+            >
+
             <!-- Skirt Layer -->
-            <img id="preview-skirt" src="{{ image_urls.skirt }}" alt="Skirt" class="position-absolute bottom-0 start-0">
+            <img 
+                id="preview-skirt" 
+                src="{% static 'dressup/avatars/skirt/' %}{{ avatar.skirt }}.png" 
+                alt="Skirt" 
+                class="position-absolute bottom-0 start-0 w-100 h-100"
+            >
+
             <!-- Accessories Layer -->
-            <img id="preview-accessories" src="{{ image_urls.accessories }}" alt="Accessories" class="position-absolute top-0 start-0">
+            <img 
+                id="preview-accessories" 
+                src="{% static 'dressup/avatars/accessories/' %}{{ avatar.accessories }}.png" 
+                alt="Accessories" 
+                class="position-absolute top-0 start-0 w-100 h-100"
+            >
+
             <!-- Shoes Layer -->
-            <img id="preview-shoes" src="{{ image_urls.shoes }}" alt="Shoes" class="position-absolute bottom-0 start-0">
+            <img 
+                id="preview-shoes" 
+                src="{% static 'dressup/avatars/shoes/' %}{{ avatar.shoes }}.png" 
+                alt="Shoes" 
+                class="position-absolute bottom-0 start-0 w-100 h-100"
+            >
         </div>
     </div>
     
     <!-- Avatar Customization Form -->
     <form id="avatar-form" method="post" action="{% url 'dressup:customize_avatar' %}">
         {% csrf_token %}
-        
-        <!-- Skin Tone Selection -->
+
+        <!-- SKIN -->
         <div class="form-group mb-4">
             <label for="skin">Choose Skin Tone:</label>
             <select id="skin" name="skin" class="form-control">
                 {% for value, label in avatar.SKIN_CHOICES %}
-                    <option value="{{ value }}" {% if avatar.skin == value %}selected{% endif %}>{{ label|capfirst|replace:"_, " }}</option>
+                    <option value="{{ value }}" {% if avatar.skin == value %}selected{% endif %}>
+                        {{ label }}
+                    </option>
                 {% endfor %}
             </select>
         </div>
-        
-        <!-- Body Type Selection -->
+
+        <!-- BODY -->
         <div class="form-group mb-4">
             <label for="body">Choose Body Type:</label>
             <select id="body" name="body" class="form-control">
                 {% for value, label in avatar.BODY_CHOICES %}
-                    <option value="{{ value }}" {% if avatar.body == value %}selected{% endif %}>{{ label|capfirst|replace:"_, " }}</option>
+                    <option value="{{ value }}" {% if avatar.body == value %}selected{% endif %}>
+                        {{ label }}
+                    </option>
                 {% endfor %}
             </select>
         </div>
-        
-        <!-- Hair Color Selection -->
+
+        <!-- HAIR COLOR -->
         <div class="form-group mb-4">
             <label for="hair_color">Choose Hair Color:</label>
             <select id="hair_color" name="hair_color" class="form-control">
                 {% for value, label in avatar.HAIR_COLOR_CHOICES %}
-                    <option value="{{ value }}" {% if avatar.hair_color == value %}selected{% endif %}>{{ label|capfirst|replace:"_, " }}</option>
+                    <option value="{{ value }}" {% if avatar.hair_color == value %}selected{% endif %}>
+                        {{ label }}
+                    </option>
                 {% endfor %}
             </select>
         </div>
-        
-        <!-- Hair Style Selection -->
+
+        <!-- HAIR STYLE -->
         <div class="form-group mb-4">
             <label for="hair">Choose Hair Style:</label>
             <select id="hair" name="hair" class="form-control">
                 {% for value, label in avatar.HAIR_CHOICES %}
-                    <option value="{{ value }}" {% if avatar.hair == value %}selected{% endif %}>{{ label|capfirst|replace:"_, " }}</option>
+                    <option value="{{ value }}" {% if avatar.hair == value %}selected{% endif %}>
+                        {{ label }}
+                    </option>
                 {% endfor %}
             </select>
         </div>
-        
-        <!-- Shoes Selection -->
-        <div class="form-group mb-4">
-            <label for="shoes">Choose Shoes:</label>
-            <select id="shoes" name="shoes" class="form-control">
-                {% for value, label in avatar.SHOES_CHOICES %}
-                    <option value="{{ value }}" {% if avatar.shoes == value %}selected{% endif %}>{{ label|capfirst|replace:"_, " }}</option>
-                {% endfor %}
-            </select>
-        </div>
-        
-        <!-- Accessories Selection -->
-        <div class="form-group mb-4">
-            <label for="accessories">Choose Accessories:</label>
-            <select id="accessories" name="accessories" class="form-control">
-                {% for value, label in avatar.ACCESSORIES_CHOICES %}
-                    <option value="{{ value }}" {% if avatar.accessories == value %}selected{% endif %}>{{ label|capfirst|replace:"_, " }}</option>
-                {% endfor %}
-            </select>
-        </div>
-        
-        <!-- Skirt Selection -->
-        <div class="form-group mb-4">
-            <label for="skirt">Choose Skirt:</label>
-            <select id="skirt" name="skirt" class="form-control">
-                {% for value, label in avatar.SKIRT_CHOICES %}
-                    <option value="{{ value }}" {% if avatar.skirt == value %}selected{% endif %}>{{ label|capfirst|replace:"_, " }}</option>
-                {% endfor %}
-            </select>
-        </div>
-        
-        <!-- Top Selection -->
+
+        <!-- TOP -->
         <div class="form-group mb-4">
             <label for="top">Choose Top:</label>
             <select id="top" name="top" class="form-control">
                 {% for value, label in avatar.TOP_CHOICES %}
-                    <option value="{{ value }}" {% if avatar.top == value %}selected{% endif %}>{{ label|capfirst|replace:"_, " }}</option>
+                    <option value="{{ value }}" {% if avatar.top == value %}selected{% endif %}>
+                        {{ label }}
+                    </option>
                 {% endfor %}
             </select>
         </div>
-        
+
+        <!-- SKIRT -->
+        <div class="form-group mb-4">
+            <label for="skirt">Choose Skirt:</label>
+            <select id="skirt" name="skirt" class="form-control">
+                {% for value, label in avatar.SKIRT_CHOICES %}
+                    <option value="{{ value }}" {% if avatar.skirt == value %}selected{% endif %}>
+                        {{ label }}
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <!-- SHOES -->
+        <div class="form-group mb-4">
+            <label for="shoes">Choose Shoes:</label>
+            <select id="shoes" name="shoes" class="form-control">
+                {% for value, label in avatar.SHOES_CHOICES %}
+                    <option value="{{ value }}" {% if avatar.shoes == value %}selected{% endif %}>
+                        {{ label }}
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <!-- ACCESSORIES -->
+        <div class="form-group mb-4">
+            <label for="accessories">Choose Accessories:</label>
+            <select id="accessories" name="accessories" class="form-control">
+                {% for value, label in avatar.ACCESSORIES_CHOICES %}
+                    <option value="{{ value }}" {% if avatar.accessories == value %}selected{% endif %}>
+                        {{ label }}
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
+
         <!-- Submit Button -->
         <button type="submit" class="btn btn-primary">Save Changes</button>
     </form>
@@ -122,83 +170,74 @@
 
 <!-- JavaScript for Live Preview -->
 <script>
-    // Function to update image src based on selection
-    function updateAvatarPreview(attribute, value) {
-        let imgId = 'preview-' + attribute;
-        let imgElement = document.getElementById(imgId);
-        
-        if (attribute === 'skin') {
-            // Update skin image
-            imgElement.src = "{% static 'avatars/skin/' %}" + value + ".png";
-            
-            // Update body image since body is nested under skin
-            let bodyValue = document.getElementById('body').value;
-            document.getElementById('preview-body').src = "{% static 'avatars/body/' %}" + value + "/" + bodyValue + ".png";
-        }
-        else if (attribute === 'body') {
-            // Update body image based on current skin
-            let skinValue = document.getElementById('skin').value;
-            imgElement.src = "{% static 'avatars/body/' %}" + skinValue + "/" + value + ".png";
-        }
-        else if (attribute === 'hair_color') {
-            // Update hair_color image
-            imgElement.src = "{% static 'avatars/hair_color/' %}" + value + ".png";
-            
-            // Update hair image since hair is nested under hair_color
-            let hairValue = document.getElementById('hair').value;
-            document.getElementById('preview-hair').src = "{% static 'avatars/hair/' %}" + value + "/" + hairValue + ".png";
-        }
-        else if (attribute === 'hair') {
-            // Update hair image based on current hair_color
-            let hairColorValue = document.getElementById('hair_color').value;
-            imgElement.src = "{% static 'avatars/hair/' %}" + hairColorValue + "/" + value + ".png";
-        }
-        else {
-            // For other attributes like shoes, accessories, skirt, top
-            imgElement.src = "{% static 'avatars/" + attribute + "/' %}" + value + ".png";
-        }
+    // Update the body image: /avatars/body/{body}/{skin}.png
+    function updateBody() {
+        const bodyValue = document.getElementById('body').value;
+        const skinValue = document.getElementById('skin').value;
+        const bodyImg = document.getElementById('preview-body');
+
+        bodyImg.src = "{% static 'dressup/avatars/body/' %}" + bodyValue + "/" + skinValue + ".png";
     }
 
-    // Function to attach event listeners
+    // Update the hair image: /avatars/hair/{hair}/{hair_color}.png
+    function updateHair() {
+        const hairValue = document.getElementById('hair').value;
+        const hairColorValue = document.getElementById('hair_color').value;
+        const hairImg = document.getElementById('preview-hair');
+        
+        hairImg.src = "{% static 'dressup/avatars/hair/' %}" + hairValue + "/" + hairColorValue + ".png";
+    }
+
+    // Generic helper for single-attribute layers: /avatars/{layer}/{value}.png
+    function updateSingleLayer(layer) {
+        const selector = document.getElementById(layer);
+        if (!selector) return;
+
+        const newValue = selector.value;
+        const layerImg = document.getElementById('preview-' + layer);
+        
+        layerImg.src = "{% static 'dressup/avatars/' %}" + layer + "/" + newValue + ".png";
+    }
+
     function attachEventListeners() {
-        const attributes = ['skin', 'body', 'hair_color', 'hair', 'shoes', 'accessories', 'skirt', 'top'];
-        attributes.forEach(attribute => {
-            const element = document.getElementById(attribute);
-            if (element) {
-                element.addEventListener('change', function() {
-                    updateAvatarPreview(attribute, this.value);
+        document.getElementById('body').addEventListener('change', updateBody);
+        document.getElementById('skin').addEventListener('change', updateBody);
+
+        document.getElementById('hair').addEventListener('change', updateHair);
+        document.getElementById('hair_color').addEventListener('change', updateHair);
+
+        // For each single-attribute layer: top, skirt, shoes, accessories
+        ['top','skirt','shoes','accessories'].forEach(layer => {
+            const el = document.getElementById(layer);
+            if (el) {
+                el.addEventListener('change', function() {
+                    updateSingleLayer(layer);
                 });
             }
         });
     }
 
-    // Initialize event listeners on page load
     document.addEventListener('DOMContentLoaded', function() {
         attachEventListeners();
     });
 </script>
 
-<!-- Styling for Avatar Display -->
+<!-- Basic Styling for the Preview -->
 <style>
+    #avatar-preview {
+        width: 200px;
+        height: 400px;
+        position: relative;
+        border: 1px solid #ccc;
+        margin-bottom: 1rem;
+    }
     #avatar-preview img {
+        position: absolute;
+        top: 0;
+        left: 0;
         width: 100%;
         height: 100%;
         object-fit: contain;
-    }
-    .position-absolute {
-        position: absolute;
-    }
-    .top-0 {
-        top: 0;
-    }
-    .bottom-0 {
-        bottom: 0;
-    }
-    .start-0 {
-        left: 0;
-    }
-    .end-0 {
-        right: 0;
     }
 </style>
 

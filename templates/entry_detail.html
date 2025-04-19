@@ -7,61 +7,40 @@
   <div class="two-column">
     <!-- Left Column - Entry Details -->
     <div class="column card decorative-border">
-      <h2>{{ entry.title }}</h2>
-      <p class="post-meta">
-        <strong>Date:</strong> {{ entry.timestamp }}
-      </p>
-      <p class="post-meta">
-        {% if entry.task %}
-          <strong>Task:</strong> {{ entry.task.description }}
-        {% endif %}
-      </p>
-        {% if entry.prompt_text %}
-        <strong>Prompt:</strong> {{ entry.prompt_text }}
-        {% endif %}
-      </p> <!-- Display the saved prompt -->
-      <div class="entry-content">{{ entry.content|linebreaks }}</div>
-    </div>
+      <h1>{{ title }}</h1>
 
-    <!-- Right Column - Additional Media and Back Link -->
-    <div class="column card decorative-border">
-      <p class="post-meta">
-        {% if entry.tags %}
-        <strong>Tags:</strong> {{ entry.tags|join:', ' }}
-      </p>
-      {% endif %}
-      {% if entry.image %}
-        <div class="profile-picture">
-          <strong>Image:</strong>
-          <img src="{{ entry.image.url }}" alt="{{ entry.title }}" />
-        </div>
-      {% endif %}
-      {% if entry.video %}
-        <p class="post-meta">
-          <strong>Video:</strong>
-        </p>
-        <video controls class="sparkle-icon">
-          <source src="{{ entry.video.url }}" type="video/mp4" />
-        </video>
-      {% endif %}
-      {% if entry.audio %}
-        <p class="post-meta">
-          <strong>Audio:</strong>
-        </p>
-        <audio controls class="sparkle-icon">
-          <source src="{{ entry.audio.url }}" type="audio/mpeg" />
-        </audio>
-      {% endif %}
-      {% if entry.file %}
-        <p class="post-meta">
-          <strong>File:</strong> <a href="{{ entry.file.url }}" download class="pink-link">Download</a>
-        </p>
-      {% endif %}
-      {% if entry.insight %}
-        <p class="post-meta">
-          <strong>Insight:</strong> {{ entry.insight }}
-        </p> <!-- Display the generated insight -->
-      {% endif %}
+<p><strong>Prompt/Task:</strong> {{ prompt_task }}</p>
+<p><strong>Insight:</strong> {{ insight }}</p>
+
+<p><strong>Tags:</strong>
+  {% for tag in tags %}
+    {{ tag.name }}{% if not forloop.last %}, {% endif %}
+  {% endfor %}
+</p>
+
+<p><strong>Content:</strong><br>{{ content }}</p>
+
+{% if image %}
+  <!-- Embedded image -->
+  <img src="{{ image.url }}" alt="Entry Image" style="max-width:100%; height:auto;">
+{% endif %}
+
+{% if video %}
+  <!-- Embedded video with controls -->
+  <video controls width="600">
+    <source src="{{ video.url }}" type="video/mp4">
+    Your browser does not support the video tag.
+  </video>
+{% endif %}
+
+{% if audio %}
+  <!-- Embedded audio with controls -->
+  <audio controls>
+    <source src="{{ audio.url }}" type="audio/mpeg">
+    Your browser does not support the audio element.
+  </audio>
+{% endif %}
+
       <div class="profile-links">
         <a href="{% url 'journal:entry_list' %}" class="btn btn-register">Back to Entry List</a>
       </div>

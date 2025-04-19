@@ -1,16 +1,68 @@
 {% extends 'base.html' %}
-{% load static %}
-{% load custom_filters %}
-{% block content %}
-<h1>Your Inventory</h1>
+{% load static custom_filters %}
 
-<!-- Avatar Display -->
-<div class="avatar-container" id="avatar-container">
-    <div class="avatar-images">
-        {% for layer in layer_keys %}
-        <img src="{{ image_urls|get_item:layer }}" alt="{{ layer|capfirst }}" class="layer {{ layer }}">
-        {% endfor %}
+{% block content %}
+<h1 style="color:deeppink; text-align:center;">Your Fabulous Inventory</h1>
+
+<div class="inventory-container" style="display:flex; gap:2rem;">
+
+  <!-- Avatar Preview Section -->
+  <div style="flex:1; text-align:center; background-color:#ffe6f3; padding:1rem; border-radius:10px; border:2px dashed hotpink;">
+    <h2>Your Avatar</h2>
+
+    <div id="avatar-preview" style="position:relative; width:200px; height:400px; margin:auto;">
+      {% for layer in layer_keys %}
+        <img id="layer-{{ layer }}" src="{{ image_urls|get_item:layer }}" alt="{{ layer }}" style="position:absolute; top:0; left:0; width:100%; height:100%; object-fit:contain;">
+      {% endfor %}
     </div>
+
+    <button id="save-outfit" style="margin-top:1rem; background-color:hotpink; color:white; padding:0.5rem; border:none; cursor:pointer; border-radius:5px;">Save Outfit</button>
+  </div>
+
+  <!-- Purchased Items Section -->
+  <div style="flex:1; background-color:#ffe6f3; padding:1rem; border-radius:10px; border:2px dashed hotpink;">
+    <h2>Purchased Items</h2>
+    <ul style="list-style:none; padding:0;">
+      {% for purchased_item in purchased_items %}
+        <li style="margin-bottom:0.5rem;">
+          {{ purchased_item.item.name }} ({{ purchased_item.item.category }})
+          <button class="equip-btn" data-item-id="{{ purchased_item.item.id }}" style="background-color:#ff90c1; color:white; border:none; padding:0.3rem 0.5rem; border-radius:3px; cursor:pointer;">
+            {% if purchased_item.item in equipped_items %}Unequip{% else %}Equip{% endif %}
+          </button>
+        </li>
+      {% empty %}
+        <li>No items yet, gorgeous!</li>
+      {% endfor %}
+    </ul>
+  </div>
+
 </div>
 {% endblock %}
-<!-- Inventory Section -->
+
+{% block scripts %}
+<script>
+const categoryChoices = {{ category_choices|safe }};
+
+// Equip via AJAX
+const buttons = document.querySelectorAll('.equip-btn');
+buttons.forEach(btn => {
+  btn.addEventListener('click', () => {
+    const itemId = btn.getAttribute('data-item-id');
+    fetch(`/dressup/equip_item/${itemId}/`, {
+      method: 'POST',
+      headers: {'X-CSRFToken': '{{ csrf_token }}', 'Content-Type':'application/json'},
+    })
+    .then(resp => resp.json())
+    .then(data => location.reload())
+    .catch(err => alert('Oops! Something went wrong.'));
+  });
+});
+
+// Save outfit
+const saveBtn = document.getElementById('save-outfit');
+saveBtn.addEventListener('click', () => {
+  fetch('{% url "dressup:dress_up" %}', { method:'POST', headers:{'X-CSRFToken':'{{ csrf_token }}'}, body:new FormData() })
+    .then(() => alert('Outfit saved!'));
+});
+</script>
+{% endblock %}

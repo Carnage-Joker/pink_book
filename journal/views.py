@@ -1,5 +1,7 @@
 
 
+from django.shortcuts import get_object_or_404
+from django.views.generic import DetailView
 import json
 import logging
 from datetime import date
@@ -402,9 +404,9 @@ class DashboardView(LoginRequiredMixin, TemplateView):
                 "avg_subjectivity": sentiment_data.get("avg_subjectivity", 0),
                 "streak": get_current_streak(recent_entries),
                 # ✅ Safe now
+                # ✅ Safe now
+                # ✅ Safe now
                 "frequent_keywords": extract_keywords(recent_entries_sliced),
-                # ✅ Safe now
-                # ✅ Safe now
                 "average_word_count": get_average_word_count(recent_entries_sliced),
                 "most_active_hour": get_peak_journaling_time(recent_entries),
             })
@@ -549,13 +551,29 @@ class JournalEntryDetailView(LoginRequiredMixin, DetailView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         entry = context["entry"]
-        # These may already be accessible in the template as entry.prompt_text and entry.insight
-        context["prompt_text"] = entry.prompt_text
-        context["insight"] = entry.insight
-        context['tags'] = entry.tags.all()
+
+        # Display prompt/task: prefer task if available, else use prompt_text
         if entry.task:
-            context["task"] = entry.task
+            context["prompt_task"] = entry.task
+        elif entry.prompt_text:
+            context["prompt_task"] = entry.prompt_text
+        else:
+            context["prompt_task"] = ""
+
+        # Add other fields to the context
+        context["insight"] = entry.insight
+        # Assuming tags is a ManyToManyField
+        context["tags"] = entry.tags.all()
+        context["content"] = entry.content
+        context["title"] = entry.title
+
+        # Media fields (assumed to be ImageField/FileField)
+        context["image"] = entry.image
+        context["video"] = entry.video
+        context["audio"] = entry.audio
+
         return context
+
 
 
 class JournalEntryListView(LoginRequiredMixin, ListView):
