@@ -34,6 +34,5 @@ class ItemAdmin(admin.ModelAdmin):
 class PurchasedItemAdmin(admin.ModelAdmin):
     list_display = ('item', 'is_equipped' )
     list_filter = ('item', 'is_equipped')
-    search_fields = ('avatar__user__sissy_name', 'item__name')
-    actions = ['refund_item', 'equip_item', 'unequip_item', 'mark_as_used', 'mark_as_unused', 'lock_items', 'unlock_items']
+    search_fields = ('item__name',)
 
