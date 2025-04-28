@@ -126,7 +126,7 @@ async def chat(request: Request):
         messages = ai.beta.threads.messages.list(thread_id=thread_id)
         response = messages.data[0].content[0].text.value
 
-        return JSONResponse({"answer": response, "thread_id": thread_id}) # Test for reviwer
+        return JSONResponse({"answer": response, "thread_id": thread_id}) # Test for reviwer1
 
     except Exception as e:
         print(f"🔥 Error in /api/chat: {e}")
