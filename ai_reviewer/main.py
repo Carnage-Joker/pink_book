@@ -130,7 +130,7 @@ async def chat(request: Request):
 
     except Exception as e:
         print(f"🔥 Error in /api/chat: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e)) from e
 
 # --- GitHub Webhook Endpoint ---
 
