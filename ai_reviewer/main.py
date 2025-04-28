@@ -44,7 +44,8 @@ OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
 
 
 def get_github():
-    private_key = open(GH_APP_KEY_PATH).read()
+    with open(GH_APP_KEY_PATH) as key_file:
+        private_key = key_file.read()
     auth = Auth.AppAuth(
         app_id=GH_APP_ID,
         private_key=private_key,
