@@ -21,8 +21,7 @@ REQUIRED_ENV_VARS = [
     "GH_APP_KEY_PATH"
 ]
 
-missing_vars = [var for var in REQUIRED_ENV_VARS if not os.getenv(var)]
-if missing_vars:
+if missing_vars := [var for var in REQUIRED_ENV_VARS if not os.getenv(var)]:
     missing = ", ".join(missing_vars)
     raise RuntimeError(f"❌ Missing required environment variables: {missing}")
 
