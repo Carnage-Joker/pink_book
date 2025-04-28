@@ -1,68 +1,272 @@
 {% extends 'base.html' %}
-{% load static custom_filters %}
+
+{% load static %}
+{% load custom_filters %}
+
 
 {% block content %}
 <h1 style="color:deeppink; text-align:center;">Your Fabulous Inventory</h1>
 
-<div class="inventory-container" style="display:flex; gap:2rem;">
 
-  <!-- Avatar Preview Section -->
-  <div style="flex:1; text-align:center; background-color:#ffe6f3; padding:1rem; border-radius:10px; border:2px dashed hotpink;">
-    <h2>Your Avatar</h2>
+<style>
+/*** ---  LAYOUT  --------------------------------------------------------- ***/
+.inventory-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.5rem;
+  margin-top: 1.5rem;
+}
 
-    <div id="avatar-preview" style="position:relative; width:200px; height:400px; margin:auto;">
+.avatar‑and‑controls {
+  display: flex;
+  gap: 2rem;
+  width: 100%;
+  max-width: 1100px;
+}
+
+/*** ---  AVATAR SECTION  ------------------------------------------------- ***/
+.avatar-stage {
+  position: relative;
+  width: 280px;
+  height: 500px;
+  flex-shrink: 0;
+  background: url("{% static 'dressup/img/closet_bg.jpg' %}") center/cover no-repeat;
+  border: 4px solid hotpink;
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.avatar-stage img.layer {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  pointer-events: none;
+}
+
+/*** ---  CONTROL PANEL  -------------------------------------------------- ***/
+.control-panel {
+  flex: 1;
+  background:#ffe6f3;
+  border:3px dashed hotpink;
+  border-radius:12px;
+  padding:1rem;
+  overflow-y:auto;
+  max-height:520px;
+}
+.control-panel h3{
+  margin-top:0;
+  color:deeppink;
+  text-align:center;
+}
+.category-block{
+  margin-bottom:1rem;
+}
+.category-block h4{
+  margin:0 0 .4rem;
+  color:hotpink;
+  font-weight:600;
+  display:flex;
+  align-items:center;
+  gap:.4rem;
+}
+.category-block button.arrow{
+  background:#ff90c1;
+  border:none;
+  color:#fff;
+  font-weight:bold;
+  width:26px;
+  height:26px;
+  border-radius:50%;
+  cursor:pointer;
+}
+.thumbnail‑bar{
+  display:flex;
+  flex-wrap:wrap;
+  gap:.3rem;
+}
+.thumbnail‑bar img{
+  width:40px;
+  height:40px;
+  object-fit:contain;
+  border:2px solid transparent;
+  border-radius:6px;
+  cursor:pointer;
+  transition:transform .2s,border-color .2s;
+}
+.thumbnail‑bar img:hover{
+  transform:scale(1.05);
+  border-color:#ff90c1;
+}
+.thumbnail‑bar img.equipped{
+  border-color:hotpink;
+}
+
+/*** ---  BUTTON BAR  ----------------------------------------------------- ***/
+.button‑bar{
+  display:flex;
+  justify-content:center;
+  gap:1rem;
+}
+.button‑bar button,
+.button‑bar a{
+  background:hotpink;
+  color:#fff!important;
+  border:none;
+  padding:.6rem 1.3rem;
+  font-weight:600;
+  border-radius:8px;
+  text-decoration:none;
+  transition:transform .15s;
+}
+.button‑bar button:hover,
+.button‑bar a:hover{
+  transform:scale(1.05);
+}
+
+/*** ---  SCROLLBAR prettier (optional) ----------------------------------- ***/
+.control-panel::-webkit-scrollbar{width:8px;}
+.control-panel::-webkit-scrollbar-thumb{background:#ff90c1;border-radius:4px;}
+</style>
+
+<div class="inventory-wrapper">
+  <h1 style="color:deeppink;"><strong>♡  Closet Make‑Over  ♡</strong></h1>
+
+  <div class="avatar‑and‑controls">
+
+    <!-- -------------  AVATAR  ------------- -->
+    <div class="avatar-stage">
       {% for layer in layer_keys %}
-        <img id="layer-{{ layer }}" src="{{ image_urls|get_item:layer }}" alt="{{ layer }}" style="position:absolute; top:0; left:0; width:100%; height:100%; object-fit:contain;">
+        <img id="layer-{{ layer }}" class="layer {{ layer }}"
+             src="{{ image_urls|get_item:layer }}"
+             alt="{{ layer|capfirst }}">
       {% endfor %}
     </div>
 
-    <button id="save-outfit" style="margin-top:1rem; background-color:hotpink; color:white; padding:0.5rem; border:none; cursor:pointer; border-radius:5px;">Save Outfit</button>
-  </div>
+    <!-- -------------  CONTROL PANEL ------------- -->
+    <div class="control-panel">
 
-  <!-- Purchased Items Section -->
-  <div style="flex:1; background-color:#ffe6f3; padding:1rem; border-radius:10px; border:2px dashed hotpink;">
-    <h2>Purchased Items</h2>
-    <ul style="list-style:none; padding:0;">
-      {% for purchased_item in purchased_items %}
-        <li style="margin-bottom:0.5rem;">
-          {{ purchased_item.item.name }} ({{ purchased_item.item.category }})
-          <button class="equip-btn" data-item-id="{{ purchased_item.item.id }}" style="background-color:#ff90c1; color:white; border:none; padding:0.3rem 0.5rem; border-radius:3px; cursor:pointer;">
-            {% if purchased_item.item in equipped_items %}Unequip{% else %}Equip{% endif %}
-          </button>
-        </li>
-      {% empty %}
-        <li>No items yet, gorgeous!</li>
+      <h3>Style Picker</h3>
+
+            {# === loop over categories we allow cycling === #}
+        {% for cat in categories %}
+        <div class="category-block" id="block-{{ cat }}">
+            <h4>
+            <button class="arrow prev-arrow" data-category="{{ cat }}">←</button>
+            {{ cat|capfirst }}
+            <button class="arrow next-arrow" data-category="{{ cat }}">→</button>
+            </h4>
+
+            <div class="thumbnail‑bar">
+            {% for p in purchased_items %}
+                {% if p.item.category == cat %}
+                <img src="{% static p.item.image_path %}"
+                    data-item-id="{{ p.item.id }}"
+                    data-category="{{ cat }}"
+                    title="{{ p.item.name }}"
+                    alt="{{p.item.name}}"
+                    class="{% if p.item in equipped_items %}equipped{% endif %}">
+                {% endif %}
+            {% endfor %}
+            </div>
+        </div>
+          {# All purchased items of this category as tiny thumbs #}
+          </div>
+        </div>
       {% endfor %}
-    </ul>
-  </div>
+    </div><!-- control‑panel -->
+  </div><!-- avatar‑and‑controls -->
+
+
+  <!-- ----------  MAIN FORM  ---------- -->
+  <form method="POST">
+    {% csrf_token %}
+    <input type="hidden" id="hair-input"      name="hair"      value="{{ avatar.hair }}">
+    <input type="hidden" id="top-input"       name="top"       value="{{ avatar.top }}">
+    <input type="hidden" id="skirt-input"     name="skirt"     value="{{ avatar.skirt }}">
+    <input type="hidden" id="shoes-input"     name="shoes"     value="{{ avatar.shoes }}">
+    <input type="hidden" id="accessory-input" name="accessory" value="{{ avatar.accessory }}">
+    <div class="button‑bar">
+      <button type="submit" name="save_outfit">Save outfit</button>
+      <button type="submit" name="fav_outfit">❤ Favourite</button>
+      <a href="{% url 'dressup:mall' %}">Back to Mall</a>
+      <a href="{% url 'journal:dashboard' %}">Dashboard</a>
+    </div>
+  </form>
+</div><!-- inventory‑wrapper -->
+
 
 </div>
 {% endblock %}
 
+
+
 {% block scripts %}
 <script>
-const categoryChoices = {{ category_choices|safe }};
 
-// Equip via AJAX
-const buttons = document.querySelectorAll('.equip-btn');
-buttons.forEach(btn => {
-  btn.addEventListener('click', () => {
-    const itemId = btn.getAttribute('data-item-id');
-    fetch(`/dressup/equip_item/${itemId}/`, {
-      method: 'POST',
-      headers: {'X-CSRFToken': '{{ csrf_token }}', 'Content-Type':'application/json'},
-    })
-    .then(resp => resp.json())
-    .then(data => location.reload())
-    .catch(err => alert('Oops! Something went wrong.'));
+/* ------------------------------------------------------------------
+   simple in‑memory index store for next/prev cycling
+------------------------------------------------------------------ */
+const categoryMap = {
+  hair:      ['00.png','01.png','02.png','03.png'],
+  top:       ['00.png','01.png','02.png','03.png','04.png'],
+  skirt:     ['00.png','01.png','02.png','03.png','04.png'],
+  shoes:     ['00.png','01.png','02.png'],
+  accessory: ['00.png','01.png','02.png','03.png']
+};
+const currentIndex = {hair:0,top:0,skirt:0,shoes:0,accessory:0};
+
+/* -------- helper to refresh one layer + hidden input ------------- */
+function refreshLayer(category, code){      // code is e.g. '01'
+  // update image layer
+  const img   = document.getElementById(`layer-${category === 'accessory' ? 'accessories':category}`);
+  if(img){
+    img.src = `/static/dressup/avatars/${category}/${code}.png`;
+  }
+  // update hidden form field
+  const input = document.getElementById(`${category}-input`);
+  if(input){
+    input.value = code;
+  }
+}
+
+/* -------- arrow buttons (cycle through sprites) ------------------ */
+document.querySelectorAll('.prev-arrow').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    const cat = btn.dataset.category;
+    const total = categoryMap[cat].length;
+    currentIndex[cat] = (currentIndex[cat] - 1 + total) % total;
+    const code = categoryMap[cat][currentIndex[cat]].replace('.png','');
+    refreshLayer(cat, code);
+  });
+});
+document.querySelectorAll('.next-arrow').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    const cat = btn.dataset.category;
+    const total = categoryMap[cat].length;
+    currentIndex[cat] = (currentIndex[cat] + 1) % total;
+    const code = categoryMap[cat][currentIndex[cat]].replace('.png','');
+    refreshLayer(cat, code);
   });
 });
 
-// Save outfit
-const saveBtn = document.getElementById('save-outfit');
-saveBtn.addEventListener('click', () => {
-  fetch('{% url "dressup:dress_up" %}', { method:'POST', headers:{'X-CSRFToken':'{{ csrf_token }}'}, body:new FormData() })
-    .then(() => alert('Outfit saved!'));
+/* -------- thumbnail clicks (equip/unequip via POST) -------------- */
+document.querySelectorAll('.thumbnail‑bar img').forEach(thumb=>{
+  thumb.addEventListener('click', ()=>{
+    // highlight UI
+    thumb.parentElement.querySelectorAll('img').forEach(x=>x.classList.remove('equipped'));
+    thumb.classList.add('equipped');
+    // live preview
+    const cat  = thumb.dataset.category;
+    const path = thumb.getAttribute('src');
+    const code = path.split('/').pop().replace('.png','');
+    refreshLayer(cat, code);
+    // write code to hidden field – server will treat it as direct selection;
+    // if you prefer the equip_item POST, you can instead fire fetch(...) here.
+  });
+
 });
 </script>
 {% endblock %}
