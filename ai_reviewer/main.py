@@ -111,7 +111,7 @@ async def chat(request: Request):
             run = ai.beta.threads.runs.retrieve(run.id, thread_id=thread_id)
 
             if run.status == "requires_action":
-                call = run.required_action.tool_calls[0]
+                call = run.required_action.submit_tool_outputs.tool_calls[0]
                 result = execute(call.name, call.arguments)
 
                 ai.beta.threads.runs.actions.submit(
@@ -126,7 +126,7 @@ async def chat(request: Request):
         messages = ai.beta.threads.messages.list(thread_id=thread_id)
         response = messages.data[0].content[0].text.value
 
-        return JSONResponse({"answer": response, "thread_id": thread_id})
+        return JSONResponse({"answer": response, "thread_id": thread_id}) # Test for reviwer
 
     except Exception as e:
         print(f"🔥 Error in /api/chat: {e}")
@@ -186,13 +186,14 @@ Review the code and suggest improvements."""
                     }]
                 )
 
-
         messages = ai.beta.threads.messages.list(thread_id=thread_id)
         response = messages.data[0].content[0].text.value
 
         gh = get_github()
         repo = gh.get_repo(REPO_FULL)
         repo.create_issue_comment(
-            pr_number, f"🤖 Pink Book AI Review:\n\n{response}")
+            pr_number,
+            f"🤖 **Pink Book AI Review:**\n\n{response}"
+        )
 
     return JSONResponse({"status": "Webhook received and processed."})
