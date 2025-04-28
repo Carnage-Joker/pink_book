@@ -18,7 +18,7 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='avatar',
             name='hair_color',
-            field=models.CharField(choices=[('00', 'none'), ('black', 'black'), ('brunette', 'brown'), ('blonde', 'blonde'), ('red', 'red'), ('05', 'blue'), ('06', 'green'), ('07', 'purple'), ('pink', 'pink'), ('09', 'rainbow')], default='00', max_length=20),
+            field=models.CharField(choices=[('00', 'none'), ('01', 'black'), ('02', 'brown'), ('03', 'blonde'), ('04', 'red'), ('05', 'blue'), ('06', 'green'), ('07', 'purple'), ('08', 'pink'), ('09', 'rainbow')], default='00', max_length=20),
         ),
         migrations.AlterField(
             model_name='photoshoot',
