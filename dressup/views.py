@@ -1,5 +1,8 @@
 # views.py
 
+from .utils import sassy_success, sassy_error
+from django.http import HttpRequest, HttpResponse, JsonResponse
+from django.shortcuts import render, redirect, get_object_or_404
 from .utils import sassy_success
 from .models import Item, PurchasedItem
 from django.http import HttpRequest, HttpResponse
@@ -157,41 +160,82 @@ def shop_detail(request, shop_id):
     return render(request, 'dressup/shop_detail.html', {'shop': shop, 'items': items})
 
 
+# dressup/views.py  ──────────────────────────────────────────────────────────
+
+
 @login_required
 @avatar_required
 def inventory_view(request: HttpRequest) -> HttpResponse:
     """
-    Displays the user's purchased items and allows equipping/unequipping.
-    Shows the layered avatar using image_urls in the context.
+    Closet page:
+      • shows paginated purchased items
+      • live‑preview next/prev cycling (handled in JS)
+      • POST              item_id   → equip / unequip
+      • POST save_outfit  + hidden  → update avatar.<field> codes
+      • POST fav_outfit            → mark current codes as favourite
     """
     avatar = request.user.sissy_avatar
-    purchased_items = PurchasedItem.objects.filter(user=request.user)
-    equipped_items = avatar.equipped_items.all()
 
-    # Only handle equip/unequip on POST
+    # ------------------------------------------------------------------ pagination
+    purchased_qs = PurchasedItem.objects.filter(
+        user=request.user).select_related('item')
+    paginator = Paginator(purchased_qs, 10)
+    purchased_page = paginator.get_page(request.GET.get('page'))
+
+    equipped_item_ids = set(avatar.equipped_items.values_list('id', flat=True))
+
+    # ------------------------------------------------------------------ POST logic
     if request.method == 'POST':
-        item_id = request.POST.get('item_id')
-        if item_id:
+        # 1) toggle equip / unequip via thumbnail button
+        if (item_id := request.POST.get('item_id')):
             item = get_object_or_404(Item, id=item_id)
-            if item in equipped_items:
+            if item.id in equipped_item_ids:
                 avatar.unequip_item(item)
-                sassy_success(
-                    request, f"{item.name} has been unequipped. Mix it up!")
+                sassy_success(request, f"{item.name} has been unequipped!")
             else:
                 avatar.equip_item(item)
-                sassy_success(
-                    request, f"{item.name} is now on point and equipped!")
+                sassy_success(request, f"{item.name} is now equipped!")
+            equipped_item_ids = set(
+                avatar.equipped_items.values_list('id', flat=True))  # refresh
 
+        # 2) direct‑code outfit save (next/prev arrows)
+        elif 'save_outfit' in request.POST:
+            avatar.hair = request.POST.get('hair',      avatar.hair)
+            avatar.top = request.POST.get('top',       avatar.top)
+            avatar.skirt = request.POST.get('skirt',     avatar.skirt)
+            avatar.shoes = request.POST.get('shoes',     avatar.shoes)
+            avatar.accessory = request.POST.get('accessory', avatar.accessory)
+            avatar.save()
+            sassy_success(request, "Your outfit has been saved!")
+
+        # 3) favourite button (very simple example)
+        elif 'fav_outfit' in request.POST:
+            avatar.favourite_top = avatar.top
+            avatar.favourite_skirt = avatar.skirt
+            avatar.favourite_shoes = avatar.shoes
+            avatar.favourite_accessory = avatar.accessory
+            avatar.save()
+            sassy_success(request, "Favourite outfit updated!")
+
+        else:
+            sassy_error(request, "Nothing selected – please try again.")
+
+        # Prevent form‑resubmission on refresh
+        return redirect(request.path_info)
+
+
+# ------------------------------------------------------------------ context
     context = {
         'avatar': avatar,
-        'purchased_items': purchased_items,
-        'equipped_items': equipped_items,
-        # Provide layer keys for the loop, and image_urls to actually display each layer
+        'purchased_items': purchased_page,
+        'equipped_items': avatar.equipped_items.all(),
         'layer_keys': ['body', 'hair', 'skirt', 'top', 'shoes', 'accessories'],
         'image_urls': avatar.get_image_urls(),
+        # add this line ↓↓↓
+        'categories': ['hair', 'top', 'skirt', 'shoes', 'accessory'],
     }
     return render(request, 'dressup/inventory.html', context)
-
+# dressup/views.py  ──────────────────────────────────────────────────────────
 
 
 @login_required
