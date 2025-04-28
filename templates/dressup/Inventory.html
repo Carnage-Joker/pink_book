@@ -1,8 +1,12 @@
 {% extends 'base.html' %}
+
 {% load static %}
 {% load custom_filters %}
 
+
 {% block content %}
+<h1 style="color:deeppink; text-align:center;">Your Fabulous Inventory</h1>
+
 
 <style>
 /*** ---  LAYOUT  --------------------------------------------------------- ***/
@@ -193,13 +197,15 @@
   </form>
 </div><!-- inventory‑wrapper -->
 
+
+</div>
 {% endblock %}
 
 
 
 {% block scripts %}
-{{ block.super }}
 <script>
+
 /* ------------------------------------------------------------------
    simple in‑memory index store for next/prev cycling
 ------------------------------------------------------------------ */
@@ -260,6 +266,7 @@ document.querySelectorAll('.thumbnail‑bar img').forEach(thumb=>{
     // write code to hidden field – server will treat it as direct selection;
     // if you prefer the equip_item POST, you can instead fire fetch(...) here.
   });
+
 });
 </script>
 {% endblock %}
