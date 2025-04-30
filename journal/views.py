@@ -1,7 +1,7 @@
-from django.utils.timezone import now
-from journal.models import JournalEntry, ToDo, Habit, CustomUser
+
+
 from django.shortcuts import get_object_or_404
-from django.views.generic import TemplateView
+from django.views.generic import DetailView
 import json
 import logging
 from datetime import date
@@ -21,10 +21,12 @@ from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse, reverse_lazy
 from django.utils.encoding import force_str
 from django.utils.http import urlsafe_base64_decode
+from django.utils.timezone import now
 from django.views import View
 from django.views.decorators.csrf import csrf_exempt
 from django.views.generic import (CreateView, DeleteView, DetailView, FormView,
                                   ListView, TemplateView, UpdateView)
+from django.views.generic.edit import CreateView
 
 # Local application imports
 from .forms import (CommentForm, CustomUserCreationForm, CustomUserLoginForm,
@@ -36,13 +38,12 @@ from .models import (ActivityLog, Answer, Billing, BlogPost, Comment,
                      Post, Question, Quote, Resource, ResourceCategory, Task,
                      TaskCompletion, Thread, ToDo)
 from .utils.ai_utils import (extract_keywords, get_average_sentiment,
-                             get_average_word_count, get_current_streak,
-                             get_most_common_emotions, get_most_common_tags,
-                             get_peak_journaling_time)
+                            get_current_streak, get_average_word_count,
+                             get_most_common_tags, get_peak_journaling_time)
 from .utils.utils import (calculate_penalty, generate_task,
-                          generate_task_truth, send_activation_email)
+                          generate_truth_task, send_activation_email)
 
-# Set up the logger
+# Set up the logger to capture and log application events and errors
 logger = logging.getLogger(__name__)
 
 User = get_user_model()
@@ -352,14 +353,17 @@ class DashboardView(LoginRequiredMixin, TemplateView):
     def get_profile_pic(self):
         """Retrieve the URL of the user's profile picture."""
         user = self.request.user
-        if user.profile_picture:
+        profile = getattr(user, "profile", None)
+        if profile and getattr(profile, "profile_picture", None):
+            return profile.profile_picture.url
+        elif getattr(user, "profile_picture", None):
             return user.profile_picture.url
         return "/static/journal/media/default-profile-pic.jpg"
 
     def get_quote_of_the_day(self):
         """Select a deterministic quote based on the current day."""
         today = date.today()
-        quotes = list(Quote.objects.all())
+        quotes = list(Quote.objects.all())  # Fetch all quotes
         if quotes:
             index = today.toordinal() % len(quotes)
             return quotes[index].content
@@ -370,27 +374,35 @@ class DashboardView(LoginRequiredMixin, TemplateView):
         context = super().get_context_data(**kwargs)
         user = self.request.user
 
-        # Optimize database queries
+        # ✅ Apply ordering first, then slice
         recent_entries = JournalEntry.objects.filter(
-            user=user).order_by("-timestamp")[:3]
-        todos = ToDo.objects.filter(user=user).order_by("-timestamp")[:5]
+            user=user).order_by('-timestamp')
+        recent_entries_sliced = recent_entries[:3]  # Slicing after ordering
+
+        todos = ToDo.objects.filter(
+            user=user, completed=False).order_by("-timestamp")[:5]
         habits = Habit.objects.filter(user=user).order_by("-timestamp")[:5]
-        # Reset habit counters if needed
+
+        # ✅ Reset habit counters if needed
         for habit in habits:
             if habit.check_reset_needed():
                 habit.reset_counter()
 
-        # Sentiment and journal insights
+        # ✅ Compute insights if entries exist
         if recent_entries.exists():
             sentiment_data = get_average_sentiment(recent_entries)
+
             context.update({
+                # ✅ Safe now
+                "common_tags": get_most_common_tags(recent_entries),
                 "avg_polarity": sentiment_data.get("avg_polarity", 0),
                 "avg_subjectivity": sentiment_data.get("avg_subjectivity", 0),
                 "streak": get_current_streak(recent_entries),
-                "frequent_keywords": extract_keywords(recent_entries),
-                "common_tags": get_most_common_tags(recent_entries),
-                "most_common_emotions": get_most_common_emotions(recent_entries),
-                "average_word_count": get_average_word_count(recent_entries),
+                # ✅ Safe now
+                # ✅ Safe now
+                # ✅ Safe now
+                "frequent_keywords": extract_keywords(recent_entries_sliced),
+                "average_word_count": get_average_word_count(recent_entries_sliced),
                 "most_active_hour": get_peak_journaling_time(recent_entries),
             })
         else:
@@ -400,7 +412,6 @@ class DashboardView(LoginRequiredMixin, TemplateView):
                 "streak": 0,
                 "frequent_keywords": [],
                 "common_tags": [],
-                "most_common_emotions": [],
                 "average_word_count": 0,
                 "most_active_hour": None,
             })
@@ -439,39 +450,35 @@ class JournalEntryCreateView(LoginRequiredMixin, CreateView):
     form_class = JournalEntryForm
     template_name = "new_entry.html"
 
-    def get_initial(self):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self._generated_prompt = None
+
+    def get_initial(self) -> dict:
         initial = super().get_initial()
-        generated_prompt = generate_prompt()
-        initial['generated_prompt'] = generated_prompt
+        if self._generated_prompt is None:
+            self._generated_prompt = generate_prompt()
+        initial['generated_prompt'] = self._generated_prompt
         return initial
 
-    def get_context_data(self, **kwargs):
+    def get_context_data(self, **kwargs) -> dict:
         context = super().get_context_data(**kwargs)
-        context["generated_prompt"] = self.get_initial().get(
-            'generated_prompt', '')
+        context["generated_prompt"] = self._generated_prompt
         return context
 
-    def form_valid(self, form):
-        form.instance.user = self.request.user
-        form.instance.prompt_text = form.cleaned_data.get("generated_prompt")
-        response = super().form_valid(form)
-
-        # Generate and attach the insight
+    def generate_insight_and_save(self, journal_entry):
         try:
-            insight_text = generate_insight(form.instance.content)
-            form.instance.insight = insight_text
-            form.instance.save(update_fields=['insight'])
+            insight_text = generate_insight(journal_entry.content)
+            journal_entry.insight = insight_text
+            journal_entry.save(update_fields=['insight'])
         except Exception as e:
-            messages.error(self.request, "Error generating insight.")
-            form.instance.insight = "Insight generation failed."
-            form.instance.save(update_fields=['insight'])
+            logger.error(f"Insight generation failed: {e}")
+            journal_entry.insight = "Insight generation failed."
+            journal_entry.save(update_fields=['insight'])
 
-        # Award points to the user
-        points_earned = form.instance.calculate_points()
-        self.request.user.points += points_earned
-        self.request.user.save()
-
-        # Success message
+    def award_user_points(self, user, points_earned):
+        user.points += points_earned
+        user.save()
         if points_earned > 0:
             messages.success(
                 self.request,
@@ -480,13 +487,20 @@ class JournalEntryCreateView(LoginRequiredMixin, CreateView):
         else:
             messages.warning(
                 self.request,
-                f"You need to follow instructions to earn points. You lost {abs(points_earned)} points."
+                f"Follow instructions to earn points. You lost {abs(points_earned)} points."
             )
 
+    def form_valid(self, form) -> HttpResponse:
+        form.instance.user = self.request.user
+        form.instance.prompt_text = form.cleaned_data.get("generated_prompt")
+        response = super().form_valid(form)
+        self.generate_insight_and_save(form.instance)
+        self.award_user_points(
+            self.request.user, form.instance.calculate_points())
         return response
 
     def get_success_url(self):
-        return reverse("journal:entry_detail", kwargs={"pk": self.object.pk})
+        return reverse_lazy("journal:entry_detail", kwargs={"pk": self.object.pk})
 
 
 class JournalEntryWithTaskView(LoginRequiredMixin, CreateView):
@@ -536,13 +550,29 @@ class JournalEntryDetailView(LoginRequiredMixin, DetailView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         entry = context["entry"]
-        # These may already be accessible in the template as entry.prompt_text and entry.insight
-        context["prompt_text"] = entry.prompt_text
-        context["insight"] = entry.insight
-        context['tags'] = entry.tags.all()
+
+        # Display prompt/task: prefer task if available, else use prompt_text
         if entry.task:
-            context["task"] = entry.task
+            context["prompt_task"] = entry.task
+        elif entry.prompt_text:
+            context["prompt_task"] = entry.prompt_text
+        else:
+            context["prompt_task"] = ""
+
+        # Add other fields to the context
+        context["insight"] = entry.insight
+        # Assuming tags is a ManyToManyField
+        context["tags"] = entry.tags.all()
+        context["content"] = entry.content
+        context["title"] = entry.title
+
+        # Media fields (assumed to be ImageField/FileField)
+        context["image"] = entry.image
+        context["video"] = entry.video
+        context["audio"] = entry.audio
+
         return context
+
 
 
 class JournalEntryListView(LoginRequiredMixin, ListView):

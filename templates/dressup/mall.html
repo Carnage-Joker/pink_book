@@ -1,42 +1,43 @@
 {% extends 'base.html' %}
+{% load custom_filters %}
+{% load custom_filters %}
+{% load static %}
 {% block content %}
-<div class="mall-map container mt-4">
-    <h2>Welcome to the Mall, {{ request.user.sissy_name }}!</h2>
 
-    <div class="row">
-        <!-- Avatar Preview -->
-        <div class="col-md-4 mb-4">
-            <h3>Your Avatar</h3>
-            <div class="avatar-container">
-                <div class="avatar-display">
-                    <!-- Body Layer -->
-                    <img src="{{ image_urls.body }}" alt="Body">
-                    
-                    <!-- Equipped Items -->
-                    {% for item in avatar.equipped_items.all %}
-                        <img src="{{ item.image.url }}" alt="{{ item.name }}" class="{{ item.category }}">
-                    {% endfor %}
-                </div>
-            </div>
-        </div>
+<h1>Welcome to the Mall</h1>
 
-        <!-- Shops Section -->
-        <div class="col-md-8">
-            <h3>Shops</h3>
-            <div class="row">
-                {% for shop in shops %}
-                    <div class="col-md-6 mb-4">
-                        <div class="shop-card">
-                            <a href="{% url 'dressup:shop_detail' shop.id %}">
-                                <img src="{{ shop.get_image_url }}" alt="{{ shop.name }}" class="img-fluid shop-image">
-                            </a>
-                        </div>
-                    </div>
-                {% empty %}
-                    <p>No shops available at the moment.</p>
-                {% endfor %}
-            </div>
-        </div>
+<!-- Avatar Display -->
+<div class="avatar-container">
+    <div class="avatar-images">
+        {% for layer in layer_keys %}
+            {% with image_url=image_urls|get_item:layer %}
+                {% if image_url %}
+                    <img src="{{ image_url }}" alt="{{ layer|capfirst }} layer for avatar" class="layer {{ layer }}">
+                {% else %}
+                    <img src="{% static 'dressup/avatars/default.png' %}" alt="Default avatar layer" class="layer {{ layer }}">
+                {% endif %}
+            {% endwith %}
+        {% endfor %}
     </div>
 </div>
+
+<a href="{% url 'dressup:inventory' %}" class="btn btn-secondary">View Inventory</a>
+
+<!-- Shop Listings -->
+<div class="mall_map shops-section">
+    <div class="shop-container">
+        {% for shop in shops %}
+            <article class="shop-item">
+                <a href="{% url 'dressup:shop_detail' shop.id %}">
+                    <img src="{{ shop.get_image_url }}" alt="{{ shop.name }} shop" class="shop-image">
+                    <h2>{{ shop.name }}</h2>
+                    <p>{{ shop.description }}</p>
+                </a>
+            </article>
+        {% empty %}
+            <p>No shops are currently open. Please check back later for amazing deals!</p>
+        {% endfor %}
+    </div>
+</div>
+
 {% endblock %}

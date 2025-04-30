@@ -26,7 +26,7 @@ class CommentInline(admin.StackedInline):
 
 @admin.register(Habit)
 class HabitAdmin(admin.ModelAdmin):
-    list_display = ('name', 'description', 'reward', 'penalty', 'frequency')
+    list_display = ('name', 'description', 'frequency')
     search_fields = ('name', 'description')
     list_filter = ('frequency',)
 

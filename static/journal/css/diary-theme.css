@@ -16,6 +16,9 @@
     --font-family-heading: 'Amatic SC', cursive;
     --font-family-heading-alt: 'Indie Flower', cursive;
     --font-family-title-alt: 'Shadows Into Light', cursive;
+    --font-family-heading: 'Amatic SC', cursive;
+    --font-family-heading-alt: 'Indie Flower', cursive;
+    --font-family-title-alt: 'Shadows Into Light', cursive;
     --hover-transition: background-color 0.3s ease, color 0.3s ease;
     --spacing-small: 0.5rem;
     --spacing-medium: 1rem;
@@ -425,7 +428,16 @@ button:focus {
 .toast.fade-out {
     opacity: 0;
 }
-
+.sassy-message {
+    background: #ffb6c1;
+    /* light pink */
+    border-radius: 20px;
+    padding: 15px;
+    margin: 10px auto;
+    max-width: 400px;
+    text-align: center;
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+}
 /* Responsive Adjustments */
 @media (max-width: 992px) {
     .dashboard-grid {
@@ -463,44 +475,4 @@ button:focus {
 
 .icon.updated {
     transform: scale(1.3);
-}
-
-.avatar-container {
-    max-block-size: 25%;
-    max-inline-size: 15%;
-    position: relative;
-    display: inline-block;
-    inset-inline-start: 10%;
-    inset-block-start: 25%;
-}
-
-.avatar-display {
-    border: 3px dashed pink;
-    border-radius: 15px;
-    background: rgba(255, 245, 245, 0.5);
-    overflow: hidden;
-    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
-}
-
-.shop-card {
-    position: relative;
-    overflow: hidden;
-    border-radius: 15px;
-    transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
-}
-
-.shop-card:hover {
-    transform: scale(1.05);
-    box-shadow: 0 10px 20px rgba(255, 105, 180, 0.5);
-}
-
-.shop-image {
-    border-radius: 15px;
-    width: 100%;
-    height: auto;
-    transition: filter 0.3s ease;
-}
-
-.shop-image:hover {
-    filter: brightness(1.2);
 }

@@ -14,15 +14,14 @@ from .models import (Answer, Comment, CustomUser, Habit, JournalEntry, Post,
 class HabitForm(forms.ModelForm):
     class Meta:
         model = Habit
-        fields = ['name', 'description', 'reward',
-                  'penalty', 'frequency', 'target_count']
+        fields = ['name', 'description', 'frequency', 'target_count']
 
     def __init__(self, *args, **kwargs):
         super(HabitForm, self).__init__(*args, **kwargs)
         self.helper = FormHelper()
         self.helper.layout = Layout(
             'name',
-            'description', 'reward', 'penalty', 'frequency', 'target_count',
+            'description', 'frequency', 'target_count',
             Submit('submit', 'Save Habit', css_class='btn-primary')
         )
         self.helper.form_method = 'post'
@@ -133,7 +132,6 @@ class CustomUserLoginForm(AuthenticationForm):
             "Note that both fields may be case-sensitive."
         )
 
-
     def clean(self):
         sissy_name = self.cleaned_data.get('sissy_name')
         password = self.cleaned_data.get('password')
@@ -193,7 +191,6 @@ class CustomUserUpdateForm(forms.ModelForm):
             'sissy_type',
             'chastity_status',
             'owned_status',
-            'email'
         )
 
 

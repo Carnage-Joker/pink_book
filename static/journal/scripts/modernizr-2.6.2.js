@@ -11,7 +11,7 @@
  * under the terms set out in this paragraph. All notices and licenses
  * below are for informational purposes only.
  *
- * Copyright (c) Faruk Ates, Paul Irish, Alex Sexton; http://www.modernizr.com/license/
+ * Copyright (c) 2023 Faruk Ates, Paul Irish, Alex Sexton; http://www.modernizr.com/license/
  *
  * Includes matchMedia polyfill; Copyright (c) 2010 Filament Group, Inc; http://opensource.org/licenses/MIT
  *
@@ -47,13 +47,13 @@
 
 window.Modernizr = (function( window, document, undefined ) {
 
-    var version = '2.6.2',
+    const version = '2.6.2',
 
     Modernizr = {},
 
     /*>>cssclasses*/
     // option for enabling the HTML classes to be added
-    enableClasses = true,
+    // enableClasses = true, // Removed as it is not used consistently
     /*>>cssclasses*/
 
     docElement = document.documentElement,
@@ -74,12 +74,10 @@ window.Modernizr = (function( window, document, undefined ) {
     smile = ':)',
     /*>>smile*/
 
-    toString = {}.toString,
 
-    // TODO :: make the prefixes more granular
     /*>>prefixes*/
     // List of property values to set for css tests. See ticket #21
-    prefixes = ' -webkit- -moz- -o- -ms- '.split(' '),
+    prefixes = ['-webkit-', '-moz-', '-o-', '-ms-'],
     /*>>prefixes*/
 
     /*>>domprefixes*/
@@ -120,12 +118,12 @@ window.Modernizr = (function( window, document, undefined ) {
     injectElementWithStyles = function( rule, callback, nodes, testnames ) {
 
       var style, ret, node, docOverflow,
-          div = document.createElement('div'),
-          // After page load injecting a fake body doesn't work so check if body exists
-          body = document.body,
-          // IE6 and 7 won't return offsetWidth or offsetHeight unless it's in the body element, so we fake it.
-          fakeBody = body || document.createElement('body');
-
+      let style, ret, node, docOverflow;
+      const div = document.createElement('div');
+      // After page load injecting a fake body doesn't work so check if body exists
+      const body = document.body;
+      // IE6 and 7 won't return offsetWidth or offsetHeight unless it's in the body element, so we fake it.
+      const fakeBody = body || document.createElement('body');
       if ( parseInt(nodes, 10) ) {
           // In order not to give false positives we create a node for each test
           // This also allows the method to scale for unspecified uses
@@ -175,11 +173,11 @@ window.Modernizr = (function( window, document, undefined ) {
     // adapted from matchMedia polyfill
     // by Scott Jehl and Paul Irish
     // gist.github.com/786768
-    testMediaQuery = function( mq ) {
+    const cachedMatchMedia = window.matchMedia || window.msMatchMedia;
 
-      var matchMedia = window.matchMedia || window.msMatchMedia;
-      if ( matchMedia ) {
-        return matchMedia(mq).matches;
+    testMediaQuery = function( mq ) {
+      if ( cachedMatchMedia ) {
+        return cachedMatchMedia(mq).matches;
       }
 
       var bool;
@@ -205,13 +203,13 @@ window.Modernizr = (function( window, document, undefined ) {
     //   Modernizr.hasEvent("webkitTransitionEnd", elem) // false negative
     //   Modernizr.hasEvent("textInput") // in Webkit. github.com/Modernizr/Modernizr/issues/333
     //   ...
-    isEventSupported = (function() {
+    var TAGNAMES = {
+      'select': 'input', 'change': 'input',
+      'submit': 'form', 'reset': 'form',
+      'error': 'img', 'load': 'img', 'abort': 'img'
+    };
 
-      var TAGNAMES = {
-        'select': 'input', 'change': 'input',
-        'submit': 'form', 'reset': 'form',
-        'error': 'img', 'load': 'img', 'abort': 'img'
-      };
+    isEventSupported = (function() {
 
       function isEventSupported( eventName, element ) {
 
@@ -266,45 +264,28 @@ window.Modernizr = (function( window, document, undefined ) {
 
     if (!Function.prototype.bind) {
       Function.prototype.bind = function bind(that) {
-
-        var target = this;
-
-        if (typeof target != "function") {
-            throw new TypeError();
+      Function.prototype.bind = function (oThis) {
+        if (typeof this !== 'function') {
+          throw new TypeError('Function.prototype.bind - what is trying to be bound is not callable');
         }
 
-        var args = slice.call(arguments, 1),
-            bound = function () {
+        var aArgs = Array.prototype.slice.call(arguments, 1),
+            fToBind = this,
+            fNOP = function () {},
+            fBound = function () {
+              return fToBind.apply(this instanceof fNOP
+                     ? this
+                     : oThis,
+                     aArgs.concat(Array.prototype.slice.call(arguments)));
+            };
 
-            if (this instanceof bound) {
+        if (this.prototype) {
+          fNOP.prototype = this.prototype; 
+        }
+        fBound.prototype = new fNOP();
 
-              var F = function(){};
-              F.prototype = target.prototype;
-              var self = new F();
-
-              var result = target.apply(
-                  self,
-                  args.concat(slice.call(arguments))
-              );
-              if (Object(result) === result) {
-                  return result;
-              }
-              return self;
-
-            } else {
-
-              return target.apply(
-                  that,
-                  args.concat(slice.call(arguments))
-              );
-
-            }
-
-        };
-
-        return bound;
+        return fBound;
       };
-    }
 
     /**
      * setCss applies given styles to the Modernizr DOM node.
@@ -371,7 +352,8 @@ window.Modernizr = (function( window, document, undefined ) {
      *   a certain property, it won't return undefined for it.
      */
     function testDOMProps( props, obj, elem ) {
-        for ( var i in props ) {
+        var len = props.length;
+        for ( var i = 0; i < len; i++ ) {
             var item = obj[props[i]];
             if ( item !== undefined) {
 
@@ -390,6 +372,7 @@ window.Modernizr = (function( window, document, undefined ) {
         }
         return false;
     }
+    }
 
     /*>>testallprops*/
     /**
@@ -397,11 +380,11 @@ window.Modernizr = (function( window, document, undefined ) {
      *   We specify literally ALL possible (known and/or likely) properties on
      *   the element including the non-vendor prefixed one, for forward-
      *   compatibility.
-     */
     function testPropsAll( prop, prefixed, elem ) {
 
         var ucProp  = prop.charAt(0).toUpperCase() + prop.slice(1),
-            props   = (prop + ' ' + cssomPrefixes.join(ucProp + ' ') + ucProp).split(' ');
+            props   = (prop + ' ' + cssomPrefixes.join(ucProp + ' ') + ucProp).split(' '),
+            len     = props.length;
 
         // did they call .prefixed('boxSizing') or are we just testing a prop?
         if(is(prefixed, "string") || is(prefixed, "undefined")) {
@@ -410,8 +393,10 @@ window.Modernizr = (function( window, document, undefined ) {
         // otherwise, they called .prefixed('requestAnimationFrame', window[, elem])
         } else {
           props = (prop + ' ' + (domPrefixes).join(ucProp + ' ') + ucProp).split(' ');
+          len = props.length;
           return testDOMProps(props, prefixed, elem);
         }
+    }
     }
     /*>>testallprops*/
 
@@ -866,90 +851,57 @@ window.Modernizr = (function( window, document, undefined ) {
     };
 
     /*>>webforms*/
-    // input features and input types go directly onto the ret object, bypassing the tests loop.
-    // Hold this guy to execute in a moment.
     function webforms() {
-        /*>>input*/
-        // Run through HTML5's new input attributes to see if the UA understands any.
-        // We're using f which is the <input> element created early on
-        // Mike Taylr has created a comprehensive resource for testing these attributes
-        //   when applied to all input types:
-        //   miketaylr.com/code/input-type-attr.html
-        // spec: www.whatwg.org/specs/web-apps/current-work/multipage/the-input-element.html#input-type-attr-summary
+        Modernizr['input'] = testInputAttributes('autocomplete autofocus list placeholder max min multiple pattern required step'.split(' '));
+        Modernizr['inputtypes'] = testInputTypes('search tel url email datetime date month week time datetime-local number range color'.split(' '));
+    }
 
-        // Only input placeholder is tested while textarea's placeholder is not.
-        // Currently Safari 4 and Opera 11 have support only for the input placeholder
-        // Both tests are available in feature-detects/forms-placeholder.js
-        Modernizr['input'] = (function( props ) {
-            for ( var i = 0, len = props.length; i < len; i++ ) {
-                attrs[ props[i] ] = !!(props[i] in inputElem);
-            }
-            if (attrs.list){
-              // safari false positive's on datalist: webk.it/74252
-              // see also github.com/Modernizr/Modernizr/issues/146
-              attrs.list = !!(document.createElement('datalist') && window.HTMLDataListElement);
-            }
-            return attrs;
-        })('autocomplete autofocus list placeholder max min multiple pattern required step'.split(' '));
-        /*>>input*/
+    function testInputAttributes(props) {
+        for (var i = 0, len = props.length; i < len; i++) {
+            attrs[props[i]] = !!(props[i] in inputElem);
+        }
+        if (attrs.list) {
+            // safari false positive's on datalist: webk.it/74252
+            // see also github.com/Modernizr/Modernizr/issues/146
+            attrs.list = !!(document.createElement('datalist') && window.HTMLDataListElement);
+        }
+        return attrs;
+    }
 
-        /*>>inputtypes*/
-        // Run through HTML5's new input types to see if the UA understands any.
-        //   This is put behind the tests runloop because it doesn't return a
-        //   true/false like all the other tests; instead, it returns an object
-        //   containing each input type with its corresponding true/false value
+    function testInputTypes(props) {
+        for (var i = 0, bool, inputElemType, defaultView, len = props.length; i < len; i++) {
+            inputElem.setAttribute('type', inputElemType = props[i]);
+            bool = inputElem.type !== 'text';
 
-        // Big thanks to @miketaylr for the html5 forms expertise. miketaylr.com/
-        Modernizr['inputtypes'] = (function(props) {
+            if (bool) {
+                inputElem.value = smile;
+                inputElem.style.cssText = 'position:absolute;visibility:hidden;';
 
-            for ( var i = 0, bool, inputElemType, defaultView, len = props.length; i < len; i++ ) {
+                if (/^range$/.test(inputElemType) && inputElem.style.WebkitAppearance !== undefined) {
+                    docElement.appendChild(inputElem);
+                    defaultView = document.defaultView;
 
-                inputElem.setAttribute('type', inputElemType = props[i]);
-                bool = inputElem.type !== 'text';
+                    bool = defaultView.getComputedStyle &&
+                        defaultView.getComputedStyle(inputElem, null).WebkitAppearance !== 'textfield' &&
+                        (inputElem.offsetHeight !== 0);
 
-                // We first check to see if the type we give it sticks..
-                // If the type does, we feed it a textual value, which shouldn't be valid.
-                // If the value doesn't stick, we know there's input sanitization which infers a custom UI
-                if ( bool ) {
+                    docElement.removeChild(inputElem);
 
-                    inputElem.value         = smile;
-                    inputElem.style.cssText = 'position:absolute;visibility:hidden;';
+                } else if (/^(search|tel)$/.test(inputElemType)) {
+                    // Spec doesn't define any special parsing or detectable UI behaviors so we pass these through as true
 
-                    if ( /^range$/.test(inputElemType) && inputElem.style.WebkitAppearance !== undefined ) {
+                } else if (/^(url|email)$/.test(inputElemType)) {
+                    bool = inputElem.checkValidity && inputElem.checkValidity() === false;
 
-                      docElement.appendChild(inputElem);
-                      defaultView = document.defaultView;
-
-                      // Safari 2-4 allows the smiley as a value, despite making a slider
-                      bool =  defaultView.getComputedStyle &&
-                              defaultView.getComputedStyle(inputElem, null).WebkitAppearance !== 'textfield' &&
-                              // Mobile android web browser has false positive, so must
-                              // check the height to see if the widget is actually there.
-                              (inputElem.offsetHeight !== 0);
-
-                      docElement.removeChild(inputElem);
-
-                    } else if ( /^(search|tel)$/.test(inputElemType) ){
-                      // Spec doesn't define any special parsing or detectable UI
-                      //   behaviors so we pass these through as true
-
-                      // Interestingly, opera fails the earlier test, so it doesn't
-                      //  even make it here.
-
-                    } else if ( /^(url|email)$/.test(inputElemType) ) {
-                      // Real url and email support comes with prebaked validation.
-                      bool = inputElem.checkValidity && inputElem.checkValidity() === false;
-
-                    } else {
-                      // If the upgraded input compontent rejects the :) text, we got a winner
-                      bool = inputElem.value != smile;
-                    }
+                } else {
+                    bool = inputElem.value != smile;
                 }
-
-                inputs[ props[i] ] = !!bool;
             }
-            return inputs;
-        })('search tel url email datetime date month week time datetime-local number range color'.split(' '));
+
+            inputs[props[i]] = !!bool;
+        }
+        return inputs;
+    }
         /*>>inputtypes*/
     }
     /*>>webforms*/
@@ -1010,7 +962,7 @@ window.Modernizr = (function( window, document, undefined ) {
 
          test = typeof test == 'function' ? test() : test;
 
-         if (typeof enableClasses !== "undefined" && enableClasses) {
+         if (typeof enableClasses !== "undefined") {
            docElement.className += ' ' + (test ? '' : 'no-') + feature;
          }
          Modernizr[feature] = test;
@@ -1048,7 +1000,7 @@ window.Modernizr = (function( window, document, undefined ) {
       var expanID = 0;
 
       /** Cached data for each document */
-      var expandoData = {};
+      var expandoData = new Map();
 
       /** Detect whether the browser supports unknown elements */
       var supportsUnknownElements;
@@ -1099,47 +1051,53 @@ window.Modernizr = (function( window, document, undefined ) {
        * @private
        * @returns {Array} An array of shived element node names.
        */
+      var cachedElements;
       function getElements() {
-        var elements = html5.elements;
-        return typeof elements == 'string' ? elements.split(' ') : elements;
+        if (!cachedElements) {
+          var elements = html5.elements;
+          cachedElements = typeof elements == 'string' ? elements.split(' ') : elements;
+        }
+        return cachedElements;
       }
 
         /**
        * Returns the data associated to the given document
        * @private
-       * @param {Document} ownerDocument The document.
-       * @returns {Object} An object of data.
-       */
-      function getExpandoData(ownerDocument) {
-        var data = expandoData[ownerDocument[expando]];
+        var data = expandoData.get(ownerDocument[expando]);
         if (!data) {
             data = {};
             expanID++;
+            ownerDocument[expando] = expanID;
+            expandoData.set(expanID, data);
+        }
+        return data;
             ownerDocument[expando] = expanID;
             expandoData[expanID] = data;
         }
         return data;
       }
-
-      /**
-       * returns a shived element for the given nodeName and document
-       * @memberOf html5
-       * @param {String} nodeName name of the element
+        var style = ownerDocument.createElement('style');
+        style.textContent = cssText;
+        var parent = ownerDocument.getElementsByTagName('head')[0] || ownerDocument.documentElement;
+        return parent.insertBefore(style, parent.firstChild);
        * @param {Document} ownerDocument The context document.
        * @returns {Object} The shived element.
        */
-      function createElement(nodeName, ownerDocument, data){
+      function createElement(nodeName, ownerDocument, data) {
         if (!ownerDocument) {
             ownerDocument = document;
         }
-        if(supportsUnknownElements){
+        if (supportsUnknownElements) {
             return ownerDocument.createElement(nodeName);
         }
         if (!data) {
             data = getExpandoData(ownerDocument);
         }
-        var node;
+        return createNode(nodeName, ownerDocument, data);
+      }
 
+      function createNode(nodeName, ownerDocument, data) {
+        var node;
         if (data.cache[nodeName]) {
             node = data.cache[nodeName].cloneNode();
         } else if (saveClones.test(nodeName)) {
@@ -1147,34 +1105,43 @@ window.Modernizr = (function( window, document, undefined ) {
         } else {
             node = data.createElem(nodeName);
         }
+        return appendNode(node, nodeName, data);
+      }
 
+      function appendNode(node, nodeName, data) {
         // Avoid adding some elements to fragments in IE < 9 because
         // * Attributes like `name` or `type` cannot be set/changed once an element
         //   is inserted into a document/fragment
         // * Link elements with `src` attributes that are inaccessible, as with
-        //   a 403 response, will cause the tab/window to crash
-        // * Script elements appended to fragments will execute when their `src`
-        //   or `text` property is set
-        return node.canHaveChildren && !reSkip.test(nodeName) ? data.frag.appendChild(node) : node;
-      }
-
       /**
        * returns a shived DocumentFragment for the given document
        * @memberOf html5
        * @param {Document} ownerDocument The context document.
        * @returns {Object} The shived DocumentFragment.
        */
-      function createDocumentFragment(ownerDocument, data){
+      function createDocumentFragment(ownerDocument, data) {
         if (!ownerDocument) {
             ownerDocument = document;
         }
-        if(supportsUnknownElements){
+        if (supportsUnknownElements) {
             return ownerDocument.createDocumentFragment();
         }
         data = data || getExpandoData(ownerDocument);
-        var clone = data.frag.cloneNode(),
-            i = 0,
-            elems = getElements(),
+        var clone = data.frag.cloneNode();
+        addElementsToFragment(clone, getElements());
+        return clone;
+      }
+
+      /**
+       * Adds elements to the given DocumentFragment
+       * @param {DocumentFragment} fragment The fragment to add elements to.
+       * @param {Array} elements The elements to add.
+       */
+      function addElementsToFragment(fragment, elements) {
+        for (var i = 0, l = elements.length; i < l; i++) {
+            fragment.createElement(elements[i]);
+        }
+      }
             l = elems.length;
         for(;i<l;i++){
             clone.createElement(elems[i]);
@@ -1182,21 +1149,23 @@ window.Modernizr = (function( window, document, undefined ) {
         return clone;
       }
 
-      /**
-       * Shivs the `createElement` and `createDocumentFragment` methods of the document.
-       * @private
-       * @param {Document|DocumentFragment} ownerDocument The document.
-       * @param {Object} data of the document.
-       */
       function shivMethods(ownerDocument, data) {
         if (!data.cache) {
-            data.cache = {};
-            data.createElem = ownerDocument.createElement;
-            data.createFrag = ownerDocument.createDocumentFragment;
-            data.frag = data.createFrag();
+            initializeDataCache(ownerDocument, data);
         }
 
+        overrideCreateElement(ownerDocument, data);
+        overrideCreateDocumentFragment(ownerDocument, data);
+      }
 
+      function initializeDataCache(ownerDocument, data) {
+        data.cache = {};
+        data.createElem = ownerDocument.createElement;
+        data.createFrag = ownerDocument.createDocumentFragment;
+        data.frag = data.createFrag();
+      }
+
+      function overrideCreateElement(ownerDocument, data) {
         ownerDocument.createElement = function(nodeName) {
           //abort shiv
           if (!html5.shivMethods) {
@@ -1204,7 +1173,9 @@ window.Modernizr = (function( window, document, undefined ) {
           }
           return createElement(nodeName, ownerDocument, data);
         };
+      }
 
+      function overrideCreateDocumentFragment(ownerDocument, data) {
         ownerDocument.createDocumentFragment = Function('h,f', 'return function(){' +
           'var n=f.cloneNode(),c=n.createElement;' +
           'h.shivMethods&&(' +
@@ -1217,15 +1188,11 @@ window.Modernizr = (function( window, document, undefined ) {
           ');return n}'
         )(html5, data.frag);
       }
-
-      /*--------------------------------------------------------------------------*/
-
-      /**
-       * Shivs the given document.
-       * @memberOf html5
-       * @param {Document} ownerDocument The document to shiv.
-       * @returns {Document} The shived document.
-       */
+              data.frag.createElement(nodeName);
+              return 'c("' + nodeName + '")';
+            }) +
+          ');return n}'
+        )(html5, data.frag);
       function shivDocument(ownerDocument) {
         if (!ownerDocument) {
             ownerDocument = document;
@@ -1233,8 +1200,22 @@ window.Modernizr = (function( window, document, undefined ) {
         var data = getExpandoData(ownerDocument);
 
         if (html5.shivCSS && !supportsHtml5Styles && !data.hasCSS) {
-          data.hasCSS = !!addStyleSheet(ownerDocument,
-            // corrects block display not defined in IE6/7/8/9
+          data.hasCSS = addShivCSS(ownerDocument);
+        }
+        if (!supportsUnknownElements) {
+          shivMethods(ownerDocument, data);
+        }
+        return ownerDocument;
+      }
+
+      function addShivCSS(ownerDocument) {
+        return !!addStyleSheet(ownerDocument,
+          // corrects block display not defined in IE6/7/8/9
+          'article,aside,figcaption,figure,footer,header,hgroup,nav,section{display:block}' +
+          // adds styling not present in IE6/7/8/9
+          'mark{background:#FF0;color:#000}'
+        );
+      }
             'article,aside,figcaption,figure,footer,header,hgroup,nav,section{display:block}' +
             // adds styling not present in IE6/7/8/9
             'mark{background:#FF0;color:#000}'

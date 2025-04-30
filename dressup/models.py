@@ -7,11 +7,11 @@ from django.db import models
 
 
 class Item(models.Model):
-    CATEGORY_CHOICES = (
+    CATEGORY_CHOICES = [
         ('body', 'Body'),
         ('hair', 'Hair'),
         ('top', 'Top'),
-        ('bottom', 'Bottom'),
+        ('skirt', 'Skirt'),
         ('shoes', 'Shoes'),
         ('accessory', 'Accessory'),
         ('makeup', 'Makeup'),
@@ -21,6 +21,7 @@ class Item(models.Model):
         ('background', 'Background'),
     )
 
+    name = models.CharField(max_length=100)
     name = models.CharField(max_length=100)
     category = models.CharField(max_length=50, choices=CATEGORY_CHOICES)
     image_path = models.CharField(max_length=200, blank=True, null=True)
@@ -36,8 +37,9 @@ class Item(models.Model):
         return self.name
 
 
+
 class Shop(models.Model):
-    SHOP_TYPE_CHOICES = (
+    SHOP_TYPE_CHOICES = [
         ('salon', 'Salon'),
         ('thrift_shop', 'Thrift Shop'),
         ('high_end', 'High-End Department'),
@@ -62,11 +64,16 @@ class Shop(models.Model):
     
     name = models.CharField(max_length=100)
     shop_id = models.CharField(max_length=100, blank=True, null=True)
+    shop_id = models.CharField(max_length=100, blank=True, null=True)
     shop_type = models.CharField(max_length=50, choices=SHOP_TYPE_CHOICES)
     shop_level = models.CharField(
         max_length=50, choices=SHOP_LEVEL_CHOICES, default='basic')
     items = models.ManyToManyField(Item, related_name='shop_items')
+    shop_level = models.CharField(
+        max_length=50, choices=SHOP_LEVEL_CHOICES, default='basic')
+    items = models.ManyToManyField(Item, related_name='shop_items')
     premium_only = models.BooleanField(default=False)
+    is_locked = models.BooleanField(default=False)
     is_locked = models.BooleanField(default=False)
     description = models.TextField(blank=True)
     image_path = models.CharField(max_length=200, blank=True, null=True)
@@ -245,8 +252,14 @@ class Avatar(models.Model):
         
 
 class PurchasedItem(models.Model):
+    """
+    Tracks which user purchased which Item, and whether it’s used or equipped.
+    """
     user = models.ForeignKey(
-        CustomUser, on_delete=models.CASCADE, related_name='purchased_items')
+        User,
+        on_delete=models.CASCADE,
+        related_name='purchased_items'
+    )
     item = models.ForeignKey(Item, on_delete=models.CASCADE)
     purchased_at = models.DateTimeField(auto_now_add=True, null=True)
     # For one-time use items like photoshoots
@@ -254,6 +267,7 @@ class PurchasedItem(models.Model):
     is_equipped = models.BooleanField(default=False)
 
     def __str__(self):
+        # Also using 'sissy_name' if your CustomUser has it:
         return f"{self.user.sissy_name} purchased {self.item.name}"
 
 
@@ -262,23 +276,16 @@ class PhotoShoot(models.Model):
         ('booth', 'Photo Booth'),
         ('creepy', 'Creepy Photographer'),
         ('hot', 'Hot Photographer'),
-    )
+    ]
 
-    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
     photographer_type = models.CharField(
         max_length=20, choices=PHOTOGRAPHER_CHOICES)
-    # Assuming backdrops are items
     backdrop = models.ForeignKey(Item, on_delete=models.CASCADE)
     purchased_at = models.DateTimeField(auto_now_add=True)
     image = models.ImageField(upload_to='photoshoots/')
     used = models.BooleanField(default=False)
 
     def __str__(self):
-        return f"{self.user.sissy_name}'s photoshoot with {self.photographer_type} photographer"
-
-
-# Optionally, you can create a model to cache leaderboard data
-class LeaderboardEntry(models.Model):
-    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
-    points = models.IntegerField()
-    updated_at = models.DateTimeField(auto_now=True)
+        # Or any other user field you'd like to display
+        return f"{self.user.sissy_name}'s photoshoot with {self.photographer_type}"

@@ -32,6 +32,16 @@ function handleFetchError(response) {
     return response.json();
 }
 
+const socket = new WebSocket('ws://' + window.location.host + '/ws/points/');
+
+socket.onmessage = function (event) {
+    const data = JSON.parse(event.data);
+    const pointsDisplay = document.querySelector('.profile-stats t1 strong');
+    if (pointsDisplay) {
+        pointsDisplay.textContent = `Points: ${data.points}`;
+    }
+};
+
 // Utility: Show Toast Notifications
 function showToast(message, type = 'info') {
     const toast = document.createElement('div');

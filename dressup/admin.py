@@ -1,8 +1,4 @@
 from django.contrib import admin
-
-# dressup/admin.py
-
-from django.contrib import admin
 from .models import Avatar, Shop, Item, PurchasedItem
 
 
