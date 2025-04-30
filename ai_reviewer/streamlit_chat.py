@@ -15,15 +15,23 @@ if 'history' not in st.session_state:
 
 st.title("Pink Book AI Reviewer")
 
-            data = res.json()
-            answer = data.get("answer", "")
-            st.session_state.thread_id = data.get("thread_id")
+user_input = st.text_input("Enter your message:")
+payload = {
+    "input": user_input,
+    "thread_id": st.session_state.thread_id
+}
+res = requests.post(API_URL, json=payload)
+try:
+    res = requests.post(API_URL, json={"input": user_input, "thread_id": st.session_state.thread_id})
+    data = res.json()
+    answer = data.get("answer", "")
+    st.session_state.thread_id = data.get("thread_id")
 
-            # Append to history
-            st.session_state.history.append(("You", user_input))
-            st.session_state.history.append(("AI", answer))
-        except Exception as e:
-            st.error(f"Error: {e}")
+    # Append to history
+    st.session_state.history.append(("You", user_input))
+    st.session_state.history.append(("AI", answer))
+except Exception as e:
+    st.error(f"Error: {e}")
 
 # Display chat history
 for speaker, message in st.session_state.history:

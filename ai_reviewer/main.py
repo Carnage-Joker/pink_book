@@ -45,15 +45,18 @@ GH_APP_ID = os.getenv("GH_APP_ID")
 LOCAL_REPO_PATH = os.getenv("LOCAL_REPO_PATH")
 
 # --- GitHub Auth via App Installation ---
+_github_instance = None
+
 def get_github():
-    with open(GH_APP_KEY_PATH, "r") as f:
-        private_key = f.read()
-    auth = Auth.AppAuth(app_id=GH_APP_ID, private_key=private_key)
-    token_obj = auth.get_installation_access_token(GH_INSTALL_ID)
-    token = token_obj.token  # type: ignore
-    return Github(token)
-    token = auth.get_installation_access_token(GH_INSTALL_ID).token
-    return Github(token)
+    global _github_instance
+    if _github_instance is None:
+        with open(GH_APP_KEY_PATH, "r") as f:
+            private_key = f.read()
+        auth = Auth.AppAuth(app_id=GH_APP_ID, private_key=private_key)
+        token_obj = auth.get_installation_access_token(GH_INSTALL_ID)
+        token = token_obj.token  # type: ignore
+        _github_instance = Github(token)
+    return _github_instance
 def execute(tool: str, args: dict) -> str:
     def _execute_local(tool: str, args: dict) -> str:
         if tool == "list_local_repo":
@@ -140,8 +143,6 @@ def execute(tool: str, args: dict) -> str:
         return _execute_local(tool, args)
     else:
         return _execute_github(tool, args)
-                             capture_output=True, text=True)
-        return res.stdout + res.stderr
 
     return "Unknown tool"
 
@@ -164,25 +165,50 @@ async def chat(request: Request):
         while run.status in ("queued", "in_progress", "requires_action"):
             run = ai.beta.threads.runs.retrieve(run.id, thread_id=thread_id)
             if run.status == "requires_action":
-                call = run.required_action.submit_tool_outputs.tool_calls[0]
+                if run.required_action.submit_tool_outputs.tool_calls:
+                    call = run.required_action.submit_tool_outputs.tool_calls[0]
+                else:
+                    raise HTTPException(status_code=500, detail="No tool calls available in required action")
                 result = execute(call.name, call.arguments)
                 ai.beta.threads.runs.actions.submit(thread_id=thread_id, run_id=run.id, tool_outputs=[
                                                     {"tool_call_id": call.id, "output": result}])
         msgs = ai.beta.threads.messages.list(thread_id=thread_id)
         return JSONResponse({"answer": msgs.data[0].content[0].text.value, "thread_id": thread_id})
     except Exception as e:
-        print(f"🔥 Error in /api/chat: {e}")
-        raise HTTPException(status_code=500, detail=str(e))
-
 # --- GitHub Webhook Endpoint ---
 
+
+@app.post("/github/webhook")
+async def github_webhook(request: Request, x_hub_signature_256: str = Header(None)):
+    """
+    GitHub Webhook Endpoint.
+
+    This endpoint listens for GitHub webhook events, specifically pull request events.
+    It validates the webhook signature using the `x_hub_signature_256` header and processes
+    the payload if the event is a pull request being opened.
+
+    Headers:
+        - X-Hub-Signature-256: The HMAC SHA-256 signature of the payload, used for validation.
+
+    Payload:
+        - The JSON payload sent by GitHub, containing details about the event.
+
+    Behavior:
+        - Validates the signature to ensure the request is from GitHub.
+        - Processes "pull_request" events with the "opened" action.
+        - Creates a thread in the AI system and posts a message about the pull request.
+        - Executes any required actions and posts a comment on the pull request.
+
+    Returns:
+        - JSONResponse indicating the status of the webhook processing.
+    """
 
 @app.post("/github/webhook")
 async def github_webhook(request: Request, x_hub_signature_256: str = Header(None)):
     payload = await request.body()
     sig = hmac.new(GH_WEBHOOK_SECRET.encode(),
                    payload, hashlib.sha256).hexdigest()
-    if f"sha256={sig}" != x_hub_signature_256:
+    if x_hub_signature_256 is None or f"sha256={sig}" != x_hub_signature_256:
         raise HTTPException(status_code=403, detail="Invalid signature")
     evt = await request.json()
     if evt.get("action") == "opened" and request.headers.get("X-GitHub-Event") == "pull_request":
@@ -201,8 +227,10 @@ async def github_webhook(request: Request, x_hub_signature_256: str = Header(Non
                 ai.beta.threads.runs.actions.submit(thread_id=thread.id, run_id=run.id, tool_outputs=[
                                                     {"tool_call_id": call.id, "output": res}])
         ans = ai.beta.threads.messages.list(
-            thread_id=thread.id).data[0].content[0].text.value
-        gh = get_github()
+        if not isinstance(pr, dict):
+            raise ValueError("Expected 'pr' to be a dictionary.")
+        repo.create_issue_comment(
+            pr["number"], f"🤖 **Pink Book AI Review:**\n\n{ans}")
         repo = gh.get_repo(REPO_FULL)
         repo.create_issue_comment(
             pr.get("number"), f"🤖 **Pink Book AI Review:**\n\n{ans}")
