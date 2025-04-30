@@ -188,10 +188,7 @@
                 {% if purchased_item.item in equipped_items %}
                   <button type="submit">Unequip</button>
                 {% else %}
-                    <form action="{% url 'dressup:equip_item' purchased_item.item.id %}" method="post">
-                        {% csrf_token %}
-                        <button type="submit">Equip</button>
-                    </form>
+                  <button type="submit">Equip</button>
                 {% endif %}
               </form>
             </li>
