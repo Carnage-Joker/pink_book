@@ -18,7 +18,7 @@ class Item(models.Model):
         ('jewellery', 'Jewellery'),
         ('lingerie', 'Lingerie'),
         ('background', 'Background'),
-    )
+    ]
 
     name = models.CharField(max_length=100, unique=True)
     category = models.CharField(max_length=50, choices=CATEGORY_CHOICES)

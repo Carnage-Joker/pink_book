@@ -69,7 +69,7 @@ intel-cmplr-lib-ur==2025.0.4
 intel-openmp==2025.0.4
 isort==5.13.2
 itsdangerous==2.2.0
-Jinja2==3.1.4
+Jinja2==3.1.6
 jiter==0.8.0
 joblib==1.4.2
 jsonschema==4.23.0
