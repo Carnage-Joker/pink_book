@@ -54,7 +54,6 @@ def get_github():
 # --- Tool Call Execution ---
 
 
-
 def execute(tool, args):
     # Local operations
     if tool == "list_local_repo":
@@ -159,23 +158,35 @@ async def chat(request: Request):
     try:
         data = await request.json()
         message = data.get("message")
+        if not isinstance(message, str) or not message.strip():
+            raise HTTPException(
+                status_code=400,
+                detail="Request JSON must include a non-empty string field 'message'"
+            )
         thread_id = data.get("thread_id")
         if not thread_id:
             thread = ai.beta.threads.create()
             thread_id = thread.id
+
+        # Send user message
         ai.beta.threads.messages.create(
-            thread_id=thread_id, role="user", content=message)
+            thread_id=thread_id,
+            role="user",
+            content=message
+        )
+
+        # Kick off assistant run
         run = ai.beta.threads.runs.create(
-            thread_id=thread_id, assistant_id=ASSISTANT_ID)
+            thread_id=thread_id,
+            assistant_id=ASSISTANT_ID
+        )
+
+        # Handle any tool calls
         while run.status in ("queued", "in_progress", "requires_action"):
             run = ai.beta.threads.runs.retrieve(run.id, thread_id=thread_id)
-
             if run.status == "requires_action":
-                # Properly fetch the tool call
                 call = run.required_action.submit_tool_outputs.tool_calls[0]
                 result = execute(call.name, call.arguments)
-
-                # Submit the tool output
                 ai.beta.threads.runs.actions.submit(
                     thread_id=thread_id,
                     run_id=run.id,
@@ -185,28 +196,30 @@ async def chat(request: Request):
                     }]
                 )
 
-        # Gather final assistant response
+        # Collect assistant’s reply
         messages = ai.beta.threads.messages.list(thread_id=thread_id)
-        content_item = messages.data[0].content[0]
+        content_item = messages.data[-1].content[0]
         if hasattr(content_item, "text") and hasattr(content_item.text, "value"):
             response = content_item.text.value
         else:
             response = str(content_item)
 
-        return JSONResponse({
-            "answer": response,
-            "thread_id": thread_id
-        })
+        return JSONResponse({"answer": response, "thread_id": thread_id})
 
+    except HTTPException:
+        raise
     except Exception as e:
         print(f"🔥 Error in /api/chat: {e}")
         raise HTTPException(status_code=500, detail=str(e)) from e
 
 # --- GitHub Webhook Endpoint ---
+
+
 @app.post("/github/webhook")
 async def github_webhook(request: Request, x_hub_signature_256: str = Header(None)):
     payload = await request.body()
-    sig = hmac.new(GH_WEBHOOK_SECRET.encode(), payload, hashlib.sha256).hexdigest()
+    sig = hmac.new(GH_WEBHOOK_SECRET.encode(),
+                   payload, hashlib.sha256).hexdigest()
     if f"sha256={sig}" != x_hub_signature_256:
         raise HTTPException(status_code=403, detail="Invalid signature")
     evt = await request.json()
@@ -214,15 +227,21 @@ async def github_webhook(request: Request, x_hub_signature_256: str = Header(Non
         pr = evt["pull_request"]
         msg = f"A new PR by {pr['user']['login']}: {pr['title']}\n{pr['html_url']}"
         thread = ai.beta.threads.create()
-        ai.beta.threads.messages.create(thread_id=thread.id, role="user", content=msg)
-        run = ai.beta.threads.runs.create(thread_id=thread.id, assistant_id=ASSISTANT_ID)
+        ai.beta.threads.messages.create(
+            thread_id=thread.id, role="user", content=msg)
+        run = ai.beta.threads.runs.create(
+            thread_id=thread.id, assistant_id=ASSISTANT_ID)
         while run.status in ("queued", "in_progress", "requires_action"):
             run = ai.beta.threads.runs.retrieve(run.id, thread_id=thread.id)
             if run.status == "requires_action":
                 call = run.required_action.submit_tool_outputs.tool_calls[0]
                 res = execute(call.name, call.arguments)
-                ai.beta.threads.runs.actions.submit(thread_id=thread.id, run_id=run.id, tool_outputs=[{"tool_call_id": call.id, "output": res}])
-        ans = ai.beta.threads.messages.list(thread_id=thread.id).data[0].content[0].text.value
-        gh = get_github(); repo = gh.get_repo(REPO_FULL)
-        repo.create_issue_comment(pr.get("number"), f"🤖 **Pink Book AI Review:**\n\n{ans}")
+                ai.beta.threads.runs.actions.submit(thread_id=thread.id, run_id=run.id, tool_outputs=[
+                                                    {"tool_call_id": call.id, "output": res}])
+            ans = ai.beta.threads.messages.list(
+            thread_id=thread.id).data[0].content[0].text.value
+        gh = get_github()
+        repo = gh.get_repo(REPO_FULL)
+        repo.create_issue_comment(
+            pr.get("number"), f"🤖 **Pink Book AI Review:**\n\n{ans}")
     return JSONResponse({"status": "Webhook received and processed."})

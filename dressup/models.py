@@ -72,7 +72,6 @@ class Shop(models.Model):
     items = models.ManyToManyField(Item, related_name='shops')
     premium_only = models.BooleanField(default=False)
     is_locked = models.BooleanField(default=False)
-    is_locked = models.BooleanField(default=False)
     description = models.TextField(blank=True)
     image_path = models.CharField(max_length=200, blank=True, null=True)
     

@@ -1,18 +1,21 @@
 # views.py
 
 
-from .utils import sassy_success, sassy_error
+from .utils import sassy_success, sassy_error, sassy_info
 from django.http import HttpRequest, HttpResponse, JsonResponse
 from django.shortcuts import render, redirect, get_object_or_404
-from .utils import sassy_success
-from .models import Item, PurchasedItem
+# Removed redundant import of sassy_success
+from django.templatetags.static import static
+from .models import Item, PurchasedItem, Avatar
 from django.http import HttpRequest, HttpResponse
 from django.shortcuts import render, get_object_or_404, redirect
 from django.shortcuts import redirect, render, get_object_or_404
 
 
 # Constants
-AVATAR_LAYERS = ['body', 'skirt', 'top', 'shoes', 'hair', 'accessories']
+# Defines the layers used for avatar customization
+# List of default items assigned to a new avatar
+STARTER_ITEMS = ["Barely Boyish", "Tight Jeans", "Tank Top", "Sneakers"]
 STARTER_ITEMS = ["Barely Boyish", "Tight Jeans", "Tank Top", "Sneakers"]
 
 
@@ -125,7 +128,6 @@ def shop_detail(request: HttpRequest, shop_id: int) -> HttpResponse:
 
 @login_required
 @avatar_required
-
 def inventory_view(request: HttpRequest) -> HttpResponse:
     """
     Closet page:
@@ -148,7 +150,8 @@ def inventory_view(request: HttpRequest) -> HttpResponse:
     # ------------------------------------------------------------------ POST logic
     if request.method == 'POST':
         # 1) toggle equip / unequip via thumbnail button
-        if (item_id := request.POST.get('item_id')):
+        item_id = request.POST.get('item_id')
+        if item_id:
             item = get_object_or_404(Item, id=item_id)
             if item.id in equipped_item_ids:
                 avatar.unequip_item(item)
@@ -180,26 +183,8 @@ def inventory_view(request: HttpRequest) -> HttpResponse:
 
         else:
             sassy_error(request, "Nothing selected – please try again.")
-            
-def inventory_view(request: HttpRequest):
-    avatar = request.user.sissy_avatar
-    purchased_items = PurchasedItem.objects.filter(
-        user=request.user).select_related('item')
-
-    if request.method == 'POST':
-        item_id = request.POST.get('item_id')
-        item = get_object_or_404(Item, id=item_id)
-
-        if item in avatar.equipped_items.all():
-            avatar.unequip_item(item)
-            sassy_success(
-                request, f"{item.name} has been unequipped, darling!")
-        else:
-            avatar.equip_item(item)
-            sassy_success(request, f"{item.name} is fabulously equipped!")
-
+# Removed duplicate definition of inventory_view
         return redirect('dressup:inventory')
-
 
 
 # ------------------------------------------------------------------ context
@@ -217,7 +202,6 @@ def inventory_view(request: HttpRequest):
 # dressup/views.py  ──────────────────────────────────────────────────────────
 
 
-
 @login_required
 @avatar_required
 def equip_item_ajax(request: HttpRequest, item_id: int) -> JsonResponse:
@@ -225,7 +209,7 @@ def equip_item_ajax(request: HttpRequest, item_id: int) -> JsonResponse:
     item = get_object_or_404(Item, id=item_id)
 
     if avatar.equipped_items.filter(id=item.id).exists():
-        avatar.unequip_item(item)
+        'layer_keys': AVATAR_LAYERS,
         status = "unequipped"
     else:
         avatar.equip_item(item)
@@ -235,7 +219,9 @@ def equip_item_ajax(request: HttpRequest, item_id: int) -> JsonResponse:
         'status': status,
         'item_id': item_id,
         'message': f"{item.name} is now {status}!",
-        'image_url': static(item.image_path)
     })
+
+
 @login_required
+@avatar_required
 @avatar_required

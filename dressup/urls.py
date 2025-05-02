@@ -11,7 +11,7 @@ urlpatterns = [
     path('equip/<int:item_id>/', views.equip_item_ajax, name='equip_item'),
     path('story_intro/', views.story_intro_view, name='story_intro'),
     path('inventory/', views.inventory_view, name='inventory'),
-    path('dress-up/', views.dress_up_view.as.view, name='dress_up'),
+    path('dress-up/', views.dress_up_view, name='dress_up'),
     # Add more URLs as needed
 ]
 # dressup/urls.
