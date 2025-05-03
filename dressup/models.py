@@ -18,7 +18,7 @@ class Item(models.Model):
         ('jewellery', 'Jewellery'),
         ('lingerie', 'Lingerie'),
         ('background', 'Background'),
-    ]
+    )
 
     name = models.CharField(max_length=100, unique=True)
     category = models.CharField(max_length=50, choices=CATEGORY_CHOICES)
@@ -38,6 +38,7 @@ class Item(models.Model):
 
     def __str__(self):
         return self.name
+
 
 
 class Shop(models.Model):
@@ -62,8 +63,8 @@ class Shop(models.Model):
         ('cute', 'Cute'),
         ('hawt', 'Hawt'),
         ('sexy', 'Sexy'),
-    ]
-
+    )
+    
     name = models.CharField(max_length=100)
     shop_type = models.CharField(max_length=50, choices=SHOP_TYPE_CHOICES)
     shop_level = models.CharField(
@@ -71,15 +72,19 @@ class Shop(models.Model):
     items = models.ManyToManyField(Item, related_name='shops')
     premium_only = models.BooleanField(default=False)
     is_locked = models.BooleanField(default=False)
+    is_locked = models.BooleanField(default=False)
     description = models.TextField(blank=True)
     image_path = models.CharField(max_length=200, blank=True, null=True)
-
+    
     def get_image_url(self):
         default_image = 'dressup/shops/default.svg'
         return static(self.image_path or default_image)
 
     def __str__(self):
         return self.name
+
+
+User = get_user_model()
 
 
 class Avatar(models.Model):
@@ -91,12 +96,23 @@ class Avatar(models.Model):
     HAIR_COLOR_CHOICES = [('black', 'Black'), ('brunette', 'Brunette'),
                           ('blonde', 'Blonde'), ('red', 'Red'), ('pink', 'Pink')]
 
+    TOP_CHOICES = [
+        ('00', 'Basic Top'),
+        ('01', 'T-Shirt'),
+        ('02', 'Blouse'),
+        ('03', 'Crop Top'),
+        ('04', 'Bra'),
+        ('05', 'Corset'),
+        ('06', 'Bustier'),
+    ]
+
+    # Model Fields
     user = models.OneToOneField(
         User, on_delete=models.CASCADE, related_name='sissy_avatar')
     name = models.CharField(max_length=100, default="Sissy Avatar")
     body = models.CharField(max_length=2, choices=BODY_CHOICES, default='00')
     skin = models.CharField(max_length=2, choices=SKIN_CHOICES, default='00')
-    hair = models.CharField(max_length=2, choices=HAIR_CHOICES, default='00')
+    hair = models.CharField(max_length=20, choices=HAIR_CHOICES, default='00')
     hair_color = models.CharField(
         max_length=20, choices=HAIR_COLOR_CHOICES, default='black')
     story_started = models.BooleanField(default=False)

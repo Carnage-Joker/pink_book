@@ -347,11 +347,6 @@ class ProfileSettingsView(LoginRequiredMixin, SafeMixin, TemplateView):
         return context
 
 
-# Import models
-
-# Import AI & analytics utilities
-
-
 class DashboardView(LoginRequiredMixin, TemplateView):
     """Enhanced View for the user dashboard."""
     template_name = "dashboard.html"
@@ -422,11 +417,15 @@ class DashboardView(LoginRequiredMixin, TemplateView):
                 "most_active_hour": None,
             })
 
-        # ✅ Add profile and points data
+        # Profile and points
+        points = getattr(user, "points", 0)
+        profile_pic = self.get_profile_pic()
+
+        # Additional context
         context.update({
             "user": user,
-            "points": user.points,
-            "profile_pic": self.get_profile_pic(),
+            "points": points,
+            "profile_pic": profile_pic,
             "quote_of_the_day": self.get_quote_of_the_day(),
             "todos": todos,
             "habits": habits,

@@ -37,6 +37,12 @@ def sassy_error(request, message):
     """
     messages.add_message(request, messages.ERROR, message,
                          extra_tags='sassy-popup')
+def add_clothing_to_favorites(user, clothing_item):
+    
+
+
+def get_premium_items():
+    return Item.objects.filter(is_premium=True)
 
 
 def sassy_success(request, message):

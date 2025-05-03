@@ -16,6 +16,9 @@
     --font-family-heading: 'Amatic SC', cursive;
     --font-family-heading-alt: 'Indie Flower', cursive;
     --font-family-title-alt: 'Shadows Into Light', cursive;
+    --font-family-heading: 'Amatic SC', cursive;
+    --font-family-heading-alt: 'Indie Flower', cursive;
+    --font-family-title-alt: 'Shadows Into Light', cursive;
     --hover-transition: background-color 0.3s ease, color 0.3s ease;
     --spacing-small: 0.5rem;
     --spacing-medium: 1rem;
@@ -473,4 +476,3 @@ button:focus {
 .icon.updated {
     transform: scale(1.3);
 }
-
