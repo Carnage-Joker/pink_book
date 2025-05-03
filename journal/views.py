@@ -1,7 +1,8 @@
 
-
-from django.shortcuts import get_object_or_404
-from django.views.generic import DetailView
+from .models import Task, TaskCompletion
+from django.utils.decorators import method_decorator
+from django.shortcuts import redirect
+from django.http import JsonResponse
 import json
 import logging
 from datetime import date
@@ -626,7 +627,7 @@ class JournalEntryDeleteView(LoginRequiredMixin, DeleteView):
 
 
 def redeem_points(request):
-    user_points = CustomUser.objects.get(request.user).points
+    user_points = CustomUser.objects.get(pk=request.user.pk).points
     if request.method == "POST":
         points_to_redeem = int(request.POST.get("points", 0))
         if user_points.redeem_points(points_to_redeem):
@@ -642,11 +643,11 @@ def redeem_points(request):
 class TruthTaskGenerateView(LoginRequiredMixin, TemplateView):
     
     def get(self, request, *args, **kwargs):
-        if truth_task := generate_task_truth(request.user):
+        if truth_task := generate_truth_task(request.user):
             return redirect('journal:new_entry_with_task', task_id=str(truth_task.task_id))
         
         messages.error(
-            request, "Failed to generate taask. Please try again.")
+            request, "Failed to generate task. Please try again.")
         return redirect('journal:dashboard')
         
 
@@ -657,7 +658,7 @@ class TaskGenerateView(LoginRequiredMixin, TemplateView):
             return redirect('journal:new_entry_with_task', task_id=str(task.task_id))
 
         messages.error(
-            request, "Failed to generate a task. Please try again.")
+            request, "Failed to generate task. Please try again.")
         return redirect('journal:dashboard')
 
 
@@ -810,55 +811,49 @@ def generate_task_view(request):
     return JsonResponse({"error": "Invalid request method"}, status=400)
 
 
+logger = logging.getLogger(__name__)
 
 
-    
-
-
-@csrf_exempt
-def fail_task_view(request):
+@method_decorator(csrf_exempt, name='dispatch')
+class FailTaskView(View):
     """View to handle task failure and apply penalties."""
-
-    if request.method != "POST":
-        return JsonResponse({"error": "Invalid request method"}, status=400)
-    user = request.user
-    penalty_type = request.POST.get("penaltyType")
-    points_to_deduct = int(request.POST.get("pointsToDeduct", 0))
-    content_name = request.POST.get("contentName", "")
-
-    if penalty_type == "LOCK_CONTENT" and content_name:
-        user.lock_content(content_name)
-        message = (
-            f"{user.get_full_name()} has failed the task. Content '{
-                content_name}' is now locked."
-        )
-    elif penalty_type == "DEDUCT_POINTS":
-        user.deduct_points(points_to_deduct)
-        message = (
-            f"{user.get_full_name()} has failed the task. {
-                points_to_deduct} points have been deducted."
-        )
-    else:
-        message = "Invalid penalty type."
-
-    return JsonResponse({"message": message})
-
-
-class CompleteTaskView(View):
-    """View to mark a task as completed."""
 
     def post(self, request, *args, **kwargs):
         try:
             data = json.loads(request.body)
+            user = request.user
+            penalty_type = data.get("penaltyType")
+            points_to_deduct = int(data.get("points_to_deduct", 0))
+            content_name = data.get("contentName", "")
             task_id = data.get("task_id")
+
             task = Task.objects.get(id=task_id)
 
-            if not TaskCompletion.objects.filter(user=request.user, task=task).exists():
-                return redirect("journal:new_entry", task_id=task_id)
-            else:
+            # Check if task is already completed
+            if TaskCompletion.objects.filter(user=request.user, task=task).exists():
                 return JsonResponse(
-                    {"status": "error", "message": "Task already completed"}, status=400
+                    {"status": "error", "message": "Task already completed"},
+                    status=400
                 )
+
+            # Apply penalties
+            if penalty_type == "LOCK_CONTENT" and content_name:
+                user.lock_content(content_name)
+                message = (
+                    f"{user.get_full_name()} has failed the task. "
+                    f"Content '{content_name}' is now locked."
+                )
+            elif penalty_type == "DEDUCT_POINTS":
+                user.deduct_points(points_to_deduct)
+                message = (
+                    f"{user.get_full_name()} has failed the task. "
+                    f"{points_to_deduct} points have been deducted."
+                )
+            else:
+                return JsonResponse({"status": "error", "message": "Invalid penalty type."}, status=400)
+
+            return JsonResponse({"status": "success", "message": message})
+
         except Task.DoesNotExist:
             logger.error(f"Task with ID {task_id} does not exist.")
             return JsonResponse(
@@ -869,9 +864,8 @@ class CompleteTaskView(View):
                 {"status": "error", "message": "Invalid JSON format"}, status=400
             )
         except Exception as e:
-            logger.error(f"Error completing task: {str(e)}")
+            logger.error(f"Error processing task failure: {str(e)}")
             return JsonResponse({"status": "error", "message": str(e)}, status=500)
-
 
 # Forum and Blog Views
 class BlogListView(ListView):
@@ -1086,13 +1080,13 @@ class AnswerCreateView(LoginRequiredMixin, CreateView):
     fields = ["answer"]
     template_name = "answer_form.html"
 
-    def dispatch(request, *args, **kwargs):
+    def dispatch(self, request, *args, **kwargs):
         user = CustomUser.objects.get(pk=request.user.pk)
         if not user.is_premium and not user.is_moderator_or_admin:
             return HttpResponseForbidden(
-                "You must be a premium subscriber, moderator, or admin to answer questions."
+                "You do not have permission to access this page."
             )
-        return super().dispatch(*args, **kwargs)
+        return super().dispatch(request, *args, **kwargs)
 
     def form_valid(self, form):
         form.instance.professional = self.request.user
