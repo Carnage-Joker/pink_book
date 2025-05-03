@@ -1,7 +1,11 @@
+from github import Github  # (you already have this)
 from fastapi import FastAPI, Request, Header, HTTPException
 from fastapi.responses import JSONResponse
 from openai import OpenAI
 from github import Github, Auth
+from github.ContentFile import ContentFile
+from github.Repository import Repository
+
 import os
 import json
 import subprocess
@@ -9,6 +13,7 @@ import hmac
 import hashlib
 import tempfile
 from dotenv import load_dotenv
+from typing import Any, Dict, Optional
 
 # Load environment variables
 t = load_dotenv()
@@ -46,108 +51,121 @@ LOCAL_REPO_PATH = os.getenv("LOCAL_REPO_PATH")
 
 
 def get_github():
+    assert GH_APP_KEY_PATH is not None, "GH_APP_KEY_PATH environment variable is not set"
     private_key = open(GH_APP_KEY_PATH).read()
-    auth = Auth.AppAuth(app_id=GH_APP_ID, private_key=private_key)
-    token = auth.get_installation_access_token(GH_INSTALL_ID).token
+    from github import GithubIntegration
+    integration = GithubIntegration(integration_id=GH_APP_ID, private_key=private_key)
+    assert GH_INSTALL_ID is not None, "GH_INSTALL_ID environment variable must be set"
+    token: str = integration.get_access_token(int(GH_INSTALL_ID)).token
     return Github(token)
 
 # --- Tool Call Execution ---
 
 
-def execute(tool, args):
-    # Local operations
+def execute_local(tool: str, args: Dict[str, Any]) -> Optional[str]:
+    if LOCAL_REPO_PATH is None or not os.path.exists(LOCAL_REPO_PATH):
+        raise RuntimeError(
+            f"❌ LOCAL_REPO_PATH does not exist: {LOCAL_REPO_PATH}")
     if tool == "list_local_repo":
-        paths = []
+        paths: list[str] = []
         for root, _, files in os.walk(LOCAL_REPO_PATH):
             for f in files:
                 p = os.path.relpath(os.path.join(root, f), LOCAL_REPO_PATH)
                 paths.append(p)
         return json.dumps(paths)
-
-    if tool == "get_local_file":
-        path = args.get("path")
+    elif tool == "get_local_file":
+        path = str(args.get("path"))
         full = os.path.join(LOCAL_REPO_PATH, path)
         with open(full, encoding="utf-8") as f:
             return f.read()
-
-    if tool == "run_local_tests":
+    elif tool == "run_local_tests":
         cmd = ["pytest", "-q"]
-        res = subprocess.run(cmd, cwd=LOCAL_REPO_PATH,
-                             capture_output=True, text=True)
+        res = subprocess.run(cmd, cwd=LOCAL_REPO_PATH, capture_output=True, text=True)
         return res.stdout + res.stderr
-
-    if tool == "create_local_branch":
+    elif tool == "create_local_branch":
         diff = args.get("diff")
         title = args.get("title")
         branch = "ai-fix-local-" + os.urandom(4).hex()
-        subprocess.run(["git", "-C", LOCAL_REPO_PATH,
-                       "checkout", "-b", branch], check=True)
-        proc = subprocess.Popen(
-            ["git", "-C", LOCAL_REPO_PATH, "apply"], stdin=subprocess.PIPE, text=True)
+        subprocess.run(["git", "-C", LOCAL_REPO_PATH, "checkout", "-b", branch], check=True)
+        proc = subprocess.Popen(["git", "-C", LOCAL_REPO_PATH, "apply"], stdin=subprocess.PIPE, text=True)
         proc.communicate(diff)
         subprocess.run(["git", "-C", LOCAL_REPO_PATH, "add", "."], check=True)
-        subprocess.run(["git", "-C", LOCAL_REPO_PATH,
-                       "commit", "-m", title], check=True)
+        if not isinstance(title, str) or not title:
+            raise ValueError("Title must be a non-empty string")
+        commit_cmd = [
+            "git",
+            "-C",
+            LOCAL_REPO_PATH,
+            "commit",
+            "-m",
+            title
+        ]
+        subprocess.run(commit_cmd, check=True)
         return branch
+    return None
 
-    # GitHub-based operations
-    gh = get_github()
-    repo = gh.get_repo(REPO_FULL)
 
+def execute_remote(
+    tool: str,
+    args: Dict[str, Any],
+    repo: Repository,
+    gh: Github,
+) -> Optional[str]:
     if tool == "list_repo":
-        contents = repo.get_contents("")
-        return json.dumps([item.path for item in contents])
 
-    if tool == "get_file":
+        contents = repo.get_contents("")
+        if not isinstance(contents, list):
+            contents = [contents]
+        return json.dumps([item.path for item in contents])
+    elif tool == "get_file":
         file = repo.get_contents(args["path"])
         return file.decoded_content.decode()
-
-    if tool == "run_tests":
+    elif tool == "run_tests":
         pattern = args.get("pattern", "")
         cmd = ["pytest", "-q"]
         if pattern:
             cmd.append(pattern)
         res = subprocess.run(cmd, capture_output=True, text=True)
         return res.stdout + res.stderr
-
-    if tool == "create_branch_pr":
+    elif tool == "create_branch_pr":
         diff = args["diff"]
         title = args["title"]
         body = args["body"]
         tmpdir = tempfile.mkdtemp()
-        auth_app = Auth.AppAuth(
-            app_id=GH_APP_ID, private_key=open(GH_APP_KEY_PATH).read())
+        auth_app = Auth.AppAuth(app_id=GH_APP_ID, private_key=open(GH_APP_KEY_PATH).read())
         token = auth_app.get_installation_access_token(GH_INSTALL_ID).token
         repo_url = f"https://x-access-token:{token}@github.com/{REPO_FULL}.git"
         subprocess.run(["git", "clone", repo_url, tmpdir], check=True)
         branch = "ai-fix-" + os.urandom(4).hex()
-        subprocess.run(["git", "-C", tmpdir, "checkout",
-                       "-b", branch], check=True)
-        p = subprocess.Popen(["git", "-C", tmpdir, "apply"],
-                             stdin=subprocess.PIPE, text=True)
+        subprocess.run(["git", "-C", tmpdir, "checkout", "-b", branch], check=True)
+        p = subprocess.Popen(["git", "-C", tmpdir, "apply"], stdin=subprocess.PIPE, text=True)
         p.communicate(diff)
         subprocess.run(["git", "-C", tmpdir, "add", "."], check=True)
-        subprocess.run(
-            ["git", "-C", tmpdir, "commit", "-m", title], check=True)
-        subprocess.run(["git", "-C", tmpdir, "push",
-                       "origin", branch], check=True)
+        subprocess.run(["git", "-C", tmpdir, "commit", "-m", title], check=True)
+        subprocess.run(["git", "-C", tmpdir, "push", "origin", branch], check=True)
         pr = repo.create_pull(title=title, body=body, head=branch, base="main")
         return pr.html_url
-
-    if tool == "get_pr_diff":
+    elif tool == "get_pr_diff":
         pr = repo.get_pull(args.get("pr_number"))
         return pr.diff_url or pr.patch_url
-
-    if tool == "search_code":
+    elif tool == "search_code":
         query = args.get("query")
         results = gh.search_code(query + f" repo:{REPO_FULL}")
         return json.dumps([item.path for item in results])
-
-    if tool == "run_lint":
-        res = subprocess.run(["flake8"], cwd=LOCAL_REPO_PATH,
-                             capture_output=True, text=True)
+    elif tool == "run_lint":
+        res = subprocess.run(["flake8"], cwd=LOCAL_REPO_PATH, capture_output=True, text=True)
         return res.stdout + res.stderr
+    return None
 
+def execute(tool: str, args: dict) -> str:
+    result = execute_local(tool, args)
+    if result is not None:
+        return result
+    gh = get_github()
+    repo = gh.get_repo(REPO_FULL)
+    result = execute_remote(tool, args, repo, gh)
+    if result is not None:
+        return result
     return "Unknown tool"
 
 # --- Chat Endpoint ---
