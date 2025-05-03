@@ -35,6 +35,10 @@ def create_avatar_view(request: HttpRequest) -> HttpResponse:
             avatar.skin = form.cleaned_data['skin']
             avatar.save()
 
+            # Equip the default starter outfit safely
+            starter_items = ["Barely Boyish",
+                             "Tight Jeans", "Tank Top", "Sneakers"]
+            for item_name in starter_items:
             for item_name in STARTER_ITEMS:
                 item = Item.objects.filter(name=item_name).first()
                 if item:
