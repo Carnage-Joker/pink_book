@@ -18,7 +18,7 @@ class Item(models.Model):
         ('jewellery', 'Jewellery'),
         ('lingerie', 'Lingerie'),
         ('background', 'Background'),
-    )
+    ]
 
     name = models.CharField(max_length=100, unique=True)
     category = models.CharField(max_length=50, choices=CATEGORY_CHOICES)
@@ -71,7 +71,6 @@ class Shop(models.Model):
         max_length=50, choices=SHOP_LEVEL_CHOICES, default='basic')
     items = models.ManyToManyField(Item, related_name='shops')
     premium_only = models.BooleanField(default=False)
-    is_locked = models.BooleanField(default=False)
     is_locked = models.BooleanField(default=False)
     description = models.TextField(blank=True)
     image_path = models.CharField(max_length=200, blank=True, null=True)

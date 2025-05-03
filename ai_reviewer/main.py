@@ -1,15 +1,22 @@
+from github import Github  # (you already have this)
 from fastapi import FastAPI, Request, Header, HTTPException
 from fastapi.responses import JSONResponse
 from openai import OpenAI
 from github import Github, Auth
+from github.ContentFile import ContentFile
+from github.Repository import Repository
+
 import os
 import json
 import subprocess
 import hmac
 import hashlib
+import tempfile
 from dotenv import load_dotenv
+from typing import Any, Dict, Optional
 
-load_dotenv()
+# Load environment variables
+t = load_dotenv()
 
 # --- Environment Validation ---
 REQUIRED_ENV_VARS = [
@@ -18,12 +25,13 @@ REQUIRED_ENV_VARS = [
     "GH_APP_ID",
     "GH_INSTALL_ID",
     "GH_WEBHOOK_SECRET",
-    "GH_APP_KEY_PATH"
+    "GH_APP_KEY_PATH",
+    "LOCAL_REPO_PATH"
 ]
-
-if missing_vars := [var for var in REQUIRED_ENV_VARS if not os.getenv(var)]:
-    missing = ", ".join(missing_vars)
-    raise RuntimeError(f"❌ Missing required environment variables: {missing}")
+missing = [v for v in REQUIRED_ENV_VARS if not os.getenv(v)]
+if missing:
+    raise RuntimeError(
+        f"❌ Missing required environment variables: {', '.join(missing)}")
 
 # --- Configuration ---
 app = FastAPI()
@@ -37,49 +45,127 @@ GH_WEBHOOK_SECRET = os.getenv("GH_WEBHOOK_SECRET")
 GH_APP_KEY_PATH = os.getenv("GH_APP_KEY_PATH")
 GH_INSTALL_ID = os.getenv("GH_INSTALL_ID")
 GH_APP_ID = os.getenv("GH_APP_ID")
-OPENAI_API_KEY = os.getenv("OPENAI_API_KEY")
+LOCAL_REPO_PATH = os.getenv("LOCAL_REPO_PATH")
 
 # --- GitHub Auth via App Installation ---
 
 
 def get_github():
-    with open(GH_APP_KEY_PATH) as key_file:
-        private_key = key_file.read()
-    auth = Auth.AppAuth(
-        app_id=GH_APP_ID,
-        private_key=private_key,
-    )
-    install_token = auth.get_installation_access_token(GH_INSTALL_ID)
-    return Github(install_token.token)
+    assert GH_APP_KEY_PATH is not None, "GH_APP_KEY_PATH environment variable is not set"
+    private_key = open(GH_APP_KEY_PATH).read()
+    from github import GithubIntegration
+    integration = GithubIntegration(integration_id=GH_APP_ID, private_key=private_key)
+    assert GH_INSTALL_ID is not None, "GH_INSTALL_ID environment variable must be set"
+    token: str = integration.get_access_token(int(GH_INSTALL_ID)).token
+    return Github(token)
 
 # --- Tool Call Execution ---
 
 
-def execute(tool, args):
-    gh = get_github()
-    repo = gh.get_repo(REPO_FULL)
+def execute_local(tool: str, args: Dict[str, Any]) -> Optional[str]:
+    if LOCAL_REPO_PATH is None or not os.path.exists(LOCAL_REPO_PATH):
+        raise RuntimeError(
+            f"❌ LOCAL_REPO_PATH does not exist: {LOCAL_REPO_PATH}")
+    if tool == "list_local_repo":
+        paths: list[str] = []
+        for root, _, files in os.walk(LOCAL_REPO_PATH):
+            for f in files:
+                p = os.path.relpath(os.path.join(root, f), LOCAL_REPO_PATH)
+                paths.append(p)
+        return json.dumps(paths)
+    elif tool == "get_local_file":
+        path = str(args.get("path"))
+        full = os.path.join(LOCAL_REPO_PATH, path)
+        with open(full, encoding="utf-8") as f:
+            return f.read()
+    elif tool == "run_local_tests":
+        cmd = ["pytest", "-q"]
+        res = subprocess.run(cmd, cwd=LOCAL_REPO_PATH, capture_output=True, text=True)
+        return res.stdout + res.stderr
+    elif tool == "create_local_branch":
+        diff = args.get("diff")
+        title = args.get("title")
+        branch = "ai-fix-local-" + os.urandom(4).hex()
+        subprocess.run(["git", "-C", LOCAL_REPO_PATH, "checkout", "-b", branch], check=True)
+        proc = subprocess.Popen(["git", "-C", LOCAL_REPO_PATH, "apply"], stdin=subprocess.PIPE, text=True)
+        proc.communicate(diff)
+        subprocess.run(["git", "-C", LOCAL_REPO_PATH, "add", "."], check=True)
+        if not isinstance(title, str) or not title:
+            raise ValueError("Title must be a non-empty string")
+        commit_cmd = [
+            "git",
+            "-C",
+            LOCAL_REPO_PATH,
+            "commit",
+            "-m",
+            title
+        ]
+        subprocess.run(commit_cmd, check=True)
+        return branch
+    return None
 
+
+def execute_remote(
+    tool: str,
+    args: Dict[str, Any],
+    repo: Repository,
+    gh: Github,
+) -> Optional[str]:
     if tool == "list_repo":
-        contents = repo.get_contents("")
-        return json.dumps([item.path for item in contents])
 
+        contents = repo.get_contents("")
+        if not isinstance(contents, list):
+            contents = [contents]
+        return json.dumps([item.path for item in contents])
     elif tool == "get_file":
         file = repo.get_contents(args["path"])
         return file.decoded_content.decode()
-
     elif tool == "run_tests":
-        result = subprocess.run(
-            ["pytest", "-q"], capture_output=True, text=True)
-        return result.stdout + result.stderr
-
+        pattern = args.get("pattern", "")
+        cmd = ["pytest", "-q"]
+        if pattern:
+            cmd.append(pattern)
+        res = subprocess.run(cmd, capture_output=True, text=True)
+        return res.stdout + res.stderr
     elif tool == "create_branch_pr":
-        title, body, diff = args["title"], args["body"], args["diff"]
-        branch = "ai-" + os.urandom(4).hex()
-        base_sha = repo.get_branch("main").commit.sha
-        repo.create_git_ref(ref=f"refs/heads/{branch}", sha=base_sha)
+        diff = args["diff"]
+        title = args["title"]
+        body = args["body"]
+        tmpdir = tempfile.mkdtemp()
+        auth_app = Auth.AppAuth(app_id=GH_APP_ID, private_key=open(GH_APP_KEY_PATH).read())
+        token = auth_app.get_installation_access_token(GH_INSTALL_ID).token
+        repo_url = f"https://x-access-token:{token}@github.com/{REPO_FULL}.git"
+        subprocess.run(["git", "clone", repo_url, tmpdir], check=True)
+        branch = "ai-fix-" + os.urandom(4).hex()
+        subprocess.run(["git", "-C", tmpdir, "checkout", "-b", branch], check=True)
+        p = subprocess.Popen(["git", "-C", tmpdir, "apply"], stdin=subprocess.PIPE, text=True)
+        p.communicate(diff)
+        subprocess.run(["git", "-C", tmpdir, "add", "."], check=True)
+        subprocess.run(["git", "-C", tmpdir, "commit", "-m", title], check=True)
+        subprocess.run(["git", "-C", tmpdir, "push", "origin", branch], check=True)
         pr = repo.create_pull(title=title, body=body, head=branch, base="main")
         return pr.html_url
+    elif tool == "get_pr_diff":
+        pr = repo.get_pull(args.get("pr_number"))
+        return pr.diff_url or pr.patch_url
+    elif tool == "search_code":
+        query = args.get("query")
+        results = gh.search_code(query + f" repo:{REPO_FULL}")
+        return json.dumps([item.path for item in results])
+    elif tool == "run_lint":
+        res = subprocess.run(["flake8"], cwd=LOCAL_REPO_PATH, capture_output=True, text=True)
+        return res.stdout + res.stderr
+    return None
 
+def execute(tool: str, args: dict) -> str:
+    result = execute_local(tool, args)
+    if result is not None:
+        return result
+    gh = get_github()
+    repo = gh.get_repo(REPO_FULL)
+    result = execute_remote(tool, args, repo, gh)
+    if result is not None:
+        return result
     return "Unknown tool"
 
 # --- Chat Endpoint ---
@@ -90,30 +176,35 @@ async def chat(request: Request):
     try:
         data = await request.json()
         message = data.get("message")
+        if not isinstance(message, str) or not message.strip():
+            raise HTTPException(
+                status_code=400,
+                detail="Request JSON must include a non-empty string field 'message'"
+            )
         thread_id = data.get("thread_id")
-
         if not thread_id:
             thread = ai.beta.threads.create()
             thread_id = thread.id
 
+        # Send user message
         ai.beta.threads.messages.create(
             thread_id=thread_id,
             role="user",
             content=message
         )
 
+        # Kick off assistant run
         run = ai.beta.threads.runs.create(
             thread_id=thread_id,
             assistant_id=ASSISTANT_ID
         )
 
+        # Handle any tool calls
         while run.status in ("queued", "in_progress", "requires_action"):
             run = ai.beta.threads.runs.retrieve(run.id, thread_id=thread_id)
-
             if run.status == "requires_action":
                 call = run.required_action.submit_tool_outputs.tool_calls[0]
                 result = execute(call.name, call.arguments)
-
                 ai.beta.threads.runs.actions.submit(
                     thread_id=thread_id,
                     run_id=run.id,
@@ -123,11 +214,18 @@ async def chat(request: Request):
                     }]
                 )
 
+        # Collect assistant’s reply
         messages = ai.beta.threads.messages.list(thread_id=thread_id)
-        response = messages.data[0].content[0].text.value
+        content_item = messages.data[-1].content[0]
+        if hasattr(content_item, "text") and hasattr(content_item.text, "value"):
+            response = content_item.text.value
+        else:
+            response = str(content_item)
 
-        return JSONResponse({"answer": response, "thread_id": thread_id}) # Test for reviwer1
+        return JSONResponse({"answer": response, "thread_id": thread_id})
 
+    except HTTPException:
+        raise
     except Exception as e:
         print(f"🔥 Error in /api/chat: {e}")
         raise HTTPException(status_code=500, detail=str(e)) from e
@@ -138,62 +236,30 @@ async def chat(request: Request):
 @app.post("/github/webhook")
 async def github_webhook(request: Request, x_hub_signature_256: str = Header(None)):
     payload = await request.body()
-    secret = GH_WEBHOOK_SECRET.encode()
-    expected_sig = "sha256=" + \
-        hmac.new(secret, payload, hashlib.sha256).hexdigest()
-
-    if not hmac.compare_digest(expected_sig, x_hub_signature_256):
+    sig = hmac.new(GH_WEBHOOK_SECRET.encode(),
+                   payload, hashlib.sha256).hexdigest()
+    if f"sha256={sig}" != x_hub_signature_256:
         raise HTTPException(status_code=403, detail="Invalid signature")
-
-    event = await request.json()
-    action = event.get("action")
-    event_type = request.headers.get("X-GitHub-Event")
-
-    print(f"🔔 GitHub Event: {event_type} | Action: {action}")
-
-    if event_type == "pull_request" and action == "opened":
-        pr = event.get("pull_request", {})
-        pr_title = pr.get("title")
-        pr_url = pr.get("html_url")
-        pr_user = pr.get("user", {}).get("login")
-        pr_number = pr.get("number")
-
-        message = f"""A new PR was opened by {pr_user}: {pr_title}
-{pr_url}
-Review the code and suggest improvements."""
-
+    evt = await request.json()
+    if evt.get("action") == "opened" and request.headers.get("X-GitHub-Event") == "pull_request":
+        pr = evt["pull_request"]
+        msg = f"A new PR by {pr['user']['login']}: {pr['title']}\n{pr['html_url']}"
         thread = ai.beta.threads.create()
-        thread_id = thread.id
         ai.beta.threads.messages.create(
-            thread_id=thread_id, role="user", content=message)
-
+            thread_id=thread.id, role="user", content=msg)
         run = ai.beta.threads.runs.create(
-            thread_id=thread_id, assistant_id=ASSISTANT_ID)
-
+            thread_id=thread.id, assistant_id=ASSISTANT_ID)
         while run.status in ("queued", "in_progress", "requires_action"):
-            run = ai.beta.threads.runs.retrieve(run.id, thread_id=thread_id)
-
+            run = ai.beta.threads.runs.retrieve(run.id, thread_id=thread.id)
             if run.status == "requires_action":
                 call = run.required_action.submit_tool_outputs.tool_calls[0]
-                result = execute(call.name, call.arguments)
-
-                ai.beta.threads.runs.actions.submit(
-                    thread_id=thread_id,
-                    run_id=run.id,
-                    tool_outputs=[{
-                        "tool_call_id": call.id,
-                        "output": result
-                    }]
-                )
-
-        messages = ai.beta.threads.messages.list(thread_id=thread_id)
-        response = messages.data[0].content[0].text.value
-
+                res = execute(call.name, call.arguments)
+                ai.beta.threads.runs.actions.submit(thread_id=thread.id, run_id=run.id, tool_outputs=[
+                                                    {"tool_call_id": call.id, "output": res}])
+            ans = ai.beta.threads.messages.list(
+            thread_id=thread.id).data[0].content[0].text.value
         gh = get_github()
         repo = gh.get_repo(REPO_FULL)
         repo.create_issue_comment(
-            pr_number,
-            f"🤖 **Pink Book AI Review:**\n\n{response}"
-        )
-
+            pr.get("number"), f"🤖 **Pink Book AI Review:**\n\n{ans}")
     return JSONResponse({"status": "Webhook received and processed."})
