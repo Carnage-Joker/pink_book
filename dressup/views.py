@@ -1,12 +1,15 @@
 # views.py
 
-
+from .decorators import avatar_required
 from .utils import sassy_success, sassy_error, sassy_info
 from django.http import HttpRequest, HttpResponse, JsonResponse
 from django.shortcuts import render, redirect, get_object_or_404
 # Removed redundant import of sassy_success
 from django.templatetags.static import static
-from .models import Item, PurchasedItem, Avatar
+from .models import Item, PurchasedItem, Avatar, Shop
+from django.contrib.auth.decorators import login_required
+from .forms import AvatarCreationForm
+from django.core.paginator import Paginator
 from django.http import HttpRequest, HttpResponse
 from django.shortcuts import render, get_object_or_404, redirect
 from django.shortcuts import redirect, render, get_object_or_404
@@ -15,7 +18,6 @@ from django.shortcuts import redirect, render, get_object_or_404
 # Constants
 # Defines the layers used for avatar customization
 # List of default items assigned to a new avatar
-STARTER_ITEMS = ["Barely Boyish", "Tight Jeans", "Tank Top", "Sneakers"]
 STARTER_ITEMS = ["Barely Boyish", "Tight Jeans", "Tank Top", "Sneakers"]
 
 
@@ -41,7 +43,6 @@ def create_avatar_view(request: HttpRequest) -> HttpResponse:
             # Equip the default starter outfit safely
             starter_items = ["Barely Boyish",
                              "Tight Jeans", "Tank Top", "Sneakers"]
-            for item_name in starter_items:
             for item_name in STARTER_ITEMS:
                 item = Item.objects.filter(name=item_name).first()
                 if item:
@@ -190,7 +191,6 @@ def inventory_view(request: HttpRequest) -> HttpResponse:
 # Removed duplicate definition of inventory_view
         return redirect('dressup:inventory')
 
-
 # ------------------------------------------------------------------ context
     context = {
         'avatar': avatar,
@@ -213,7 +213,6 @@ def equip_item_ajax(request: HttpRequest, item_id: int) -> JsonResponse:
     item = get_object_or_404(Item, id=item_id)
 
     if avatar.equipped_items.filter(id=item.id).exists():
-        'layer_keys': AVATAR_LAYERS,
         status = "unequipped"
     else:
         avatar.equip_item(item)
@@ -224,8 +223,4 @@ def equip_item_ajax(request: HttpRequest, item_id: int) -> JsonResponse:
         'item_id': item_id,
         'message': f"{item.name} is now {status}!",
     })
-
-
-@login_required
-@avatar_required
-@avatar_required
+    

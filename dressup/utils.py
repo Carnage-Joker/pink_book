@@ -6,6 +6,7 @@ from django.contrib.auth.decorators import login_required
 from django.contrib import messages
 from django.http import HttpRequest, HttpResponse
 from .models import Item
+from django.contrib.auth.models import AbstractBaseUser
 
 
 def get_default_user():
@@ -15,7 +16,7 @@ def get_default_user():
     return get_user_model().objects.get_or_create(username='defaultuser')[0]
 
 
-def handle_error(request, message, redirect_url):
+def handle_error(request: HttpRequest, message: str, redirect_url: str):
     sassy_error(request, message)
     return redirect(redirect_url)
 
@@ -23,7 +24,7 @@ def handle_error(request, message, redirect_url):
 # utils.py
 
 
-def sassy_info(request, message):
+def sassy_info(request: HttpRequest, message: str):
     """
     Adds an informational sassy pop-up message.
     """
@@ -31,14 +32,28 @@ def sassy_info(request, message):
                          extra_tags='sassy-popup')
 
 
-def sassy_error(request, message):
+def sassy_error(request: HttpRequest, message: str):
     """
     Adds an error sassy pop-up message.
     """
     messages.add_message(request, messages.ERROR, message,
                          extra_tags='sassy-popup')
-def add_clothing_to_favorites(user, clothing_item):
-    
+
+
+
+def add_clothing_to_favorites(user: AbstractBaseUser, item: Item) -> bool:
+    """
+    Adds a clothing item to the user's favorites.
+    Assumes the user model has a 'favorites' ManyToManyField to Item.
+    """
+    if not hasattr(user, 'favorites') or not callable(getattr(user.favorites, 'all', None)):
+        raise AttributeError("User object does not have a 'favorites' attribute with an 'all()' method.")
+    if not user.is_authenticated:
+        return False
+    if item in user.favorites.all():
+        return False
+    user.favorites.add(item)
+    return True    
 
 
 def get_premium_items():

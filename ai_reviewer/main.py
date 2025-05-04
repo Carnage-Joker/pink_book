@@ -12,8 +12,10 @@ import subprocess
 import hmac
 import hashlib
 import tempfile
+import requests
 from dotenv import load_dotenv
 from typing import Any, Dict, Optional
+from github import GithubIntegration
 
 # Load environment variables
 t = load_dotenv()
@@ -132,8 +134,12 @@ def execute_remote(
         title = args["title"]
         body = args["body"]
         tmpdir = tempfile.mkdtemp()
-        auth_app = Auth.AppAuth(app_id=GH_APP_ID, private_key=open(GH_APP_KEY_PATH).read())
-        token = auth_app.get_installation_access_token(GH_INSTALL_ID).token
+        if GH_APP_KEY_PATH is None:
+            raise RuntimeError("GH_APP_KEY_PATH environment variable must be set")
+        if GH_APP_ID is None:
+            raise RuntimeError("GH_APP_ID environment variable must be set")
+        integration = GithubIntegration(integration_id=int(GH_APP_ID), private_key=open(GH_APP_KEY_PATH).read())
+        token = integration.get_access_token(int(GH_INSTALL_ID)).token
         repo_url = f"https://x-access-token:{token}@github.com/{REPO_FULL}.git"
         subprocess.run(["git", "clone", repo_url, tmpdir], check=True)
         branch = "ai-fix-" + os.urandom(4).hex()
@@ -146,8 +152,10 @@ def execute_remote(
         pr = repo.create_pull(title=title, body=body, head=branch, base="main")
         return pr.html_url
     elif tool == "get_pr_diff":
-        pr = repo.get_pull(args.get("pr_number"))
-        return pr.diff_url or pr.patch_url
+        pr = repo.get_pull(args["pr_number"])
+        # fetch the patch
+        patch_resp = requests.get(pr.patch_url)
+        return patch_resp.text
     elif tool == "search_code":
         query = args.get("query")
         results = gh.search_code(query + f" repo:{REPO_FULL}")
@@ -194,6 +202,8 @@ async def chat(request: Request):
         )
 
         # Kick off assistant run
+        if ASSISTANT_ID is None:
+            raise HTTPException(status_code=500, detail="ASSISTANT_ID environment variable is not set")
         run = ai.beta.threads.runs.create(
             thread_id=thread_id,
             assistant_id=ASSISTANT_ID
@@ -203,16 +213,24 @@ async def chat(request: Request):
         while run.status in ("queued", "in_progress", "requires_action"):
             run = ai.beta.threads.runs.retrieve(run.id, thread_id=thread_id)
             if run.status == "requires_action":
-                call = run.required_action.submit_tool_outputs.tool_calls[0]
-                result = execute(call.name, call.arguments)
-                ai.beta.threads.runs.actions.submit(
-                    thread_id=thread_id,
-                    run_id=run.id,
-                    tool_outputs=[{
-                        "tool_call_id": call.id,
-                        "output": result
-                    }]
-                )
+                if (
+                    hasattr(run, "required_action")
+                    and run.required_action is not None
+                    and hasattr(run.required_action, "submit_tool_outputs")
+                    and hasattr(run.required_action.submit_tool_outputs, "tool_calls")
+                ):
+                    call: Any = run.required_action.submit_tool_outputs.tool_calls[0]
+                    result = execute(call["name"], call["arguments"])
+                    ai.beta.threads.runs.actions.submit(
+                        thread_id=thread_id,
+                        run_id=run.id,
+                        tool_outputs=[{
+                            "tool_call_id": call.id,
+                            "output": result
+                        }]
+                    )
+                else:
+                    raise HTTPException(status_code=500, detail="Missing required_action or submit_tool_outputs in run object")
 
         # Collect assistant’s reply
         messages = ai.beta.threads.messages.list(thread_id=thread_id)

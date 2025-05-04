@@ -1,34 +1,48 @@
 from django.contrib import admin
-from .models import Avatar, Shop, Item, PurchasedItem
-
-
-@admin.register(Avatar)
-class AvatarAdmin(admin.ModelAdmin):
-    list_display = ('user', 'name', 'skin', 'body', 'hair', 'hair_color', 'shoes', 'accessories', 'skirt', 'top', 'created_at')
-    list_filter = ('skin', 'body', 'hair', 'shoes', 'accessories', 'skirt', 'top', 'created_at')
-    search_fields = ('user__sissy_name', 'name')
-    actions = ['reset_avatar']
-
-
-@admin.register(Shop)
-class ShopAdmin(admin.ModelAdmin):
-    list_display = ('name', 'description', 'shop_type', 'image_path', 'premium_only', 'is_locked', 'shop_level')
-    list_filter = ('shop_type', 'premium_only')
-    search_fields = ('name', 'shop_type')
-    actions = ['make_premium_only', 'make_not_premium_only', 'lock_shops', 'unlock_shops']
+from .models import Item, Shop, Avatar, PurchasedItem, PhotoShoot, LeaderboardEntry
 
 
 @admin.register(Item)
 class ItemAdmin(admin.ModelAdmin):
-    list_display = ('name', 'category', 'price_points', 'price_dollars', 'premium_only', 'image_path', 'is_locked')
-    list_filter = ('category', 'premium_only')
-    search_fields = ('name', 'shop__name')
-    actions = ['make_premium_only', 'make_not_premium_only', 'lock_items', 'unlock_items']
+    list_display = ('name', 'category', 'price_points',
+                    'price_dollars', 'premium_only', 'is_locked')
+    list_filter = ('category', 'premium_only', 'is_locked')
+    search_fields = ('name', 'description', 'category')
+
+
+@admin.register(Shop)
+class ShopAdmin(admin.ModelAdmin):
+    list_display = ('name', 'shop_type', 'shop_level',
+                    'premium_only', 'is_locked')
+    list_filter = ('shop_type', 'shop_level', 'premium_only', 'is_locked')
+    search_fields = ('name', 'description')
+
+
+@admin.register(Avatar)
+class AvatarAdmin(admin.ModelAdmin):
+    list_display = ('user', 'name', 'body', 'skin',
+                    'hair', 'hair_color', 'story_started')
+    list_filter = ('body', 'skin', 'hair_color', 'story_started')
+    search_fields = ('name', 'user__sissy_name')
 
 
 @admin.register(PurchasedItem)
 class PurchasedItemAdmin(admin.ModelAdmin):
-    list_display = ('item', 'is_equipped' )
-    list_filter = ('item', 'is_equipped')
-    search_fields = ('item__name',)
+    list_display = ('user', 'item', 'purchased_at', 'used', 'is_equipped')
+    list_filter = ('used', 'is_equipped')
+    search_fields = ('user__sissy_name', 'item__name')
 
+
+@admin.register(PhotoShoot)
+class PhotoShootAdmin(admin.ModelAdmin):
+    list_display = ('user', 'photographer_type',
+                    'backdrop', 'purchased_at', 'used')
+    list_filter = ('photographer_type', 'used')
+    search_fields = ('user__sissy_name',)
+
+
+@admin.register(LeaderboardEntry)
+class LeaderboardEntryAdmin(admin.ModelAdmin):
+    list_display = ('user', 'points', 'updated_at')
+    list_filter = ('updated_at',)
+    search_fields = ('user__sissy_name',)
