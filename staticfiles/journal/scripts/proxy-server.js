@@ -31,7 +31,10 @@ app.get('/proxy', (req, res) => {
     }
 
     // Prevent path traversal
-    const sanitizedPath = parsedUrl.pathname.replace(/(\.\.[/\\])/g, '');
+    let sanitizedPath = parsedUrl.pathname;
+    do {
+        sanitizedPath = sanitizedPath.replace(/(\.\.[/\\])/g, '');
+    } while (sanitizedPath.includes('..'));
     const finalUrl = new URL(sanitizedPath + parsedUrl.search, baseUrl);
 
     request({ url: finalUrl.toString(), method: 'GET' }).pipe(res);
