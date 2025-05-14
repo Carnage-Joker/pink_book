@@ -14,7 +14,10 @@ app.get('/proxy', (req, res) => {
         return res.status(400).send('URL query parameter is required');
     }
 
-    const allowedDomains = ['example.com', 'api.example.com'];
+    const allowedDomains = {
+        'example.com': 'https://example.com',
+        'api.example.com': 'https://api.example.com'
+    };
     let parsedUrl;
     try {
         parsedUrl = new URL(url);
@@ -22,11 +25,16 @@ app.get('/proxy', (req, res) => {
         return res.status(400).send('Invalid URL');
     }
 
-    if (!allowedDomains.includes(parsedUrl.hostname)) {
+    const baseUrl = allowedDomains[parsedUrl.hostname];
+    if (!baseUrl) {
         return res.status(403).send('URL is not allowed');
     }
 
-    request({ url: parsedUrl.toString(), method: 'GET' }).pipe(res);
+    // Prevent path traversal
+    const sanitizedPath = parsedUrl.pathname.replace(/(\.\.[/\\])/g, '');
+    const finalUrl = new URL(sanitizedPath + parsedUrl.search, baseUrl);
+
+    request({ url: finalUrl.toString(), method: 'GET' }).pipe(res);
 });
 
 app.listen(PORT, () => {
