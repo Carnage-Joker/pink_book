@@ -1,13 +1,12 @@
 import streamlit as st
 import requests
-import json
 from typing import Any, Tuple
-import os
 
 # Streamlit app for local AI reviewer GUI
 st.set_page_config(page_title="Pink Book AI Reviewer", layout="wide")
 
-API_URL = st.secrets.get("api_url", "http://localhost:3001/api/chat")
+# Backend API endpoint
+API_URL = "http://localhost:3001/api/chat"
 
 # Initialize session state
 if 'thread_id' not in st.session_state:
@@ -45,10 +44,8 @@ if st.button("Send"):
 if st.session_state.history:
     st.markdown("---")
     for speaker, msg in st.session_state.history:
-        if speaker == "You":
-            st.markdown(f"**You:** {msg}")
-        else:
-            st.markdown(f"**AI:** {msg}")
+        prefix = "**You:**" if speaker == "You" else "**AI:**"
+        st.markdown(f"{prefix} {msg}")
 
 st.markdown("---")
 st.markdown(

@@ -2,6 +2,7 @@ import os
 from pathlib import Path
 from django.utils.timezone import get_current_timezone
 from dotenv import load_dotenv
+from typing import Dict, Any, List
 
 # Load environment variables from .env file
 load_dotenv()
@@ -18,8 +19,9 @@ STATIC_ROOT = BASE_DIR / "staticfiles"
 HUGGING_FACE_API_KEY = os.getenv('HUGGING_FACE_API_KEY')
 OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
 
+
 # Template directories
-TEMPLATES = [
+TEMPLATES: List[dict] = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
         # Ensure templates are pointed here
@@ -91,7 +93,7 @@ ROOT_URLCONF = 'Pink_Book.urls'
 WSGI_APPLICATION = 'Pink_Book.wsgi.application'
 
 # Database configuration
-DATABASES = {
+DATABASES: Dict[str, Dict[str, Any]] = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': BASE_DIR / 'db.sqlite3',
@@ -117,10 +119,12 @@ AUTH_PASSWORD_VALIDATORS = [
 # Email settings
 # settings.py
 
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+ # EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'mail.thepinkbook.com.au'
 EMAIL_PORT = 465
 EMAIL_USE_SSL = True
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+
 
 # Replace with your actual email password
 EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD')
@@ -158,5 +162,3 @@ CSP_FONT_SRC = (SELF, "https://fonts.gstatic.com")
 SITE_ID = 1
 LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/'
-
-

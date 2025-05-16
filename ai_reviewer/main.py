@@ -56,7 +56,8 @@ def get_github():
     assert GH_APP_KEY_PATH is not None, "GH_APP_KEY_PATH environment variable is not set"
     private_key = open(GH_APP_KEY_PATH).read()
     from github import GithubIntegration
-    integration = GithubIntegration(integration_id=GH_APP_ID, private_key=private_key)
+    integration = GithubIntegration(
+        integration_id=GH_APP_ID, private_key=private_key)
     assert GH_INSTALL_ID is not None, "GH_INSTALL_ID environment variable must be set"
     token: str = integration.get_access_token(int(GH_INSTALL_ID)).token
     return Github(token)
@@ -82,14 +83,17 @@ def execute_local(tool: str, args: Dict[str, Any]) -> Optional[str]:
             return f.read()
     elif tool == "run_local_tests":
         cmd = ["pytest", "-q"]
-        res = subprocess.run(cmd, cwd=LOCAL_REPO_PATH, capture_output=True, text=True)
+        res = subprocess.run(cmd, cwd=LOCAL_REPO_PATH,
+                             capture_output=True, text=True)
         return res.stdout + res.stderr
     elif tool == "create_local_branch":
         diff = args.get("diff")
         title = args.get("title")
         branch = "ai-fix-local-" + os.urandom(4).hex()
-        subprocess.run(["git", "-C", LOCAL_REPO_PATH, "checkout", "-b", branch], check=True)
-        proc = subprocess.Popen(["git", "-C", LOCAL_REPO_PATH, "apply"], stdin=subprocess.PIPE, text=True)
+        subprocess.run(["git", "-C", LOCAL_REPO_PATH,
+                       "checkout", "-b", branch], check=True)
+        proc = subprocess.Popen(
+            ["git", "-C", LOCAL_REPO_PATH, "apply"], stdin=subprocess.PIPE, text=True)
         proc.communicate(diff)
         subprocess.run(["git", "-C", LOCAL_REPO_PATH, "add", "."], check=True)
         if not isinstance(title, str) or not title:
@@ -114,7 +118,6 @@ def execute_remote(
     gh: Github,
 ) -> Optional[str]:
     if tool == "list_repo":
-
         contents = repo.get_contents("")
         if not isinstance(contents, list):
             contents = [contents]
@@ -135,20 +138,26 @@ def execute_remote(
         body = args["body"]
         tmpdir = tempfile.mkdtemp()
         if GH_APP_KEY_PATH is None:
-            raise RuntimeError("GH_APP_KEY_PATH environment variable must be set")
+            raise RuntimeError(
+                "GH_APP_KEY_PATH environment variable must be set")
         if GH_APP_ID is None:
             raise RuntimeError("GH_APP_ID environment variable must be set")
-        integration = GithubIntegration(integration_id=int(GH_APP_ID), private_key=open(GH_APP_KEY_PATH).read())
+        integration = GithubIntegration(integration_id=int(
+            GH_APP_ID), private_key=open(GH_APP_KEY_PATH).read())
         token = integration.get_access_token(int(GH_INSTALL_ID)).token
         repo_url = f"https://x-access-token:{token}@github.com/{REPO_FULL}.git"
         subprocess.run(["git", "clone", repo_url, tmpdir], check=True)
         branch = "ai-fix-" + os.urandom(4).hex()
-        subprocess.run(["git", "-C", tmpdir, "checkout", "-b", branch], check=True)
-        p = subprocess.Popen(["git", "-C", tmpdir, "apply"], stdin=subprocess.PIPE, text=True)
+        subprocess.run(["git", "-C", tmpdir, "checkout",
+                       "-b", branch], check=True)
+        p = subprocess.Popen(["git", "-C", tmpdir, "apply"],
+                             stdin=subprocess.PIPE, text=True)
         p.communicate(diff)
         subprocess.run(["git", "-C", tmpdir, "add", "."], check=True)
-        subprocess.run(["git", "-C", tmpdir, "commit", "-m", title], check=True)
-        subprocess.run(["git", "-C", tmpdir, "push", "origin", branch], check=True)
+        subprocess.run(
+            ["git", "-C", tmpdir, "commit", "-m", title], check=True)
+        subprocess.run(["git", "-C", tmpdir, "push",
+                       "origin", branch], check=True)
         pr = repo.create_pull(title=title, body=body, head=branch, base="main")
         return pr.html_url
     elif tool == "get_pr_diff":
@@ -161,11 +170,10 @@ def execute_remote(
         results = gh.search_code(query + f" repo:{REPO_FULL}")
         return json.dumps([item.path for item in results])
     elif tool == "run_lint":
-        res = subprocess.run(["flake8"], cwd=LOCAL_REPO_PATH, capture_output=True, text=True)
+        res = subprocess.run(["flake8"], cwd=LOCAL_REPO_PATH,
+                             capture_output=True, text=True)
         return res.stdout + res.stderr
-    return None
 
-def execute(tool: str, args: dict) -> str:
     result = execute_local(tool, args)
     if result is not None:
         return result
@@ -179,20 +187,77 @@ def execute(tool: str, args: dict) -> str:
 # --- Chat Endpoint ---
 
 
+def process_tool_call(run, thread_id):
+    if hasattr(run, "required_action") and run.required_action is not None and \
+       hasattr(run.required_action, "submit_tool_outputs") and \
+       hasattr(run.required_action.submit_tool_outputs, "tool_calls"):
+        call = run.required_action.submit_tool_outputs.tool_calls[0]
+        result = execute(call["name"], call["arguments"])
+        ai.beta.threads.runs.actions.submit(
+            thread_id=thread_id,
+            run_id=run.id,
+            tool_outputs=[{"tool_call_id": call.id, "output": result}]
+        )
+    else:
+        raise HTTPException(status_code=500, detail="Missing required_action or submit_tool_outputs in run object")
+
+
+def validate_message(data: dict) -> str:
+    message = data.get("message")
+    if not isinstance(message, str) or not message.strip():
+        raise HTTPException(
+            status_code=400,
+            detail="Request JSON must include a non-empty string field 'message'"
+        )
+    return message
+
+
+def get_or_create_thread(data: dict) -> str:
+    thread_id = data.get("thread_id")
+    if not thread_id:
+        thread = ai.beta.threads.create()
+        thread_id = thread.id
+    return thread_id
+
+
+def process_tool_calls(thread_id: str, run) -> None:
+    while run.status in ("queued", "in_progress", "requires_action"):
+        run = ai.beta.threads.runs.retrieve(run.id, thread_id=thread_id)
+        if run.status != "requires_action":
+            continue
+
+        action = getattr(run, "required_action", None)
+        submit = getattr(action, "submit_tool_outputs", None)
+        tool_calls = getattr(submit, "tool_calls", None)
+        if not (action and submit and tool_calls):
+            raise HTTPException(
+                status_code=500,
+                detail="Missing required_action or submit_tool_outputs in run object"
+            )
+
+        call = tool_calls[0]
+        result = execute(call["name"], call["arguments"])
+        ai.beta.threads.runs.actions.submit(
+            thread_id=thread_id,
+            run_id=run.id,
+            tool_outputs=[{"tool_call_id": call.id, "output": result}]
+        )
+
+
+def get_assistant_reply(thread_id: str) -> str:
+    messages = ai.beta.threads.messages.list(thread_id=thread_id)
+    content_item = messages.data[-1].content[0]
+    if hasattr(content_item, "text") and hasattr(content_item.text, "value"):
+        return content_item.text.value
+    return str(content_item)
+
+
 @app.post("/api/chat")
 async def chat(request: Request):
     try:
         data = await request.json()
-        message = data.get("message")
-        if not isinstance(message, str) or not message.strip():
-            raise HTTPException(
-                status_code=400,
-                detail="Request JSON must include a non-empty string field 'message'"
-            )
-        thread_id = data.get("thread_id")
-        if not thread_id:
-            thread = ai.beta.threads.create()
-            thread_id = thread.id
+        message = validate_message(data)
+        thread_id = get_or_create_thread(data)
 
         # Send user message
         ai.beta.threads.messages.create(
@@ -201,46 +266,19 @@ async def chat(request: Request):
             content=message
         )
 
-        # Kick off assistant run
         if ASSISTANT_ID is None:
-            raise HTTPException(status_code=500, detail="ASSISTANT_ID environment variable is not set")
+            raise HTTPException(
+                status_code=500, detail="ASSISTANT_ID environment variable is not set"
+            )
         run = ai.beta.threads.runs.create(
             thread_id=thread_id,
             assistant_id=ASSISTANT_ID
         )
 
-        # Handle any tool calls
-        while run.status in ("queued", "in_progress", "requires_action"):
-            run = ai.beta.threads.runs.retrieve(run.id, thread_id=thread_id)
-            if run.status == "requires_action":
-                if (
-                    hasattr(run, "required_action")
-                    and run.required_action is not None
-                    and hasattr(run.required_action, "submit_tool_outputs")
-                    and hasattr(run.required_action.submit_tool_outputs, "tool_calls")
-                ):
-                    call: Any = run.required_action.submit_tool_outputs.tool_calls[0]
-                    result = execute(call["name"], call["arguments"])
-                    ai.beta.threads.runs.actions.submit(
-                        thread_id=thread_id,
-                        run_id=run.id,
-                        tool_outputs=[{
-                            "tool_call_id": call.id,
-                            "output": result
-                        }]
-                    )
-                else:
-                    raise HTTPException(status_code=500, detail="Missing required_action or submit_tool_outputs in run object")
+        process_tool_calls(thread_id, run)
+        reply = get_assistant_reply(thread_id)
 
-        # Collect assistant’s reply
-        messages = ai.beta.threads.messages.list(thread_id=thread_id)
-        content_item = messages.data[-1].content[0]
-        if hasattr(content_item, "text") and hasattr(content_item.text, "value"):
-            response = content_item.text.value
-        else:
-            response = str(content_item)
-
-        return JSONResponse({"answer": response, "thread_id": thread_id})
+        return JSONResponse({"answer": reply, "thread_id": thread_id})
 
     except HTTPException:
         raise
@@ -275,7 +313,7 @@ async def github_webhook(request: Request, x_hub_signature_256: str = Header(Non
                 ai.beta.threads.runs.actions.submit(thread_id=thread.id, run_id=run.id, tool_outputs=[
                                                     {"tool_call_id": call.id, "output": res}])
             ans = ai.beta.threads.messages.list(
-            thread_id=thread.id).data[0].content[0].text.value
+                thread_id=thread.id).data[0].content[0].text.value
         gh = get_github()
         repo = gh.get_repo(REPO_FULL)
         repo.create_issue_comment(

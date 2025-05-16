@@ -163,6 +163,11 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
         null=True,
         blank=True,
     )
+    favorites = models.ManyToManyField(
+        'dressup.PurchasedItem',
+        related_name='favorite_items',
+        blank=True,
+    )
     USERNAME_FIELD = 'sissy_name'
     REQUIRED_FIELDS = ['email']
 

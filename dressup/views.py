@@ -1,5 +1,7 @@
 # views.py
 
+from .models import Item, PurchasedItem, Shop
+from django.shortcuts import get_object_or_404, redirect
 from .decorators import avatar_required
 from .utils import sassy_success, sassy_error, sassy_info
 from django.http import HttpRequest, HttpResponse, JsonResponse
@@ -223,4 +225,24 @@ def equip_item_ajax(request: HttpRequest, item_id: int) -> JsonResponse:
         'item_id': item_id,
         'message': f"{item.name} is now {status}!",
     })
-    
+
+
+@login_required
+@avatar_required
+def purchase_item(request: HttpRequest, item_id: int) -> HttpResponse:
+    item = get_object_or_404(Item, id=item_id)
+
+    # Optional: premium check if you have such a method
+    if item.premium_only and not getattr(request.user, 'is_premium', lambda: False)():
+        sassy_error(
+            request, "Sorry darling, this item is for premium members only.")
+        return redirect('dressup:mall')
+
+    if PurchasedItem.objects.filter(user=request.user, item=item).exists():
+        sassy_info(request, "You already own this fabulous item!")
+    else:
+        PurchasedItem.objects.create(user=request.user, item=item)
+        sassy_success(request, f"{item.name} added to your closet!")
+
+    shop = item.shop_items.first()  # Assuming shop_items is the correct related_name
+    return redirect('dressup:shop_detail', shop_id=shop.id if shop else 'dressup:mall')

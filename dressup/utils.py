@@ -38,14 +38,24 @@ def sassy_error(request: HttpRequest, message: str):
     """
     messages.add_message(request, messages.ERROR, message,
                          extra_tags='sassy-popup')
+    
+def get_equipped_items(user: AbstractBaseUser) -> list:
+    """
+    Returns a list of equipped items for the user.
+    Assumes the user model has a ManyToManyField to Item.
+    """
+    user = get_user_model().objects.get_or_create(username=user.sissy_name)[0]
+    if not hasattr(user, 'equipped_items') or not callable(getattr(user.equipped_items, 'all', None)):
+        raise AttributeError("User object does not have an 'equipped_items' attribute with an 'all()' method.")
+    return user.equipped_items.all()
 
 
-
-def add_clothing_to_favorites(user: AbstractBaseUser, item: Item) -> bool:
+def add_clothing_to_favorites(user, item: Item) -> bool:
     """
     Adds a clothing item to the user's favorites.
     Assumes the user model has a 'favorites' ManyToManyField to Item.
     """
+    user = get_user_model().objects.get_or_create(username=user.sissy_name)[0]
     if not hasattr(user, 'favorites') or not callable(getattr(user.favorites, 'all', None)):
         raise AttributeError("User object does not have a 'favorites' attribute with an 'all()' method.")
     if not user.is_authenticated:
