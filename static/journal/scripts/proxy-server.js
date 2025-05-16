@@ -17,11 +17,23 @@ app.get('/proxy', (req, res) => {
     try {
         const parsedUrl = new URL(url);
         const allowedDomains = ['example.com', 'api.example.com']; // Add trusted domains here
+        const allowedProtocol = 'https:';
+
+        // Validate protocol
+        if (parsedUrl.protocol !== allowedProtocol) {
+            return res.status(403).send('Forbidden: Only HTTPS protocol is allowed');
+        }
+
+        // Validate hostname
         if (!allowedDomains.includes(parsedUrl.hostname)) {
             return res.status(403).send('Forbidden: URL is not allowed');
         }
 
-        request({ url: parsedUrl.toString(), method: 'GET' }).pipe(res);
+        // Construct the URL using trusted components
+        const trustedUrl = `${allowedProtocol}//${parsedUrl.hostname}${parsedUrl.pathname}`;
+
+        // Make the request
+        request({ url: trustedUrl, method: 'GET', qs: parsedUrl.searchParams }).pipe(res);
     } catch (err) {
         return res.status(400).send('Invalid URL');
     }
