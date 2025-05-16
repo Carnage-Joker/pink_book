@@ -24,7 +24,7 @@ click-plugins==1.1.1
 click-repl==0.3.0
 colorama==0.4.6
 cryptography==44.0.1
-datasets==2.19.2
+datasets==3.6.0
 decouple==0.0.7
 Deprecated==1.2.18
 dill==0.3.8
