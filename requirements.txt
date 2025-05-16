@@ -91,7 +91,7 @@ networkx==3.4.2
 nltk==3.9.1
 numpy==1.26.3
 oauthlib==3.2.2
-openai==1.75.0
+openai==1.78.0
 packaging==24.1
 pandas==2.2.3
 pathspec==0.12.1
