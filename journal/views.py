@@ -865,7 +865,7 @@ class FailTaskView(View):
             )
         except Exception as e:
             logger.error(f"Error processing task failure: {str(e)}")
-            return JsonResponse({"status": "error", "message": str(e)}, status=500)
+            return JsonResponse({"status": "error", "message": "An internal error occurred."}, status=500)
 
 # Forum and Blog Views
 class BlogListView(ListView):
