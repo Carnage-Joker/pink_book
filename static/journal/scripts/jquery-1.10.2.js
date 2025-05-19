@@ -6166,7 +6166,23 @@ jQuery.fn.extend({
 				( jQuery.support.leadingWhitespace || !rleadingWhitespace.test( value ) ) &&
 				!wrapMap[ ( rtagName.exec( value ) || ["", ""] )[1].toLowerCase() ] ) {
 
-				value = value.replace( rxhtmlTag, "<$1></$2>" );
+				// Use a DOM parser to safely expand self-closing tags
+				var parser = new DOMParser();
+				var doc = parser.parseFromString(value, "text/html");
+				var elements = doc.body.children;
+
+				for (var j = 0; j < elements.length; j++) {
+					var el = elements[j];
+					if (el.outerHTML.endsWith("/>")) {
+						var expanded = doc.createElement(el.tagName);
+						for (var attr of el.attributes) {
+							expanded.setAttribute(attr.name, attr.value);
+						}
+						el.replaceWith(expanded);
+					}
+				}
+
+				value = doc.body.innerHTML;
 
 				try {
 					for (; i < l; i++ ) {
