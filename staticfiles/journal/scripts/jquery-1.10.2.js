@@ -356,6 +356,10 @@ jQuery.extend = jQuery.fn.extend = function() {
 		if ( (options = arguments[ i ]) != null ) {
 			// Extend the base object
 			for ( name in options ) {
+				// Skip dangerous properties to prevent prototype pollution
+				if ( name === "__proto__" || name === "constructor" ) {
+					continue;
+				}
 				src = target[ name ];
 				copy = options[ name ];
 
