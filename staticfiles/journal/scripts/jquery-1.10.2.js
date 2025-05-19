@@ -356,6 +356,10 @@ jQuery.extend = jQuery.fn.extend = function() {
 		if ( (options = arguments[ i ]) != null ) {
 			// Extend the base object
 			for ( name in options ) {
+				// Skip dangerous properties to prevent prototype pollution
+				if ( name === "__proto__" || name === "constructor" ) {
+					continue;
+				}
 				src = target[ name ];
 				copy = options[ name ];
 
@@ -6580,7 +6584,11 @@ jQuery.extend({
 					tag = ( rtagName.exec( elem ) || ["", ""] )[1].toLowerCase();
 					wrap = wrapMap[ tag ] || wrapMap._default;
 
-					tmp.innerHTML = wrap[1] + elem.replace( rxhtmlTag, "<$1></$2>" ) + wrap[2];
+					var tempDiv = document.createElement("div");
+					tempDiv.innerHTML = wrap[1] + elem + wrap[2];
+					while (tempDiv.firstChild) {
+						tmp.appendChild(tempDiv.firstChild);
+					}
 
 					// Descend through wrappers to the right content
 					j = wrap[0];
