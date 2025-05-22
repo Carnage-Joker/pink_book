@@ -535,15 +535,21 @@ if (!jQuery) { throw new Error("Bootstrap requires jQuery") }
     this.transitioning = null
 
     if (this.options.parent) {
-      try {
-        this.$parent = $(this.options.parent)
-        if (!this.$parent.length) throw new Error()
-      } catch (e) {
+      this.$parent = validateSelector(this.options.parent)
+      if (!this.$parent) {
         console.error("Invalid parent option provided to Collapse plugin:", this.options.parent)
-        this.$parent = null
       }
     }
     if (this.options.toggle) this.toggle()
+  }
+
+  function validateSelector(selector) {
+    try {
+      var $element = $(selector)
+      return $element.length ? $element : null
+    } catch (e) {
+      return null
+    }
   }
 
   Collapse.DEFAULTS = {
