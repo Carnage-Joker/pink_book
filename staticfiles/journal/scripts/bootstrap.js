@@ -545,14 +545,14 @@ if (!jQuery) { throw new Error("Bootstrap requires jQuery") }
 
   function validateSelector(selector) {
     // Ensure the selector is a valid CSS selector and not malicious
-    var isValidSelector = typeof selector === 'string' && /^[a-zA-Z0-9.#\[\]=: _-]+$/.test(selector);
-    if (!isValidSelector) {
-      console.error("Invalid selector provided:", selector);
+    if (typeof selector !== 'string') {
+      console.error("Invalid selector type provided:", selector);
       return null;
     }
     try {
-      var $element = $(selector);
-      return $element.length ? $element : null;
+      // Use document.querySelector to validate the selector
+      var element = document.querySelector(selector);
+      return element ? $(element) : null;
     } catch (e) {
       console.error("Error processing selector:", selector, e);
       return null;
