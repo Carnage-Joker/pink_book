@@ -194,9 +194,16 @@
         if (!selector) return;
 
         const newValue = selector.value;
-        const layerImg = document.getElementById('preview-' + layer);
         
-        layerImg.src = "{% static 'dressup/avatars/' %}" + layer + "/" + newValue + ".png";
+        // Validate newValue to ensure it contains only alphanumeric characters, dashes, or underscores
+        const sanitizedValue = /^[a-zA-Z0-9_-]+$/.test(newValue) ? newValue : '';
+        if (!sanitizedValue) {
+            console.warn(`Invalid value for layer "${layer}":`, newValue);
+            return;
+        }
+
+        const layerImg = document.getElementById('preview-' + layer);
+        layerImg.src = "{% static 'dressup/avatars/' %}" + layer + "/" + sanitizedValue + ".png";
     }
 
     function attachEventListeners() {
