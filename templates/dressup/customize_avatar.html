@@ -176,7 +176,16 @@
         const skinValue = document.getElementById('skin').value;
         const bodyImg = document.getElementById('preview-body');
 
-        bodyImg.src = "{% static 'dressup/avatars/body/' %}" + bodyValue + "/" + skinValue + ".png";
+        // Sanitize bodyValue and skinValue to allow only alphanumeric characters, dashes, and underscores
+        const sanitizedBodyValue = /^[a-zA-Z0-9_-]+$/.test(bodyValue) ? bodyValue : '';
+        const sanitizedSkinValue = /^[a-zA-Z0-9_-]+$/.test(skinValue) ? skinValue : '';
+
+        if (!sanitizedBodyValue || !sanitizedSkinValue) {
+            console.warn(`Invalid values for body or skin: body="${bodyValue}", skin="${skinValue}"`);
+            return;
+        }
+
+        bodyImg.src = "{% static 'dressup/avatars/body/' %}" + sanitizedBodyValue + "/" + sanitizedSkinValue + ".png";
     }
 
     // Update the hair image: /avatars/hair/{hair}/{hair_color}.png
