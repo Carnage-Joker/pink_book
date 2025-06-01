@@ -1800,7 +1800,7 @@ if (!jQuery) { throw new Error("Bootstrap requires jQuery") }
 
     if (e.isDefaultPrevented()) return
 
-    var $target = $(selector)
+    var $target = $this.closest('ul:not(.dropdown-menu)').find(selector)
 
     this.activate($this.parent('li'), $ul)
     this.activate($target, $target.parent(), function () {
