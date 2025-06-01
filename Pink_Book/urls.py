@@ -5,7 +5,10 @@ from django.views.generic.base import RedirectView
 from django.conf import settings
 from django.conf.urls.static import static
 
-urlpatterns = [
+from typing import List
+from django.urls.resolvers import URLPattern, URLResolver
+
+urlpatterns: List[URLPattern | URLResolver] = [
     path('admin/', admin.site.urls),
     path('accounts/', include('allauth.urls')),
     path('dressup/', include('dressup.urls', namespace='dressup')),

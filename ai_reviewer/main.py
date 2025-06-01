@@ -95,14 +95,21 @@ def _create_local_branch(args: Dict[str, Any]) -> str:
 
 
 def execute_local(tool: str, args: Dict[str, Any]) -> Optional[str]:
+    # Map of local tools to their corresponding functions.
+    # - "list_local_repo": Lists all files in the local repository.
+    # - "get_local_file": Retrieves the content of a specific file from the local repository.
+    # - "run_local_tests": Executes local tests using pytest and returns the results.
+    # - "create_local_branch": Creates a new local branch and applies a diff to it.
     locals_map = {
-        "list_local_repo": lambda: _list_local_repo(),
+        "list_local_repo": _list_local_repo,
         "get_local_file": lambda: _get_local_file(args),
-        "run_local_tests": lambda: _run_local_tests(),
+        "run_local_tests": _run_local_tests,
         "create_local_branch": lambda: _create_local_branch(args),
     }
     fn = locals_map.get(tool)
-    return fn() if fn else None
+    if not fn:
+        raise ValueError(f"Unknown local tool: {tool}")
+    return fn()
 
 
 # --- Remote tool implementations ---
