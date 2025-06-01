@@ -142,7 +142,7 @@ SQLAlchemy==2.0.36
 sqlparse==0.5.3
 starlette==0.41.2
 streamlit==1.45.0
-sympy==1.13.1
+sympy==1.13.3
 tbb==2021.12.0
 tcmlib==1.2.0
 tenacity==9.1.2
