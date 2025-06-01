@@ -807,7 +807,8 @@ def generate_task_view(request):
             task = generate_task(user)
             return JsonResponse({"task": task})
         except Exception as e:
-            return JsonResponse({"error": str(e)}, status=500)
+            logger.error("Error occurred while generating task", exc_info=True)
+            return JsonResponse({"error": "An internal error occurred."}, status=500)
     return JsonResponse({"error": "Invalid request method"}, status=400)
 
 
