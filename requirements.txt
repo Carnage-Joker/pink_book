@@ -146,7 +146,7 @@ sympy==1.13.1
 tbb==2021.12.0
 tcmlib==1.2.0
 tenacity==9.1.2
-textblob==0.17.1
+textblob==0.19.0
 tokenizers==0.20.3
 toml==0.10.2
 torch==2.7.0
