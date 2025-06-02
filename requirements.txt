@@ -167,4 +167,4 @@ websockets==11.0.3
 Werkzeug==3.0.6
 wrapt==1.17.2
 xxhash==3.4.1
-yarl==1.18.3
+yarl==1.20.0
