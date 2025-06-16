@@ -158,7 +158,7 @@ tzdata==2025.2
 umf==0.9.1
 uritemplate==4.1.1
 urllib3==2.2.3
-uvicorn==0.34.2
+uvicorn==0.34.3
 vine==5.1.0
 virtualenv==20.31.2
 watchdog==6.0.0
