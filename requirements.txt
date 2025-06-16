@@ -39,7 +39,7 @@ django-fernet-fields==0.6
 django-formtools==2.5.1
 django-gmailapi-backend==0.3.2
 django-otp==1.5.4
-django-phonenumber-field==7.3.0
+django-phonenumber-field==8.1.0
 django-two-factor-auth==1.15.5
 django_csp==3.8
 fastapi==0.115.4
@@ -126,7 +126,7 @@ redis==5.0.1
 referencing==0.36.2
 regex==2024.9.11
 reportlab==4.2.5
-requests==2.32.3
+requests==2.32.4
 requests-oauthlib==2.0.0
 rich==13.9.1
 rpds-py==0.24.0
@@ -149,7 +149,7 @@ tenacity==9.1.2
 textblob==0.19.0
 tokenizers==0.20.3
 toml==0.10.2
-torch==2.7.0
+torch==2.7.1
 tornado==6.5.1
 tqdm==4.67.1
 transformers==4.50.0
@@ -167,4 +167,4 @@ websockets==11.0.3
 Werkzeug==3.0.6
 wrapt==1.17.2
 xxhash==3.4.1
-yarl==1.18.3
+yarl==1.20.0
