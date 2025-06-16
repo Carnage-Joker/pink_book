@@ -793,7 +793,8 @@ class CompleteToDoView(View):
                 {"status": "error", "message": "ToDo does not exist"}, status=404
             )
         except Exception as e:
-            return JsonResponse({"status": "error", "message": str(e)}, status=500)
+            logger.error("An error occurred while marking ToDo as completed", exc_info=True)
+            return JsonResponse({"status": "error", "message": "An internal error occurred."}, status=500)
 
 
 # Task Views
