@@ -481,7 +481,12 @@ if (!jQuery) { throw new Error("Bootstrap requires jQuery") }
 
   $(document).on('click.bs.carousel.data-api', '[data-slide], [data-slide-to]', function (e) {
     var $this   = $(this), href
-    var $target = $($this.attr('data-target') || (href = $this.attr('href')) && href.replace(/.*(?=#[^\s]+$)/, '')) //strip for ie7
+    var targetSelector = $this.attr('data-target') || (href = $this.attr('href')) && href.replace(/.*(?=#[^\s]+$)/, ''); //strip for ie7
+    if (targetSelector && /^#[a-zA-Z][\w:.-]*$/.test(targetSelector)) { // Validate as a safe CSS ID selector
+      var $target = $(targetSelector);
+    } else {
+      throw new Error("Invalid target selector: " + targetSelector);
+    }
     var options = $.extend({}, $target.data(), $this.data())
     var slideIndex = $this.attr('data-slide-to')
     if (slideIndex) options.interval = false
