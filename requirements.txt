@@ -8,7 +8,7 @@ anyio==4.4.0
 asgiref==3.8.1
 attrs==23.2.0
 axios==0.4.0
-billiard==4.2.0
+billiard==4.2.1
 black==24.10.0
 blinker==1.9.0
 cachetools==5.4.0
@@ -100,7 +100,7 @@ platformdirs==4.3.8
 prompt_toolkit==3.0.47
 propcache==0.2.1
 proto-plus==1.25.0
-protobuf==5.27.3
+protobuf==5.29.5
 pyarrow==16.1.0
 pyarrow-hotfix==0.6
 pyasn1==0.6.1
@@ -130,7 +130,7 @@ requests==2.32.4
 requests-oauthlib==2.0.0
 rich==13.9.1
 rpds-py==0.24.0
-rsa==4.9
+rsa==4.9.1
 safetensors==0.4.5
 sentencepiece==0.2.0
 setuptools==78.1.1
@@ -157,7 +157,7 @@ typing_extensions==4.12.2
 tzdata==2025.2
 umf==0.9.1
 uritemplate==4.1.1
-urllib3==2.2.3
+urllib3==2.5.0
 uvicorn==0.34.3
 vine==5.1.0
 virtualenv==20.31.2
