@@ -673,6 +673,9 @@ if (!jQuery) { throw new Error("Bootstrap requires jQuery") }
     var target  = $this.attr('data-target')
         || e.preventDefault()
         || (href = $this.attr('href')) && href.replace(/.*(?=#[^\s]+$)/, '') //strip for ie7
+    if (target) {
+        target = $.escapeSelector ? $.escapeSelector(target) : target.replace(/([!"#$%&'()*+,.\/:;<=>?@[\\\]^`{|}~])/g, '\\$1');
+    }
     var $target = $(target)
     var data    = $target.data('bs.collapse')
     var option  = data ? 'toggle' : $this.data()
