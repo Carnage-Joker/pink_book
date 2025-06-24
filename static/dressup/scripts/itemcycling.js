@@ -1,4 +1,5 @@
 // itemCycling.js
+
 const items = {
     'dress': ['00.png', '01.png', '02.png', '03.png', '04.png', '05.png', '06.png', '07.png', '08.png', '09.png'],
     'skirt': ['00.png', '01.png', '02.png', '03.png', '04.png', '05.png', '06.png', '07.png', '08.png', '09.png'],
@@ -27,4 +28,15 @@ function changeItem(category, direction) {
 
     document.getElementById(`layer-${category}`).src = `/static/items/` + categoryItems[currentIndex[category]];
 }
+
+function initCycling() {
+    document.querySelectorAll('.prev-arrow').forEach(btn => {
+        btn.addEventListener('click', () => changeItem(btn.dataset.category, 'prev'));
+    });
+    document.querySelectorAll('.next-arrow').forEach(btn => {
+        btn.addEventListener('click', () => changeItem(btn.dataset.category, 'next'));
+    });
+}
+
+export { initCycling };
 

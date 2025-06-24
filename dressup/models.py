@@ -1,7 +1,9 @@
+from __future__ import annotations
 from django.db import models
 from django.templatetags.static import static
 from django.contrib.auth import get_user_model
 from journal.models import CustomUser  # Ensure correct import path
+
 
 User = get_user_model()
 
@@ -107,14 +109,15 @@ class Avatar(models.Model):
     name = models.CharField(max_length=100, default="Sissy Avatar")
     body = models.CharField(max_length=2, choices=BODY_CHOICES, default='00')
     skin = models.CharField(max_length=2, choices=SKIN_CHOICES, default='00')
-    hair = models.CharField(max_length=20, choices=HAIR_CHOICES, default='00')
+    hair = models.CharField(max_length=2, choices=HAIR_CHOICES, default='00')
+    equipped_items = models.ManyToManyField(
+        'Item', related_name='equipped_on_avatars', blank=True)
     hair_color = models.CharField(
         max_length=20, choices=HAIR_COLOR_CHOICES, default='black')
     story_started = models.BooleanField(default=False)
-    equipped_items = models.ManyToManyField(
-        Item, related_name='equipped_on_avatars', blank=True)
+    
 
-    def get_image_urls(self, layer_keys=None):
+    def get_image_urls(self, layer_keys: list[str] | None = None):
         if layer_keys is None:
             layer_keys = ['body', 'hair', 'skirt',
                           'top', 'shoes', 'accessories']
@@ -126,6 +129,7 @@ class Avatar(models.Model):
             if key not in urls:
                 urls[key] = static(f'dressup/avatars/{key}/00.png')
         for item in self.equipped_items.all():
+            # type: ignore[assignment]
             if item.category in layer_keys:
                 urls[item.category] = static(item.image_path)
         return urls
@@ -147,9 +151,23 @@ class Avatar(models.Model):
         return f"{self.user.sissy_name}'s Avatar"
 
 
+class SavedOutfit(models.Model):
+    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
+    name = models.CharField(max_length=100)
+    top = models.CharField(max_length=20)
+    skirt = models.CharField(max_length=20)
+    shoes = models.CharField(max_length=20)
+    accessory = models.CharField(max_length=20)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.name} by {self.user.sissy_name}"
+
 # =====================
 # Purchased Item Model
 # =====================
+
+
 class PurchasedItem(models.Model):
     user = models.ForeignKey(
         CustomUser, on_delete=models.CASCADE, related_name='purchased_items')

@@ -94,18 +94,19 @@
 
     <!-- Include External Scripts -->
     {% block scripts %}
-    <script type="module" src="{% static 'dressup/scripts.js' %}"></script>
+    <script type="module" src="{% static 'dressup/scripts/scripts.js' %}"></script>
     <script type="module" src="{% static 'journal/scripts/scripts.js' %}"></script>
     <script type="module">
-  import { navigationModule } from "{% static 'dressup/navigationModule.js' %}";
+  import { navigationModule } from "{% static 'dressup/scripts/navigationModule.js' %}";
 
   document.addEventListener('DOMContentLoaded', () => {
     navigationModule.init();
   });
 </script>
-    <script type="module" src="{% static 'dressup/avatarModule.js' %}"></script>
-    <script type="module" src="{% static 'dressup/itemCycling.js' %}"></script>
-    <script type="module" src="{% static 'dressup/toastModule.js' %}"></script>
+    <script type="module" src="{% static 'dressup/scripts/avatarModule.js' %}"></script>
+    <script type="module" src="{% static 'dressup/scripts/itemCycling.js' %}"></script>
+    <script type="module" src="{% static 'dressup/scripts/toastModule.js' %}"></script>
+
 
     {% endblock %}
 </body>

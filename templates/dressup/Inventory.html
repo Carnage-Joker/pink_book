@@ -1,44 +1,44 @@
 {% extends 'base.html' %}
-{% load static %}
-{% load custom_filters %}
-
+{% load static custom_filters %}
 {% block content %}
+
 <h1 style="color:deeppink; text-align:center;">Your Fabulous Inventory</h1>
 
-<!-- Cleaned up avatar display and control layout for consistency -->
 <div class="inventory-wrapper">
-  <h1 style="color:deeppink;"><strong>♡  Closet Make‑Over  ♡</strong></h1>
 
-  <div class="avatar‑and‑controls">
-    <!-- Avatar Display -->
-    <div class="avatar-stage">
+  <div class="avatar-and-controls" style="display: flex; flex-wrap: wrap; gap: 2rem;">
+    
+    <!-- 👗 Avatar Display -->
+    <div class="avatar-stage" style="position: relative; width: 200px; height: 400px;">
       {% for layer in layer_keys %}
-        <img id="layer-{{ layer }}" class="layer {{ layer }}"
-             src="{{ image_urls|get_item:layer }}"
-             alt="{{ layer|capfirst }}">
+        <img 
+          id="layer-{{ layer }}" 
+          class="avatar-layer {{ layer }}" 
+          src="{{ image_urls|get_item:layer }}" 
+          alt="{{ layer|capfirst }}" 
+          style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: contain;"
+        >
       {% endfor %}
     </div>
 
-    <!-- Style Controls -->
+    <!-- 🎨 Style Controls -->
     <div class="control-panel">
-      <h3>Style Picker</h3>
+      <h2>Style Picker</h2>
       {% for cat in categories %}
         <div class="category-block" id="block-{{ cat }}">
-          <h4>
-            <button class="arrow prev-arrow" data-category="{{ cat }}">←</button>
-            {{ cat|capfirst }}
-            <button class="arrow next-arrow" data-category="{{ cat }}">→</button>
-          </h4>
-
-          <div class="thumbnail‑bar">
+          <h4 style="color: hotpink;">{{ cat|capfirst }}</h4>
+          <div class="thumbnail-bar" style="display: flex; flex-wrap: wrap; gap: 10px;">
             {% for p in purchased_items %}
               {% if p.item.category == cat %}
-                <img src="{% static p.item.image_path %}"
-                     data-item-id="{{ p.item.id }}"
-                     data-category="{{ cat }}"
-                     title="{{ p.item.name }}"
-                     alt="{{ p.item.name }}"
-                     class="{% if p.item in equipped_items %}equipped{% endif %}">
+                <img 
+                  src="{% static p.item.image_path %}" 
+                  class="thumbnail {% if p.item in equipped_items %}equipped{% endif %}" 
+                  title="{{ p.item.name }}" 
+                  alt="{{ p.item.name }}" 
+                  data-item-id="{{ p.item.id }}" 
+                  data-category="{{ cat }}"
+                  style="max-width: 60px; cursor: pointer;"
+                >
               {% endif %}
             {% endfor %}
           </div>
@@ -47,20 +47,45 @@
     </div>
   </div>
 
-  <!-- Outfit Form -->
-  <form method="POST">
+  <!-- 💾 Outfit Form -->
+  <form method="POST" class="mt-4">
     {% csrf_token %}
     <input type="hidden" id="hair-input"      name="hair"      value="{{ avatar.hair }}">
     <input type="hidden" id="top-input"       name="top"       value="{{ avatar.top }}">
     <input type="hidden" id="skirt-input"     name="skirt"     value="{{ avatar.skirt }}">
     <input type="hidden" id="shoes-input"     name="shoes"     value="{{ avatar.shoes }}">
     <input type="hidden" id="accessory-input" name="accessory" value="{{ avatar.accessory }}">
-    <div class="button‑bar">
-      <button type="submit" name="save_outfit">Save outfit</button>
+
+    <div class="button-bar mt-3" style="text-align: center;">
+      <button type="submit" name="save_outfit">💾 Save Outfit</button>
       <button type="submit" name="fav_outfit">❤ Favourite</button>
-      <a href="{% url 'dressup:mall' %}">Back to Mall</a>
-      <a href="{% url 'journal:dashboard' %}">Dashboard</a>
+      <a href="{% url 'dressup:mall' %}">🏬 Back to Mall</a>
+      <a href="{% url 'journal:dashboard' %}">📒 Dashboard</a>
     </div>
   </form>
+
 </div>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.querySelectorAll('.thumbnail').forEach(el => {
+  el.addEventListener('click', () => {
+    const itemId = el.dataset.itemId;
+    const category = el.dataset.category;
+
+    fetch(`/dressup/equip_item_ajax/${itemId}/`)
+      .then(res => res.json())
+      .then(data => {
+        if (data.status === 'equipped') {
+          const layer = document.getElementById(`layer-${data.category}`);
+          if (layer && data.image_url) {
+            layer.src = data.image_url;
+          }
+        }
+      });
+  });
+});
+</script>
 {% endblock %}

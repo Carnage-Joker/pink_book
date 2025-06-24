@@ -1,153 +1,108 @@
-<!-- templates/dressup/dress_up.html -->
 {% extends 'base.html' %}
-{% load static %}
+{% load static custom_filters %}
 {% block content %}
 
-<h1>Dress Up Your Avatar</h1>
+<h1 class="text-center">✨ Dress Up Your Avatar ✨</h1>
 
-<!-- Avatar Display Container -->
-<div class="avatar-container" style="position: relative; width: 200px; height: 400px;">
-    <!-- Loop over each layer in layer_keys (passed from your view), using get_image_urls() -->
+<!-- 👗 Avatar Display Container -->
+<div id="avatar-preview" class="avatar-frame" style="position: relative; width: 200px; height: 400px; margin: 0 auto;">
     {% for layer in layer_keys %}
-      <img 
-        src="{{ image_urls|get_item:layer }}" 
-        alt="{{ layer }}" 
-        class="avatar-layer"
-        style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: contain;"
-      >
-       
+        <img 
+            src="{{ image_urls|get_item:layer }}" 
+            alt="{{ layer }}" 
+            class="avatar-layer {{ layer }}"
+            style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: contain; z-index: {{ forloop.counter }};"
+        >
     {% endfor %}
 </div>
 
-<!-- Clothing selection using next/prev approach -->
-<div id="clothing-selection">
-
-    <!-- TOP -->
-    <div class="clothing-item" id="top-selection">
-        <button type="button" class="prev-arrow" onclick="changeItem('top','prev')">&lt;</button>
-        <img 
-            id="top-preview" 
-            src="{% static 'dressup/avatars/top/00.png' %}"
-            alt="top"
-        >
-        <button type="button" class="next-arrow" onclick="changeItem('top','next')">&gt;</button>
-    </div>
-
-    <!-- SKIRT -->
-    <div class="clothing-item" id="skirt-selection">
-        <button type="button" class="prev-arrow" onclick="changeItem('skirt','prev')">&lt;</button>
-        <img 
-            id="skirt-preview" 
-            src="{% static 'dressup/avatars/skirt/00.png' %}"
-            alt="skirt"
-        >
-        <button type="button" class="next-arrow" onclick="changeItem('skirt','next')">&gt;</button>
-    </div>
-
-    <!-- SHOES -->
-    <div class="clothing-item" id="shoes-selection">
-        <button type="button" class="prev-arrow" onclick="changeItem('shoes','prev')">&lt;</button>
-        <img 
-            id="shoes-preview"
-            src="{% static 'dressup/avatars/shoes/00.png' %}"
-            alt="shoes"
-        >
-        <button type="button" class="next-arrow" onclick="changeItem('shoes','next')">&gt;</button>
-    </div>
-
-    <!-- ACCESSORY -->
-    <div class="clothing-item" id="accessory-selection">
-        <button type="button" class="prev-arrow" onclick="changeItem('accessory','prev')">&lt;</button>
-        <img 
-            id="accessory-preview" 
-            src="{% static 'dressup/avatars/accessory/00.png' %}"
-            alt="accessory"
-        >
-        <button type="button" class="next-arrow" onclick="changeItem('accessory','next')">&gt;</button>
-    </div>
+<!-- 💅 Item Palette with drag support -->
+<div id="item-palette" class="grid grid-cols-4 gap-4 mt-6 text-center">
+  {% for item in available_items %}
+    <img 
+      src="{% static item.image_path %}" 
+      alt="{{ item.name }}" 
+      class="item cursor-pointer border rounded"
+      style="max-width: 60px;" 
+      draggable="true" 
+      data-id="{{ item.id }}"
+    >
+  {% endfor %}
 </div>
 
-<!-- Hidden form to submit the chosen codes -->
-<form method="POST">
+<!-- 🔁 Clothing selection using arrows -->
+<div id="clothing-selection" class="mt-10 space-y-4 text-center">
+  {% for part in "top,skirt,shoes,accessory"|split:"," %}
+  <div class="clothing-item" id="{{ part }}-selection">
+      <button type="button" onclick="changeItem('{{ part }}','prev')">⟨</button>
+      <img id="{{ part }}-preview" src="{% static 'dressup/avatars/'|add:part|add:'/00.png' %}" alt="{{ part }}" style="max-height: 60px;">
+      <button type="button" onclick="changeItem('{{ part }}','next')">⟩</button>
+  </div>
+  {% endfor %}
+</div>
+
+<!-- 💾 Outfit Save Form -->
+<form method="POST" class="mt-6 text-center">
     {% csrf_token %}
-
-    <!-- If you want to also store body/skin/hair/hair_color, you can do so here -->
-    <input type="hidden" name="top" id="top-input" value="">
-    <input type="hidden" name="skirt" id="skirt-input" value="">
-    <input type="hidden" name="shoes" id="shoes-input" value="">
-    <input type="hidden" name="accessory" id="accessory-input" value="">
-
-    <button type="submit" id="save-outfit">Save Outfit</button>
+    {% for part in "top,skirt,shoes,accessory"|split:"," %}
+        <input type="hidden" name="{{ part }}" id="{{ part }}-input" value="">
+    {% endfor %}
+    <button type="submit" id="save-outfit" class="px-4 py-2 bg-pink-500 text-white rounded hover:bg-pink-600 mt-4">
+        Save Outfit 💖
+    </button>
 </form>
 
 {% endblock %}
 
 {% block scripts %}
 <script>
-// Example code arrays for each category
-// Adjust or expand as needed
-const TOP_OPTIONS = ['00','01','02'];
-const SKIRT_OPTIONS = ['00','01','02'];
-const SHOES_OPTIONS = ['00','01','02'];
-const ACCESSORY_OPTIONS = ['00','01','02'];
+// Available clothing codes (expand as needed)
+const OPTIONS = {
+  top: ['00', '01', '02'],
+  skirt: ['00', '01', '02'],
+  shoes: ['00', '01', '02'],
+  accessory: ['00', '01', '02'],
+};
 
-/**
- * changeItem(category, direction) cycles the item code for
- * the specified category (top, skirt, shoes, accessory).
- * 
- * category: 'top' | 'skirt' | 'shoes' | 'accessory'
- * direction: 'prev' or 'next'
- */
 function changeItem(category, direction) {
-    // Identify the array of possible codes
-    let options = [];
-    if (category === 'top') {
-        options = TOP_OPTIONS;
-    } else if (category === 'skirt') {
-        options = SKIRT_OPTIONS;
-    } else if (category === 'shoes') {
-        options = SHOES_OPTIONS;
-    } else if (category === 'accessory') {
-        options = ACCESSORY_OPTIONS;
-    }
-
-    // Current code from the hidden input or default '00'
-    let currentCode = document.getElementById(`${category}-input`).value || '00';
-    let idx = options.indexOf(currentCode);
-
-    // If the current code is not found, start from index 0
-    if (idx < 0) {
-        idx = 0;
-    }
-
-    // Move to the next or previous code
-    if (direction === 'next') {
-        idx = (idx + 1) % options.length;
-    } else {
-        idx = (idx - 1 + options.length) % options.length;
-    }
-
-    const newCode = options[idx];
-
-    // Update the hidden input
-    document.getElementById(`${category}-input`).value = newCode;
-
-    // Update the preview image
-    const previewImg = document.getElementById(`${category}-preview`);
-    previewImg.src = "{% static 'dressup/avatars/' %}" + category + "/" + newCode + ".png";
+  const input = document.getElementById(`${category}-input`);
+  const current = input.value || '00';
+  const options = OPTIONS[category];
+  let idx = options.indexOf(current);
+  if (idx < 0) idx = 0;
+  idx = (direction === 'next') ? (idx + 1) % options.length : (idx - 1 + options.length) % options.length;
+  const newCode = options[idx];
+  input.value = newCode;
+  document.getElementById(`${category}-preview`).src = `/static/dressup/avatars/${category}/${newCode}.png`;
 }
 
-/**
- * On load, set default codes for each category (optional).
- * Or you can initialize them from your server data if you
- * have a default code (like avatar.top, avatar.skirt, etc.).
- */
 document.addEventListener('DOMContentLoaded', () => {
-    // For example, set everything to '00' initially
-    document.getElementById('top-input').value = '00';
-    document.getElementById('skirt-input').value = '00';
-    document.getElementById('shoes-input').value = '00';
-    document.getElementById('accessory-input').value = '00';
+  for (let part of ['top', 'skirt', 'shoes', 'accessory']) {
+    document.getElementById(`${part}-input`).value = '00';
+  }
+
+  // Drag-and-drop logic
+  document.querySelectorAll('.item').forEach(item => {
+    item.addEventListener('dragstart', e => {
+      e.dataTransfer.setData('item-id', item.dataset.id);
+    });
+  });
+
+  document.querySelectorAll('.avatar-layer').forEach(layer => {
+    layer.addEventListener('dragover', e => e.preventDefault());
+    layer.addEventListener('drop', e => {
+      e.preventDefault();
+      const itemId = e.dataTransfer.getData('item-id');
+      fetch(`/dressup/equip_item_ajax/${itemId}/`)
+        .then(res => res.json())
+        .then(data => {
+          if (data.status === 'equipped') {
+            const img = document.querySelector(`.avatar-layer.${data.category}`);
+            if (img) img.src = data.image_url;
+          }
+        });
+    });
+  });
 });
 </script>
 {% endblock %}
