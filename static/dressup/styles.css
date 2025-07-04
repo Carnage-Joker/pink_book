@@ -9,7 +9,7 @@
 .mall_map {
     display: flex;
     justify-content: center;
-    margin-top: 20px;
+    margin-block-start: 20px;
 }
 
 .shop-container {
@@ -28,8 +28,8 @@
 }
 
 .shop-item img {
-    width: 80px;
-    height: 80px;
+    inline-size: 80px;
+    block-size: 80px;
 }
 
 .shop-item:hover {
@@ -37,30 +37,28 @@
     border-color: #007bff;
 }
 .avatar-container {
-    position: relative;
-    width: 200px;
-    /* Adjust based on avatar size */
-    height: 400px;
+    inline-size: 100%;
+    block-size: 100%;
     margin: auto;
     overflow: hidden;
-    border: 2px solid pink;
-    border-radius: 10px;
+    border: 1% solid pink;
+    border-radius: 5%;
     background-color: rgba(255, 245, 245, 0.8);
 }
 
 .avatar-images {
     position: relative;
-    width: 100%;
-    height: 100%;
+    inline-size: 100%;
+    block-size: 100%;
 }
 
 /* Ensuring all layers are stacked correctly */
 .layer {
     position: absolute;
-    width: 100%;
-    height: 100%;
-    top: 0;
-    left: 0;
+    inline-size: 100%;
+    block-size: 100%;
+    inset-block-start: 0;
+    inset-inline-start: 0;
     object-fit: contain;
     /* Ensures proper scaling */
 }
@@ -92,8 +90,8 @@
 
 /* Ensure transparency is properly handled */
 .layer img {
-    width: 100%;
-    height: 100%;
+    inline-size: 100%;
+    block-size: 100%;
     display: block;
     mix-blend-mode: normal;
 }
@@ -126,8 +124,8 @@
 }
 
 .item img {
-    width: 100px;
-    height: 100px;
+    inline-size: 100px;
+    block-size: 100px;
     border-radius: 8px;
 }
 
@@ -146,8 +144,8 @@
 
 .shop-image {
     border-radius: 15px;
-    width: 100%;
-    height: auto;
+    inline-size: 100%;
+    block-size: 100%;
     transition: filter 0.3s ease;
 }
 
@@ -159,12 +157,12 @@
 @media (max-width: 768px) {
     .avatar-container {
         max-inline-size: 50%;
-        max-height: 50%;
+        max-block-size: 50%;
     }
 
     .shop-item img {
-        width: 60px;
-        height: 60px;
+        inline-size: 60px;
+        block-size: 60px;
     }
 }
 
@@ -185,17 +183,17 @@
 .story-text {
     font-size: 1.2rem;
     color: #333;
-    margin-top: 15px;
+    margin-block-start: 15px;
 }
 
 .sissy-note {
     font-style: italic;
     background: #ffe4e1;
     padding: 15px;
-    border-left: 4px solid #ff69b4;
+    border-inline-start: 4px solid #ff69b4;
     font-size: 1.1rem;
     color: #d63384;
-    margin-top: 20px;
+    margin-block-start: 20px;
 }
 
 .btn-pink {
@@ -215,13 +213,13 @@
 
 @media (max-width: 576px) {
     .avatar-container {
-        max-width: 80%;
-        max-height: 80%;
+        max-inline-size: 80%;
+        max-block-size: 80%;
     }
 
     .shop-item img {
-        width: 50px;
-        height: 50px;
+        inline-size: 50px;
+        block-size: 50px;
     }
 }
 
@@ -232,4 +230,10 @@
 
 #avatar-canvas.dragover {
     border-color: #007bff;
+}
+
+.thumbnail.equipped {
+    outline: 3px solid hotpink;
+    border-radius: 6px;
+    box-shadow: 0 0 10px deeppink;
 }

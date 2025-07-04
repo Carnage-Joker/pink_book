@@ -1,42 +1,111 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Photography Studio</title>
-    <link rel="stylesheet" href="{% static 'styles/photography_studio.css' %}">
-</head>
-<body>
-    <header>
-        <h1>Photography Studio</h1>
-        <nav>
-            <a href="{% url 'mall_view' %}">Back to Mall</a>
-        </nav>
-    </header>
-    <main>
-        <h2>Select Backdrop</h2>
-        <div class="backdrops-grid">
-            {% for backdrop in backdrops %}
-                <div class="backdrop">
-                    <img src="{{ backdrop.image.url }}" alt="{{ backdrop.name }}">
-                    <p>{{ backdrop.name }}</p>
-                    {% if backdrop.premium_only and not request.user.is_premium %}
-                        <p>This backdrop is for premium users only.</p>
-                    {% else %}
-                        <form action="{% url 'purchase_photoshoot' backdrop.id %}" method="post">
-                            {% csrf_token %}
-                            <button type="submit">Select</button>
-                        </form>
-                    {% endif %}
-                </div>
-            {% endfor %}
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Photography Studio Glam Session{% endblock %}
+
+{% block content %}
+<link rel="stylesheet" href="{% static 'styles/photography_studio.css' %}">
+
+<div class="container mt-5">
+  <h1 class="text-center glam-title">📸 Strike a Pose, Darling!</h1>
+  <p class="text-center lead">
+    Welcome to the <strong>Femmeville Photography Studio</strong>, where every snapshot sparkles and your glam dreams come alive!
+  </p>
+
+  <!-- Backdrop Selection -->
+  <section class="mt-5">
+    <h2 class="section-heading">🌈 Choose Your Backdrop</h2>
+    <div class="row">
+      {% for backdrop in backdrops %}
+      <div class="col-md-4 mb-4">
+        <div class="card shadow-lg h-100 text-center glam-card">
+          <img src="{{ backdrop.image.url }}" alt="{{ backdrop.name }}" class="card-img-top rounded-top">
+          <div class="card-body d-flex flex-column">
+            <h5 class="card-title">{{ backdrop.name }}</h5>
+            {% if backdrop.premium_only %}
+              <span class="badge bg-warning mb-2">Premium Only</span>
+            {% endif %}
+            {% if backdrop.premium_only and not request.user.is_premium %}
+              <p class="text-muted">Upgrade to unlock this stunning backdrop ✨</p>
+            {% else %}
+              <form action="{% url 'dressup:purchase_item' backdrop.id %}" method="post" class="mt-auto">
+                {% csrf_token %}
+                <button type="submit" class="btn btn-glam">Select &amp; Snap</button>
+              </form>
+            {% endif %}
+          </div>
         </div>
-        <h2>Your Photoshoots</h2>
-        <div class="photoshoots-grid">
-            {% for photoshoot in photoshoots %}
-                <img src="{{ photoshoot.image.url }}" alt="Photoshoot">
-            {% endfor %}
+      </div>
+      {% endfor %}
+    </div>
+  </section>
+
+  <!-- Your Previous Photoshoots -->
+  <section class="mt-5">
+    <h2 class="section-heading">🌟 Your Glam Shots</h2>
+    {% if photoshoots %}
+      <div class="row">
+        {% for shoot in photoshoots %}
+        <div class="col-md-3 mb-4">
+          <div class="glam-polaroid shadow-sm">
+            <img src="{{ shoot.image.url }}" alt="Photoshoot" class="img-fluid rounded">
+            <div class="caption">{{ shoot.photographer_type|title }}</div>
+          </div>
         </div>
-    </main>
-</body>
-</html>
+        {% endfor %}
+      </div>
+    {% else %}
+      <p class="text-center text-muted">No glam shots yet, baby. Strike a pose above to start your collection!</p>
+    {% endif %}
+  </section>
+</div>
+
+<style>
+.glam-title {
+  font-family: 'Cursive', sans-serif;
+  color: hotpink;
+  font-size: 2.5rem;
+}
+.section-heading {
+  color: deeppink;
+  border-bottom: 2px dashed pink;
+  margin-bottom: 1rem;
+  font-weight: bold;
+}
+.btn-glam {
+  background: linear-gradient(to right, hotpink, deeppink);
+  color: white;
+  border: none;
+  font-weight: bold;
+}
+.btn-glam:hover {
+  background: linear-gradient(to right, deeppink, hotpink);
+}
+.glam-card {
+  border: 2px solid pink;
+  border-radius: 20px;
+  transition: transform 0.2s ease-in-out;
+}
+.glam-card:hover {
+  transform: scale(1.03);
+  box-shadow: 0 0 20px rgba(255, 105, 180, 0.4);
+}
+.glam-polaroid {
+  background: #fff;
+  padding: 0.5rem;
+  border: 2px solid #f8c2dc;
+  border-radius: 8px;
+  text-align: center;
+  transition: box-shadow 0.2s ease-in-out;
+}
+.glam-polaroid:hover {
+  box-shadow: 0 0 10px hotpink;
+}
+.caption {
+  margin-top: 0.5rem;
+  font-size: 0.9rem;
+  font-weight: bold;
+  color: #d63384;
+}
+</style>
+{% endblock %}

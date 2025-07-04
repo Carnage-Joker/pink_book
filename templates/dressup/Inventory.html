@@ -9,14 +9,14 @@
   <div class="avatar-and-controls" style="display: flex; flex-wrap: wrap; gap: 2rem;">
     
     <!-- 👗 Avatar Display -->
-    <div class="avatar-stage" style="position: relative; width: 200px; height: 400px;">
+    <div class="avatar-stage" style="position: relative; inline-size: 200px; block-size: 400px;">
       {% for layer in layer_keys %}
         <img 
           id="layer-{{ layer }}" 
           class="avatar-layer {{ layer }}" 
           src="{{ image_urls|get_item:layer }}" 
           alt="{{ layer|capfirst }}" 
-          style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: contain;"
+          style="position: absolute; inset-block-start: 0; inset-inline-start: 0; inline-size: 100%; block-size: 100%; object-fit: contain;"
         >
       {% endfor %}
     </div>
@@ -37,7 +37,7 @@
                   alt="{{ p.item.name }}" 
                   data-item-id="{{ p.item.id }}" 
                   data-category="{{ cat }}"
-                  style="max-width: 60px; cursor: pointer;"
+                  style="max-inline-size: 60px; cursor: pointer;"
                 >
               {% endif %}
             {% endfor %}
@@ -50,12 +50,16 @@
   <!-- 💾 Outfit Form -->
   <form method="POST" class="mt-4">
     {% csrf_token %}
-    <input type="hidden" id="hair-input"      name="hair"      value="{{ avatar.hair }}">
-    <input type="hidden" id="top-input"       name="top"       value="{{ avatar.top }}">
-    <input type="hidden" id="skirt-input"     name="skirt"     value="{{ avatar.skirt }}">
-    <input type="hidden" id="shoes-input"     name="shoes"     value="{{ avatar.shoes }}">
+    <input type="hidden" id="hair-input" name="hair" value="{{ avatar.hair }}">
+    <input type="hidden" id="top-input" name="top" value="{{ avatar.top }}">
+    <input type="hidden" id="skirt-input" name="skirt" value="{{ avatar.skirt }}">
+    <input type="hidden" id="shoes-input" name="shoes" value="{{ avatar.shoes }}">
     <input type="hidden" id="accessory-input" name="accessory" value="{{ avatar.accessory }}">
-
+    <div style="text-align:center; margin-top:1rem;">
+      <label for="outfit-name">Outfit Name 💖</label><br>
+      <input type="text" name="outfit_name" id="outfit-name" value="{{ avatar.outfit_name }}" placeholder="e.g. Flirty Fit" style="padding:5px; border-radius:6px;">
+    </div>
+    
     <div class="button-bar mt-3" style="text-align: center;">
       <button type="submit" name="save_outfit">💾 Save Outfit</button>
       <button type="submit" name="fav_outfit">❤ Favourite</button>
@@ -70,21 +74,37 @@
 
 {% block scripts %}
 <script>
-document.querySelectorAll('.thumbnail').forEach(el => {
-  el.addEventListener('click', () => {
-    const itemId = el.dataset.itemId;
-    const category = el.dataset.category;
+document.addEventListener('DOMContentLoaded', function () {
+  document.querySelectorAll('.thumbnail').forEach(el => {
+    el.addEventListener('click', () => {
+      const itemId = el.dataset.itemId;
+      const category = el.dataset.category;
 
-    fetch(`/dressup/equip_item_ajax/${itemId}/`)
-      .then(res => res.json())
-      .then(data => {
-        if (data.status === 'equipped') {
-          const layer = document.getElementById(`layer-${data.category}`);
-          if (layer && data.image_url) {
-            layer.src = data.image_url;
+      fetch(`/dressup/equip/${itemId}/`)
+        .then(res => res.json())
+        .then(data => {
+          if (data.status === 'equipped' || data.status === 'unequipped') {
+            const layer = document.getElementById(`layer-${data.category}`);
+            if (layer && data.image_url) {
+              layer.src = data.image_url;
+            }
+
+            // Toggle equipped class styling
+            document.querySelectorAll(`.thumbnail[data-category="${data.category}"]`)
+              .forEach(img => img.classList.remove('equipped'));
+
+            const clicked = document.querySelector(`.thumbnail[data-item-id="${data.item_id}"]`);
+            if (clicked && data.status === 'equipped') {
+              clicked.classList.add('equipped');
+            }
+          } else if (data.status === 'error') {
+            alert(data.message || 'You cannot equip this item.');
           }
-        }
-      });
+        })
+        .catch(error => {
+          console.error('Error equipping item:', error);
+        });
+    });
   });
 });
 </script>

@@ -1,3 +1,4 @@
+from collections import defaultdict
 from django.shortcuts import get_object_or_404, redirect, render
 from django.http import HttpRequest, HttpResponse, JsonResponse
 from django.contrib.auth.decorators import login_required
@@ -117,6 +118,9 @@ def shop_detail(request: HttpRequest, shop_id: int) -> HttpResponse:
 @avatar_required
 def purchase_item(request: HttpRequest, item_id: int) -> HttpResponse:
     avatar = request.user.sissy_avatar
+    if not avatar:
+        sassy_error(request, "You need to create an avatar first, darling!")
+        return redirect('dressup:create_avatar')
     item = get_object_or_404(Item, id=item_id)
 
     if item.premium_only and not getattr(request.user, 'is_premium', False):
@@ -124,75 +128,100 @@ def purchase_item(request: HttpRequest, item_id: int) -> HttpResponse:
             request, "Sorry darling, this item is for premium members only.")
         return redirect('dressup:mall')
 
-    if PurchasedItem.objects.filter(user=request.user, item=item).exists():
+    if PurchasedItem.objects.filter(avatar=avatar, item=item).exists():
         sassy_info(request, "You already own this fabulous item!")
     else:
-        PurchasedItem.objects.create(user=request.user, item=item)
+        PurchasedItem.objects.create(avatar=avatar, item=item)
         sassy_success(request, f"{item.name} added to your closet!")
 
-    shop = item.shop_set.first()
+    shop = item.shop if item.shop else None
+    if shop:
+        sassy_info(request, f"Thank you for shopping at {shop.name}!")
     return redirect('dressup:shop_detail', shop_id=shop.id if shop else 'dressup:mall')
 
+
+# views.py
 
 @login_required
 @avatar_required
 def inventory_view(request: HttpRequest) -> HttpResponse:
     avatar = request.user.sissy_avatar
-    purchased_qs = PurchasedItem.objects.filter(
-        user=request.user).select_related('item')
+    purchased_qs = PurchasedItem.objects.filter(avatar=avatar)
+
+
     paginator = Paginator(purchased_qs, 10)
     purchased_page = paginator.get_page(request.GET.get('page'))
     equipped_item_ids = set(avatar.equipped_items.values_list('id', flat=True))
 
     if request.method == 'POST':
         item_id = request.POST.get('item_id')
+
+        # Equip/unequip toggle
         if item_id:
             item = get_object_or_404(Item, id=item_id)
             if item.id in equipped_item_ids:
                 avatar.unequip_item(item)
+                sassy_info(request, f"{item.name} has been unequipped.")
             else:
                 avatar.equip_item(item)
                 sassy_success(request, f"{item.name} is now equipped!")
             return redirect('dressup:inventory')
 
+        # Save outfit with a name
         elif 'save_outfit' in request.POST:
-            avatar.hair = request.POST.get('hair', avatar.hair)
-            avatar.top = request.POST.get('top', avatar.top)
-            avatar.skirt = request.POST.get('skirt', avatar.skirt)
-            avatar.shoes = request.POST.get('shoes', avatar.shoes)
-            avatar.accessory = request.POST.get('accessory', avatar.accessory)
-            avatar.save()
-            sassy_success(request, "Your outfit has been saved!")
+            from .models import SavedOutfit
+            outfit_name = request.POST.get('outfit_name', 'My Fabulous Look')
+
+            SavedOutfit.objects.create(
+                user=request.user,
+                name=outfit_name.strip() or 'Unnamed Look',
+                top=request.POST.get('top', '00'),
+                skirt=request.POST.get('skirt', '00'),
+                shoes=request.POST.get('shoes', '00'),
+                accessory=request.POST.get('accessory', '00'),
+            )
+            sassy_success(request, f"Saved your outfit as “{outfit_name}”! 💖")
 
         elif 'fav_outfit' in request.POST:
-            avatar.favourite_top = avatar.top
-            avatar.favourite_skirt = avatar.skirt
-            avatar.favourite_shoes = avatar.shoes
-            avatar.favourite_accessory = avatar.accessory
-            avatar.save()
-            sassy_success(request, "Favourite outfit updated!")
+            sassy_info(request, "Favoriting outfits is coming soon, darling!")
 
         else:
             sassy_error(request, "Nothing selected – please try again.")
         return redirect('dressup:inventory')
 
+    equipped_map = defaultdict(lambda: '00')
+    for item in avatar.equipped_items.all():
+        equipped_map[item.category] = item.name  # or a code if you store it
+
     context = {
         'avatar': avatar,
         'purchased_items': purchased_page,
         'equipped_items': avatar.equipped_items.all(),
-        'layer_keys': AVATAR_LAYERS,
+        'layer_keys': ['body', 'hair', 'skirt', 'top', 'shoes', 'accessories'],
         'image_urls': avatar.get_image_urls(),
         'categories': ['hair', 'top', 'skirt', 'shoes', 'accessory'],
+        'equipped_map': dict(equipped_map),
     }
+
     return render(request, 'dressup/inventory.html', context)
 
 
+@login_required
+@avatar_required
 @login_required
 @avatar_required
 def equip_item_ajax(request: HttpRequest, item_id: int) -> JsonResponse:
     avatar = request.user.sissy_avatar
     item = get_object_or_404(Item, id=item_id)
 
+    # Ownership check
+    if not PurchasedItem.objects.filter(avatar=avatar, item=item).exists():
+        return JsonResponse({
+            'status': 'error',
+            'message': "You don't own this item!",
+        }, status=403)
+
+    # Equip or unequip
     if avatar.equipped_items.filter(id=item.id).exists():
         avatar.unequip_item(item)
         status = "unequipped"

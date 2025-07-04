@@ -28,9 +28,9 @@ class AvatarAdmin(admin.ModelAdmin):
 
 @admin.register(PurchasedItem)
 class PurchasedItemAdmin(admin.ModelAdmin):
-    list_display = ('user', 'item', 'purchased_at', 'used', 'is_equipped')
+    list_display = ('avatar', 'item', 'purchased_at', 'used', 'is_equipped')
     list_filter = ('used', 'is_equipped')
-    search_fields = ('user__sissy_name', 'item__name')
+    search_fields = ('avatar__sissy_name', 'item__name')
 
 
 @admin.register(PhotoShoot)
@@ -38,7 +38,7 @@ class PhotoShootAdmin(admin.ModelAdmin):
     list_display = ('user', 'photographer_type',
                     'backdrop', 'purchased_at', 'used')
     list_filter = ('photographer_type', 'used')
-    search_fields = ('user__sissy_name',)
+    search_fields = ('user__sissy_name', 'backdrop__name')
 
 
 @admin.register(LeaderboardEntry)
