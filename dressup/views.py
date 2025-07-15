@@ -134,10 +134,11 @@ def purchase_item(request: HttpRequest, item_id: int) -> HttpResponse:
         PurchasedItem.objects.create(avatar=avatar, item=item)
         sassy_success(request, f"{item.name} added to your closet!")
 
-    shop = item.shop if item.shop else None
+    shop = item.shop or None
     if shop:
         sassy_info(request, f"Thank you for shopping at {shop.name}!")
-    return redirect('dressup:shop_detail', shop_id=shop.id if shop else 'dressup:mall')
+        return redirect('dressup:shop_detail', shop_id=shop.id)
+    return redirect('dressup:mall')
 
 
 # views.py
@@ -199,7 +200,7 @@ def inventory_view(request: HttpRequest) -> HttpResponse:
         'equipped_items': avatar.equipped_items.all(),
         'layer_keys': ['body', 'hair', 'skirt', 'top', 'shoes', 'accessories'],
         'image_urls': avatar.get_image_urls(),
-        'categories': ['hair', 'top', 'skirt', 'shoes', 'accessory'],
+        'categories': ['hair', 'top', 'skirt', 'shoes', 'accessories'],
         'equipped_map': dict(equipped_map),
     }
 

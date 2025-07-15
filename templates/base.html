@@ -5,28 +5,15 @@
     {% block head %}
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="{% static 'dressup/styles.css' %}">
+    <link rel="stylesheet" href="{% static 'journal/css/diary-theme.css' %}">
+    <link rel="stylesheet" href="{% static 'journal/css/animations.css' %}">
+    <link rel="stylesheet" href="{% static 'journal/css/panic_mode.css' %}">
+
     <title>{% block title %}The Pink Book{% endblock %}</title>
     <link rel="icon" type="image/x-icon" href="{% static 'journal/images/favicon.ico' %}">
     
-    <!-- Stylesheets -->
-    <link rel="stylesheet" href="{% static 'journal/css/diary-theme.css' %}">
-    <link rel="stylesheet" href="{% static 'dressup/styles.css' %}">
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;600&display=swap" rel="stylesheet">
-    {% endblock %}
-</head>
-<body class="sissy-theme">
 
-    <!-- Panic Button -->
-    <div class="panic-button" onclick="togglePanicMode()">Panic</div>
-
-    <!-- Header -->
-    <header class="neon-accent-header">
-        <h1>The Pink Book</h1>
-        <div class="neon-accent-bottom"></div>
-    </header>
-
-    <!-- Sassy Messages -->
     {% if messages %}
       <div id="sassy-messages">
         {% for message in messages %}
@@ -56,6 +43,7 @@
         <a href="{% url 'journal:blog_list' %}" class="post-it">Blog</a>
         <a href="{% url 'journal:entry_list' %}" class="post-it">Journal</a>
     </nav>
+    {% endblock %}
 
     <!-- Main Content Container -->
     <div class="container">
@@ -76,7 +64,7 @@
     <script type="module" src="{% static 'dressup/scripts/avatarModule.js' %}"></script>
     <script type="module" src="{% static 'dressup/scripts/itemCycling.js' %}"></script>
     <script type="module" src="{% static 'dressup/scripts/toastModule.js' %}"></script>
-    
+    <script src="{% static 'journal/scripts/panic_mode.js' %}"></script>
     <script type="module">
       import { navigationModule } from "{% static 'dressup/scripts/navigationModule.js' %}";
       document.addEventListener('DOMContentLoaded', () => {

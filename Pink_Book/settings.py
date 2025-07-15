@@ -1,11 +1,7 @@
 import os
 from pathlib import Path
-from django.utils.timezone import get_current_timezone
-from dotenv import load_dotenv
 from typing import Dict, Any, List
 
-# Load environment variables from .env file
-load_dotenv()
 
 # Base directory
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -21,7 +17,7 @@ OPENAI_API_KEY = os.getenv('OPENAI_API_KEY')
 
 
 # Template directories
-TEMPLATES: List[dict] = [
+TEMPLATES: List[Dict[str, Any]] = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
         # Ensure templates are pointed here
@@ -63,7 +59,6 @@ INSTALLED_APPS = [
     'corsheaders',
     'channels',
     'openai',
-    'jwt',
 ]
 
 ASGI_APPLICATION = 'Pink_Book.asgi.application'

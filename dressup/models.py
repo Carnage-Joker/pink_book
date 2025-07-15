@@ -2,17 +2,11 @@ from __future__ import annotations
 from django.db import models
 from django.templatetags.static import static
 from django.contrib.auth import get_user_model
-from journal.models import CustomUser  # Ensure correct import path
 import os
-import openai
 from github import Github
 from github.GithubIntegration import GithubIntegration
 
 User = get_user_model()
-
-# =====================
-# Item Model
-# =====================
 
 
 class Item(models.Model):
@@ -39,20 +33,32 @@ class Item(models.Model):
     premium_only = models.BooleanField(default=False)
     is_locked = models.BooleanField(default=False)
     description = models.TextField(blank=True)
-    shop = models.ForeignKey(
-        'Shop', on_delete=models.SET_NULL, null=True, blank=True, related_name='items')
 
-    def save(self, *args, **kwargs):
+    def _validate_image_path(self):
         if self.image_path and not self.image_path.startswith('dressup/'):
             raise ValueError("Image path must start with 'dressup/'.")
-        super().save(*args, **kwargs)
+
+    def save(
+        self,
+        force_insert: bool = False,
+        force_update: bool = False,
+        using: str | None = None,
+        update_fields: list[str] | None = None,
+        *args,
+        **kwargs
+    ) -> None:
+        self._validate_image_path()
+        super().save(
+            force_insert=force_insert,
+            force_update=force_update,
+            using=using,
+            update_fields=update_fields,
+            *args,
+            **kwargs
+        )
 
     def __str__(self):
         return self.name
-
-# =====================
-# Shop Model
-# =====================
 
 
 class Shop(models.Model):
@@ -83,6 +89,7 @@ class Shop(models.Model):
     shop_type = models.CharField(max_length=50, choices=SHOP_TYPE_CHOICES)
     shop_level = models.CharField(
         max_length=50, choices=SHOP_LEVEL_CHOICES, default='basic')
+    item = models.ManyToManyField(Item, related_name='shop_item')
     premium_only = models.BooleanField(default=False)
     is_locked = models.BooleanField(default=False)
     description = models.TextField(blank=True)
@@ -93,10 +100,6 @@ class Shop(models.Model):
 
     def __str__(self):
         return self.name
-
-# =====================
-# Avatar Model
-# =====================
 
 
 class Avatar(models.Model):
@@ -109,17 +112,17 @@ class Avatar(models.Model):
                           ('blonde', 'Blonde'), ('red', 'Red'), ('pink', 'Pink')]
 
     user = models.OneToOneField(
-        CustomUser, on_delete=models.CASCADE, related_name='sissy_avatar')
+        User, on_delete=models.CASCADE, related_name='sissy_avatar')
     name = models.CharField(max_length=100, default="Sissy Avatar")
     body = models.CharField(max_length=2, choices=BODY_CHOICES, default='00')
     skin = models.CharField(max_length=2, choices=SKIN_CHOICES, default='00')
     hair = models.CharField(max_length=2, choices=HAIR_CHOICES, default='00')
-    equipped_items = models.ManyToManyField(
-        Item, related_name='equipped_on_avatars', blank=True)
     hair_color = models.CharField(
         max_length=20, choices=HAIR_COLOR_CHOICES, default='black')
     story_started = models.BooleanField(default=False)
     outfit_name = models.CharField(max_length=100, blank=True, null=True)
+    equipped_item = models.ManyToManyField(
+        Item, related_name='equipped_on_avatars', blank=True)
 
     def get_image_urls(self, layer_keys: list[str] | None = None) -> dict[str, str]:
         if layer_keys is None:
@@ -127,43 +130,37 @@ class Avatar(models.Model):
                           'skirt', 'shoes', 'accessories']
         urls = {
             'body': static(f'dressup/avatars/body/{self.body}/{self.skin}.png'),
-            'hair': static(f'dressup/avatars/hair/{self.hair}/{self.hair_color}.png'),
+            'hair': static(f'dressup/avatars/hair/{self.hair}/{self.hair_color}.png')
         }
         for key in layer_keys:
             if key not in urls:
                 urls[key] = static(f'dressup/avatars/{key}/00.png')
-        for items in self.equipped_items.all():
-            if items.category in layer_keys and items.image_path:
-                urls[items.category] = static(items.image_path)
+        for item in self.equipped_item.all():
+            if item.category in layer_keys and item.image_path:
+                urls[item.category] = static(item.image_path)
         return urls
 
-    def equip_item(self, items):
-        if not isinstance(items, Item):
+    def equip_item(self, item):
+        if not isinstance(item, Item):
             raise ValueError("Expected an Item instance.")
-        # Optional: Add ownership check here (PurchasedItem.objects.filter(avatar=self, item=items).exists())
-        for equipped in self.equipped_items.filter(category=items.category):
-            self.equipped_items.remove(equipped)
-        self.equipped_items.add(items)
+        self.equipped_item.remove(*self.equipped_item.filter(category=item.category))
+        self.equipped_item.add(item)
         self.save()
 
-    def unequip_item(self, items):
-        self.equipped_items.remove(items)
+    def unequip_item(self, item):
+        self.equipped_item.remove(item)
         self.save()
 
     @property
     def equipped_display_names(self):
-        return {items.category: items.name for items in self.equipped_items.all()}
+        return {item.category: item.name for item in self.equipped_item.all()}
 
     def __str__(self):
         return f"{self.user.sissy_name}'s Avatar"
 
-# =====================
-# Saved Outfit Model
-# =====================
-
 
 class SavedOutfit(models.Model):
-    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
+    avatar = models.ForeignKey(Avatar, on_delete=models.CASCADE, related_name='saved_outfit')
     name = models.CharField(max_length=100)
     top = models.CharField(max_length=20)
     skirt = models.CharField(max_length=20)
@@ -172,16 +169,12 @@ class SavedOutfit(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
-        return f"{self.name} by {self.user.sissy_name}"
-
-# =====================
-# Purchased Item Model
-# =====================
+        return f"{self.name} by {self.avatar.user.sissy_name}"
 
 
 class PurchasedItem(models.Model):
     avatar = models.ForeignKey(
-        Avatar, on_delete=models.CASCADE, related_name='purchased_items')
+        Avatar, on_delete=models.CASCADE, related_name='purchased_item')
     item = models.ForeignKey(Item, on_delete=models.CASCADE)
     purchased_at = models.DateTimeField(auto_now_add=True)
     used = models.BooleanField(default=False)
@@ -193,10 +186,6 @@ class PurchasedItem(models.Model):
     def __str__(self):
         return f"{self.avatar.user.sissy_name} purchased {self.item.name}"
 
-# =====================
-# PhotoShoot Model
-# =====================
-
 
 class PhotoShoot(models.Model):
     PHOTOGRAPHER_CHOICES = [
@@ -205,7 +194,7 @@ class PhotoShoot(models.Model):
         ('hot', 'Hot Photographer'),
     ]
 
-    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
     photographer_type = models.CharField(
         max_length=20, choices=PHOTOGRAPHER_CHOICES)
     backdrop = models.ForeignKey(Item, on_delete=models.CASCADE)
@@ -216,24 +205,17 @@ class PhotoShoot(models.Model):
     def __str__(self):
         return f"{self.user.sissy_name}'s photoshoot with {self.photographer_type} photographer"
 
-# =====================
-# Leaderboard Model
-# =====================
-
 
 class LeaderboardEntry(models.Model):
-    user = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
     points = models.IntegerField()
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
         return f"{self.user.sissy_name}: {self.points} points"
 
-# =====================
-# GitHub Integration Config
-# =====================
 
-
+# GitHub App Configuration (leave unchanged)
 GH_APP_ID_ENV = os.getenv("GH_APP_ID")
 GH_INSTALL_ID_ENV = os.getenv("GH_INSTALL_ID")
 GH_WEBHOOK_SECRET = os.getenv("GH_WEBHOOK_SECRET")
@@ -242,20 +224,14 @@ LOCAL_REPO_PATH = os.getenv("LOCAL_REPO_PATH")
 ASSISTANT_ID = os.getenv("ASSISTANT_ID")
 REPO_FULL = os.getenv("REPO_FULL", "carnage-joker/pink_book")
 
-if GH_APP_ID_ENV is None or GH_INSTALL_ID_ENV is None:
-    raise RuntimeError("GH_APP_ID and GH_INSTALL_ID must be set")
-GH_APP_ID = int(GH_APP_ID_ENV)
-GH_INSTALL_ID = int(GH_INSTALL_ID_ENV)
-
-ai = openai.OpenAI(
-    api_key=os.getenv("OPENAI_API_KEY"),
-    default_headers={"OpenAI-Beta": "assistants=v2"}
-)
+GH_APP_ID = int(GH_APP_ID_ENV) if GH_APP_ID_ENV is not None else None
+GH_INSTALL_ID = int(GH_INSTALL_ID_ENV) if GH_INSTALL_ID_ENV is not None else None
 
 
 def get_github() -> Github:
-    """Authenticate via GitHub App installation."""
     try:
+        if GH_APP_ID is None or GH_INSTALL_ID is None:
+            raise RuntimeError("GH_APP_ID and GH_INSTALL_ID must be set")
         if GH_APP_KEY_PATH is None:
             raise RuntimeError("GH_APP_KEY_PATH is not set")
         with open(GH_APP_KEY_PATH, "r") as f:
