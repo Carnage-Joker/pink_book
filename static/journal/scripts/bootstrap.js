@@ -116,7 +116,7 @@ if (!jQuery) { throw new Error("Bootstrap requires jQuery") }
       selector = selector && selector.replace(/.*(?=#[^\s]*$)/, '') // strip for ie7
     }
 
-    var $parent = $(selector)
+    var $parent = $.find(selector)
 
     if (e) e.preventDefault()
 
@@ -481,7 +481,12 @@ if (!jQuery) { throw new Error("Bootstrap requires jQuery") }
 
   $(document).on('click.bs.carousel.data-api', '[data-slide], [data-slide-to]', function (e) {
     var $this   = $(this), href
-    var $target = $($this.attr('data-target') || (href = $this.attr('href')) && href.replace(/.*(?=#[^\s]+$)/, '')) //strip for ie7
+    var targetSelector = $this.attr('data-target') || (href = $this.attr('href')) && href.replace(/.*(?=#[^\s]+$)/, ''); //strip for ie7
+    if (targetSelector && /^#[a-zA-Z][\w:.-]*$/.test(targetSelector)) { // Validate as a safe CSS ID selector
+      var $target = $(targetSelector);
+    } else {
+      throw new Error("Invalid target selector: " + targetSelector);
+    }
     var options = $.extend({}, $target.data(), $this.data())
     var slideIndex = $this.attr('data-slide-to')
     if (slideIndex) options.interval = false
@@ -534,7 +539,7 @@ if (!jQuery) { throw new Error("Bootstrap requires jQuery") }
     this.options       = $.extend({}, Collapse.DEFAULTS, options)
     this.transitioning = null
 
-    if (this.options.parent) this.$parent = $(this.options.parent)
+    if (this.options.parent) this.$parent = $(jQuery.find(this.options.parent))
     if (this.options.toggle) this.toggle()
   }
 
@@ -668,6 +673,9 @@ if (!jQuery) { throw new Error("Bootstrap requires jQuery") }
     var target  = $this.attr('data-target')
         || e.preventDefault()
         || (href = $this.attr('href')) && href.replace(/.*(?=#[^\s]+$)/, '') //strip for ie7
+    if (target) {
+        target = $.escapeSelector ? $.escapeSelector(target) : target.replace(/([!"#$%&'()*+,.\/:;<=>?@[\\\]^`{|}~])/g, '\\$1');
+    }
     var $target = $(target)
     var data    = $target.data('bs.collapse')
     var option  = data ? 'toggle' : $this.data()
