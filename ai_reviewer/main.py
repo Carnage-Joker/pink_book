@@ -57,7 +57,7 @@ def get_github() -> Github:
         token = integration.get_access_token(GH_INSTALL_ID).token
         return Github(token)
     except Exception as e:
-        raise RuntimeError(f"GitHub authentication failed: {e}")
+        raise RuntimeError(f"GitHub authentication failed: {e}") from e
 
 
 def _list_local_repo() -> str:
