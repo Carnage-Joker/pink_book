@@ -52,7 +52,9 @@ git-filter-repo==2.45.0
 gitdb==4.0.12
 GitPython==3.1.44
 google-api-core==2.23.0
-google-api-python-client==2.174.0
+
+google-api-python-client==2.176.0
+
 google-auth==2.32.0
 google-auth-httplib2==0.2.0
 google-auth-oauthlib==1.2.1
@@ -152,7 +154,7 @@ toml==0.10.2
 torch==2.7.1
 tornado==6.5.1
 tqdm==4.67.1
-transformers==4.50.0
+transformers==4.53.2
 typing_extensions==4.12.2
 tzdata==2025.2
 umf==0.9.1
