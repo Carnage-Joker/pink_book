@@ -134,7 +134,7 @@ def purchase_item(request: HttpRequest, item_id: int) -> HttpResponse:
         PurchasedItem.objects.create(avatar=avatar, item=item)
         sassy_success(request, f"{item.name} added to your closet!")
 
-    shop = item.shop if item.shop else None
+    shop = item.shop or None
     if shop:
         sassy_info(request, f"Thank you for shopping at {shop.name}!")
     return redirect('dressup:shop_detail', shop_id=shop.id if shop else 'dressup:mall')
