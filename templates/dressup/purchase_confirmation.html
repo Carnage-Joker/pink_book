@@ -30,11 +30,11 @@
         </div>
         <div class="purchase-actions">
             <p>Are you sure you want to purchase this item?</p>
-            <form action="{% url 'confirm_purchase' item.id %}" method="post">
+            <form action="{% url 'dressup:purchase_item' item.id %}" method="post">
                 {% csrf_token %}
                 <button type="submit" class="confirm-button">Confirm Purchase</button>
             </form>
-            <form action="{% url 'mall_view' %}" method="get">
+            <form action="{% url 'dressup:mall' %}" method="get">
                 <button type="submit" class="cancel-button">Cancel</button>
             </form>
         </div>

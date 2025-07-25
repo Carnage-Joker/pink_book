@@ -1,46 +1,44 @@
 {% extends 'base.html' %}
-{% load custom_filters %}
-{% load custom_filters %}
-{% load static %}
+{% load custom_filters static %}
 {% block content %}
 
-<h1>Welcome to the Mall</h1>
+<h1 class="text-center" style="color:deeppink;">Welcome to the Mall</h1>
 
-<!-- Avatar Display -->
-<div class="avatar-container">
-    <div class="avatar-images">
-        {% for layer in layer_keys %}
-           {% with image_url=image_urls|get_item:layer %}
-    {% if image_url %}
-        <img src="{{ image_url }}" alt="{{ layer|capfirst }} for avatar" class="layer {{ layer }}">
-    {% else %}
-        <img src="{% static 'dressup/avatars/'|add:layer|add:'/default.png' %}" 
-             alt="Default {{ layer|capfirst }} Layer" 
-             class="layer {{ layer }}">
-    {% endif %}
-{% endwith %}
-
-        {% endfor %}
-    </div>
+<!-- 💃 Avatar Preview -->
+<div class="avatar-container" style="display: flex; justify-content: center; margin-bottom: 2rem;">
+  <div class="avatar-images" style="position: relative; width: 200px; height: 400px;">
+    {% for layer in layer_keys %}
+      {% with image_url=image_urls|get_item:layer %}
+        <img 
+          src="{{ image_url|default_if_none:'' }}" 
+          alt="{{ layer|capfirst }} for avatar" 
+          class="avatar-layer {{ layer }}" 
+          style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: contain;">
+      {% endwith %}
+    {% endfor %}
+  </div>
 </div>
 
-<a href="{% url 'dressup:inventory' %}" class="btn btn-secondary">View Inventory</a>
+<!-- 👠 Go to Inventory -->
+<div style="text-align: center; margin-bottom: 1rem;">
+  <a href="{% url 'dressup:inventory' %}" class="btn btn-secondary">💼 View Inventory</a>
+</div>
 
-<!-- Shop Listings -->
+<!-- 🏬 Shop List -->
 <div class="mall_map shops-section">
-    <div class="shop-container">
-        {% for shop in shops %}
-            <article class="shop-item">
-                <a href="{% url 'dressup:shop_detail' shop.id %}">
-                    <img src="{{ shop.get_image_url }}" alt="{{ shop.name }} shop" class="shop-image">
-                    <h2>{{ shop.name }}</h2>
-                    <p>{{ shop.description }}</p>
-                </a>
-            </article>
-        {% empty %}
-            <p>No shops are currently open. Please check back later for amazing deals!</p>
-        {% endfor %}
-    </div>
+  <div class="shop-container" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 2rem;">
+    {% for shop in shops %}
+      <article class="shop-item" style="border: 1px solid hotpink; padding: 1rem; border-radius: 10px; background: #fff0f5;">
+        <a href="{% url 'dressup:shop_detail' shop.id %}" style="text-decoration: none; color: inherit;">
+          <img src="{{ shop.get_image_url }}" alt="{{ shop.name }} shop" class="shop-image" style="width: 100%; border-radius: 5px;">
+          <h2 style="margin-top: 0.5rem;">{{ shop.name }}</h2>
+          <p>{{ shop.description }}</p>
+        </a>
+      </article>
+    {% empty %}
+      <p>No shops are currently open. Check back later for deals, darling!</p>
+    {% endfor %}
+  </div>
 </div>
 
 {% endblock %}

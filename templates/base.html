@@ -7,38 +7,18 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}The Pink Book{% endblock %}</title>
     <link rel="icon" type="image/x-icon" href="{% static 'journal/images/favicon.ico' %}">
-    {% if messages %}
-  <div id="sassy-messages">
-    {% for message in messages %}
-      <div class="sassy-message {{ message.tags }}">
-        {{ message }}
-      </div>
-    {% endfor %}
-  </div>
-  <script>
-    // Fade out messages after 5 seconds
-    setTimeout(function(){
-      var messagesDiv = document.getElementById('sassy-messages');
-      if(messagesDiv){
-        messagesDiv.style.transition = "opacity 1s ease-out";
-        messagesDiv.style.opacity = 0;
-        setTimeout(function() {
-          messagesDiv.remove();
-        }, 1000);
-      }
-    }, 5000);
-  </script>
-{% endif %}
+    
     <!-- Stylesheets -->
     <link rel="stylesheet" href="{% static 'journal/css/diary-theme.css' %}">
+    <link rel="stylesheet" href="{% static 'dressup/styles.css' %}">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;600&display=swap" rel="stylesheet">
     {% endblock %}
 </head>
 <body class="sissy-theme">
+
     <!-- Panic Button -->
-    <div class="panic-button" onClick|onTouch="togglePanicMode()">Panic</div>
-    <div class="panic-button" onClick|onTouch="togglePanicMode()">Panic</div>
+    <div class="panic-button" onclick="togglePanicMode()">Panic</div>
 
     <!-- Header -->
     <header class="neon-accent-header">
@@ -46,7 +26,7 @@
         <div class="neon-accent-bottom"></div>
     </header>
 
-    <!-- Sassy Messages Container -->
+    <!-- Sassy Messages -->
     {% if messages %}
       <div id="sassy-messages">
         {% for message in messages %}
@@ -56,15 +36,12 @@
         {% endfor %}
       </div>
       <script>
-        // Fade out messages after 5 seconds
-        setTimeout(function(){
-          var messagesDiv = document.getElementById('sassy-messages');
-          if(messagesDiv){
+        setTimeout(() => {
+          const messagesDiv = document.getElementById('sassy-messages');
+          if (messagesDiv) {
             messagesDiv.style.transition = "opacity 1s ease-out";
             messagesDiv.style.opacity = 0;
-            setTimeout(function() {
-              messagesDiv.remove();
-            }, 1000);
+            setTimeout(() => messagesDiv.remove(), 1000);
           }
         }, 5000);
       </script>
@@ -94,20 +71,33 @@
 
     <!-- Include External Scripts -->
     {% block scripts %}
-    <script type="module" src="{% static 'dressup/scripts.js' %}"></script>
+    <script type="module" src="{% static 'dressup/scripts/scripts.js' %}"></script>
     <script type="module" src="{% static 'journal/scripts/scripts.js' %}"></script>
+    <script type="module" src="{% static 'dressup/scripts/avatarModule.js' %}"></script>
+    <script type="module" src="{% static 'dressup/scripts/itemCycling.js' %}"></script>
+    <script type="module" src="{% static 'dressup/scripts/toastModule.js' %}"></script>
+    
     <script type="module">
-  import { navigationModule } from "{% static 'dressup/navigationModule.js' %}";
+      import { navigationModule } from "{% static 'dressup/scripts/navigationModule.js' %}";
+      document.addEventListener('DOMContentLoaded', () => {
+        navigationModule.init();
+      });
+    </script>
 
-  document.addEventListener('DOMContentLoaded', () => {
-    navigationModule.init();
-  });
-</script>
-    <script type="module" src="{% static 'dressup/avatarModule.js' %}"></script>
-    <script type="module" src="{% static 'dressup/itemCycling.js' %}"></script>
-    <script type="module" src="{% static 'dressup/toastModule.js' %}"></script>
+    <!-- Panic Mode Toggle -->
+    <script>
+      function togglePanicMode() {
+        document.body.classList.toggle('panic-mode');
 
+        // Blur media
+        document.querySelectorAll('img, video').forEach(el => {
+          el.style.filter = document.body.classList.contains('panic-mode') ? 'blur(4px)' : '';
+        });
+
+        // Adjust font size
+        document.body.style.fontSize = document.body.classList.contains('panic-mode') ? 'smaller' : '';
+      }
+    </script>
     {% endblock %}
 </body>
-
 </html>

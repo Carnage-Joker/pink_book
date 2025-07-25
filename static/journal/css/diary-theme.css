@@ -46,33 +46,6 @@ body.sissy-theme {
     background: var(--primary-bg);
 }
 
-/* Panic Mode Overrides */
-body.panic-mode {
-    --primary-bg: #ffffff;
-    --card-bg: #ffffff;
-    --primary-color: #000000;
-    --secondary-color: #555555;
-    --neutral-bg: #f2f2f2;
-    --neutral-text: #000000;
-    --border-radius: 5px;
-    --font-color: #000000;
-    --font-family-body: Arial, sans-serif;
-    --font-family-title: Arial, sans-serif;
-}
-
-/* Hide Panic Button in Panic Mode */
-body.panic-mode .panic-button {
-    display: none;
-}
-
-/* Hide Sissy-Specific Elements in Panic Mode */
-body.panic-mode .decorative-corner,
-body.panic-mode .post-it-notes,
-body.panic-mode::before,
-body.panic-mode::after {
-    display: none;
-}
-
 /* Background Decorative Elements */
 body::before,
 body::after {
@@ -85,13 +58,13 @@ body::after {
 }
 
 body::before {
-    top: 10%;
-    left: 5%;
+    inset-block-start: 10%;
+    inset-inline-start: 5%;
 }
 
 body::after {
-    bottom: 15%;
-    right: 10%;
+    inset-block-end: 15%;
+    inset-inline-end: 10%;
 }
 
 /* Keyframes for Float Animation */
@@ -475,4 +448,44 @@ button:focus {
 
 .icon.updated {
     transform: scale(1.3);
+}
+
+.thumbnail.equipped {
+    outline: 3px solid hotpink;
+    border-radius: 6px;
+    box-shadow: 0 0 10px deeppink;
+}
+
+/* PANIC MODE: Desaturate and neutralise styling */
+body.panic-mode {
+    background-color: #e0e0e0 !important;
+    color: #222 !important;
+    font-family: sans-serif !important;
+}
+
+body.panic-mode .neon-accent-header,
+body.panic-mode .post-it-notes,
+body.panic-mode .footer,
+body.panic-mode .sassy-message,
+body.panic-mode .button,
+body.panic-mode a,
+body.panic-mode h1,
+body.panic-mode h2,
+body.panic-mode h3,
+body.panic-mode h4 {
+    all: unset;
+    background: none !important;
+    color: #333 !important;
+}
+
+body.panic-mode .avatar-layer,
+body.panic-mode .thumbnail,
+body.panic-mode img {
+    filter: blur(4px) !important;
+}
+
+body.panic-mode .panic-button {
+    background-color: #888;
+    color: white;
+    border: none;
 }
