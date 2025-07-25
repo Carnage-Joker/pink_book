@@ -34,6 +34,12 @@ function createLivePreview() {
             const currentLayer = document.getElementById(`layer-${category}`);
             if (currentLayer) lastEquipped[category] = currentLayer.src;
 
+            const validItemIds = ['item1', 'item2', 'item3']; // Example allow-list
+            if (!validItemIds.includes(itemId)) {
+                console.error(`Invalid itemId: ${itemId}`);
+                return;
+            }
+
             fetch("{% url 'dressup:equip_item' 0 %}".replace('0', itemId))
 
                 .then(res => {
