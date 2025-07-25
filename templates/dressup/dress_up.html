@@ -93,14 +93,20 @@ document.addEventListener('DOMContentLoaded', () => {
     layer.addEventListener('drop', e => {
       e.preventDefault();
       const itemId = e.dataTransfer.getData('item-id');
-      fetch(`/dressup/equip_item_ajax/${itemId}/`)
-        .then(res => res.json())
-        .then(data => {
-          if (data.status === 'equipped') {
-            const img = document.querySelector(`.avatar-layer.${data.category}`);
-            if (img) img.src = data.image_url;
-          }
-        });
+      // Validate itemId against predefined valid IDs
+      const validIds = Object.values(OPTIONS).flat();
+      if (validIds.includes(itemId)) {
+        fetch(`/dressup/equip_item_ajax/${itemId}/`)
+          .then(res => res.json())
+          .then(data => {
+            if (data.status === 'equipped') {
+              const img = document.querySelector(`.avatar-layer.${data.category}`);
+              if (img) img.src = data.image_url;
+            }
+          });
+      } else {
+        console.error(`Invalid itemId: ${itemId}`);
+      }
     });
   });
 });
