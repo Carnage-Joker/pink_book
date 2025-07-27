@@ -1,19 +1,15 @@
 // ==============================
-// Main Script for Dressup App
+// Main Script for Dressup App patch
 // ==============================
 import { avatarModule } from './avatarModule.js';
 import { toastModule } from './toastModule.js';
 import { initCycling } from './itemCycling.js';
 import { navigationModule } from './navigationModule.js';
-import { dressUpLivePreview } from './dress_up_live_preview.js';
-// Initialize the avatar module
+import { livePreviewModule } from './dress_up_live_preview.js'; // fixed import name
 
+// Initialize modules
 avatarModule.init();
-// Initialize the toast module
 toastModule.init();
-// Initialize item cycling functionality
 initCycling();
-// Initialize the navigation module
 navigationModule.init();
-// Initialize the live preview module
-livePreviewModule.init();
+livePreviewModule.init(); // now matches imported name

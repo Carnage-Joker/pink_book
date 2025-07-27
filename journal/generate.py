@@ -1,3 +1,4 @@
+from .utils.prompts import default_prompts  # adjust path as needed
 import os
 import random
 import openai
@@ -6,136 +7,76 @@ from .utils.prompts import default_prompts  # Ensure this path is correct
 import logging
 
 logger = logging.getLogger(__name__)
+logging.basicConfig(level=logging.INFO)
 
-# Set your OpenAI API key
+logger = logging.getLogger(__name__)
 openai.api_key = os.getenv("OPENAI_API_KEY")
 if not openai.api_key:
-    raise ValueError(
-        "OpenAI API key not found. Please set the OPENAI_API_KEY environment variable.")
+    raise ValueError("OpenAI API key not found. Set OPENAI_API_KEY.")
+
+# Pin to a stable model
+CHAT_MODEL = "gpt-4-0613"
 
 
-def generate_prompt():
-    """Selects a random prompt from the default_prompts list."""
+def generate_prompt() -> str:
     return random.choice(default_prompts)
 
 
 def generate_insight(journal_entry: str) -> str:
-    """
-    Generates an empathetic response to a journal entry.
-
-    Parameters:
-    - journal_entry (str): The user's journal entry.
-
-    Returns:
-    - str: A thoughtful, kind, and encouraging message.
-    """
-    from openai.types.chat import ChatCompletion
-    
-    # Define the system message
-    system_message = {
+    system = {
         "role": "system",
         "content": (
             "You are a supportive and empathetic mental health assistant. "
-            "Read the following journal entry and respond with a thoughtful, "
-            "kind, and encouraging message that helps the user reflect on "
-            "their emotions and experiences relating to their personal journey. "
-            "Keep your response under 500 characters."
+            "Provide a thoughtful, kind, and encouraging message under 500 characters."
         )
     }
-
-    # Define the user message
-    user_message = {
+    user = {
         "role": "user",
-        "content": f'Journal Entry: "{journal_entry}"\n\nResponse:'
+        "content": f"Journal Entry: {journal_entry}"
     }
-
-    # Create the chat completion
     try:
-        client = openai.OpenAI(api_key=openai.api_key)
-        response: ChatCompletion = client.chat.completions.create(
-            model="gpt-4",  # Use the appropriate model
-            messages=[system_message, user_message],
-            max_tokens=150,  # Adjust to ensure the response is concise
+        resp = openai.ChatCompletion.create(
+            model=CHAT_MODEL,
+            messages=[system, user],
+            max_tokens=150,
             temperature=0.7,
             top_p=1,
             frequency_penalty=0.7,
             presence_penalty=0.6
         )
-
-        # Extract the assistant's response
-        if response.choices and response.choices[0].message.content:
-            insight = response.choices[0].message.content.strip()
-        else:
-            raise RuntimeError("Unexpected response structure from OpenAI API")
+        insight = resp.choices[0].message.content.strip()
     except Exception as e:
-        raise RuntimeError(f"Error generating insight: {e}") from e
+        raise RuntimeError(f"Insight generation failed: {e}")
 
-    # Ensure the insight is not too long
-    max_length = 500  # Maximum character length
-    if len(insight) > max_length:
-        insight = insight[:max_length].rsplit(' ', 1)[0] + '...'
-
+    if len(insight) > 500:
+        insight = insight[:500].rsplit(' ', 1)[0] + '...'
     return insight
 
 
-# Set up logging
-logger = logging.getLogger(__name__)
-
-
-def check_content_topic_with_openai(entry_content, prompt_text):
-    """
-    Verifies that the journal entry adheres to the assigned prompt, task, or truth requirement.
-    
-    In our application, the 'prompt_text' can represent:
-      - A writing prompt the user is supposed to follow,
-      - A task description the user must address, or
-      - A truth task instructing the user to share a personal truth.
-    
-    Args:
-        entry_content (str): The content of the journal entry provided by the user.
-        prompt_text (str): The prompt/task/truth requirement the entry should adhere to.
-    
-    Returns:
-        bool: True if the entry strictly adheres to the prompt, False otherwise.
-    """
-    try:
-        # Construct detailed instructions for the AI verifier.
-        messages = [
-            {
-                "role": "system",
-                "content": (
-                    "You are a strict content verifier. Your job is to check if a journal entry "
-                    "completely adheres to the assigned prompt, task, or truth requirement. "
-                    "Respond with a single word: 'Yes' if the entry fully meets the requirement, "
-                    "or 'No' if it does not. Do not include any additional text."
-                )
-            },
-            {
-                "role": "user",
-                "content": (
-                    f"Analyze the following journal entry and determine if it adheres strictly to the assigned requirement.\n\n"
-                    f"Requirement (Prompt/Task/Truth): {prompt_text}\n\n"
-                    f"Journal Entry: {entry_content}\n\n"
-                    f"Respond with 'Yes' or 'No' only."
-                )
-            }
-        ]
-
-        # Call the OpenAI ChatCompletion API to perform the analysis.
-        response = openai.ChatCompletion.create(
-            model="gpt-4",
-            messages=messages,
-            max_tokens=50,  # Sufficient for a one-word response.
-            temperature=0.2  # Low temperature for consistency.
+def check_content_topic_with_openai(entry_content: str, prompt_text: str) -> bool:
+    system = {
+        "role": "system",
+        "content": (
+            "You are a strict content verifier. "
+            "Respond with 'Yes' or 'No' only."
         )
-        
-        # Extract and log the response.
-        result = response.choices[0].message['content'].strip()
-        logger.info(f"OpenAI response for topic check: {result}")
-
-        # Return True if the answer starts with 'yes' (case-insensitive).
-        return result.lower().startswith('yes')
-
-    except openai.OpenAIError as e:
-        logger.error(f"Error while sending content to OpenAI API: {str(e)}")
+    }
+    user = {
+        "role": "user",
+        "content": (
+            f"Requirement: {prompt_text}\n\nJournal Entry: {entry_content}\nRespond with 'Yes' or 'No'."
+        )
+    }
+    try:
+        resp = openai.ChatCompletion.create(
+            model=CHAT_MODEL,
+            messages=[system, user],
+            max_tokens=10,
+            temperature=0.2
+        )
+        result = resp.choices[0].message.content.strip().lower()
+        logger.info(f"Topic check result: {result}")
+        return result.startswith('yes')
+    except Exception as e:
+        logger.error(f"Topic check failed: {e}")
         return False

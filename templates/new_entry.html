@@ -1,6 +1,5 @@
-{% extends 'base.html' %}
-{% block title %}New Entry - The Pink Book{% endblock %}
-
+{% extends "base.html" %}
+{% block title %}New Entry{% endblock %}
 {% block content %}
 <div class="container two-column">
     <div class="column">
@@ -11,11 +10,10 @@
     </div>
     <div class="column">
         <div class="fluffy-card">
-            <h2>Write Your Entry</h2>
-    <form method="post">
-        {% csrf_token %}
+            <form method="post" enctype="multipart/form-data">
+                {% csrf_token %}
                 {{ form.as_p }}
-                <button type="submit" class="btn">Submit</button>
+                <button type="submit">Submit Entry</button>
             </form>
         </div>
     </div>

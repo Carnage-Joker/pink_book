@@ -3,12 +3,12 @@ from django.utils.encoding import force_bytes
 from django.utils.http import urlsafe_base64_encode
 from django.contrib.auth.tokens import default_token_generator
 from django.core.mail import send_mail
-from django.urls import reverse
-from django.conf import settings
 import random
 from journal.models import Task
 
-TASKS = [
+from typing import List, Dict, Any
+
+TASKS: List[Dict[str, Any]] = [
         {"description": "Write a positive affirmation about yourself. Then stick it to your Dashboard.", "points": 5},
         {"description":
             "Plan a cute outfit for the day and share it in your journal. Extra points for pics (use the Task tag if you wanna collect points!)", "points": 10},
@@ -34,26 +34,22 @@ TASKS = [
         # More tasks can be added with varying points
         {"description":
             "Write a journal entry about your favorite sissy outfit, extra points if you upload a pic of it! More points if you post a pic in our forum of you wearing it (use the Task tag if you wanna collect points!)", "points": 15},
-        {"description":
-            "Practice your sissy walk and write about how it makes you feel. Extra points for video evidence (use the Task tag if you wanna collect points!)", "points": 20},
         {"description": "Reflect on the pain and pleasure intertwined in your sissy journey.", "points": 10},
         {"description": "Record a heartfelt confession of your love and devotion to me, your Mistress.", "points": 10},
         {"description": "Describe the moment you realized your deepest, most secret desires were to serve powerful alphas.", "points": 10},
         {"description": "Document an instance where your submission to me brought you to tears, whether from joy or despair.", "points": 10},
         {"description": "Write about the first time you felt truly owned and how it changed you.", "points": 10},
+        # Duplicate removed: {"description": "Detail an encounter with someone who does not understand or accept your sissy nature and the emotional impact it had on you.", "points": 10},
+        # Duplicate removed: {"description": "Write about the euphoria that follows a successful submission.", "points": 10},
         {"description": "Detail an encounter with someone who does not understand or accept your sissy nature and the emotional impact it had on you.", "points": 10},
         {"description": "Write about the euphoria that follows a successful submission.", "points": 10},
-        {"description": "Express how your submission has changed your relationship with fear and vulnerability.", "points": 10},
+        # Duplicate removed: {"description": "Express how your submission has changed your relationship with fear and vulnerability.", "points": 10},
         {"description": "Reflect on the first time you felt truly accepted and validated in your sissy identity.", "points": 10},
-        {"description": "Detail an encounter with someone who does not understand or accept your sissy nature and the emotional impact it had on you.", "points": 10},
         {"description": "Record a moment of intense arousal during a particularly humiliating task.", "points": 10},
-        {"description": "Write about the euphoria that follows a successful submission.", "points": 10},
         {"description": "Explore a time when your emotions conflicted with your desire to obey.", "points": 10},
         {"description": "Express how your submission has changed your relationship with fear and vulnerability.", "points": 10},
     ]
-
-
-TRUTH_TASKS = [
+TRUTH_TASKS: List[Dict[str, Any]] = [
         {"description":
             "Confess your most embarrassing secret as a sissy. Write about how it felt to admit it (use the Task tag to collect points!).", "points": 15},
         {"description":
@@ -90,7 +86,7 @@ TRUTH_TASKS = [
     ]
 
 
-def generate_task(user):
+def generate_task(user: Any) -> Task:
     """Generate a random task for a user."""
     task_data = random.choice(TASKS)
     return Task.objects.create(
@@ -100,8 +96,7 @@ def generate_task(user):
         points_penalty=calculate_penalty(task_data["points"]),
     )
 
-
-def generate_truth_task(user):
+def generate_truth_task(user: Any) -> Task:
     """Generate a random truth task for a user."""
     task_data = random.choice(TRUTH_TASKS)
     return Task.objects.create(
@@ -111,13 +106,11 @@ def generate_truth_task(user):
         points_penalty=calculate_penalty(task_data["points"]),
     )
 
-
-def calculate_penalty(points):
+def calculate_penalty(points: int) -> int:
     """Calculate the penalty for a task."""
     return -(points * 2)
 
-
-def send_activation_email(user, request):
+def send_activation_email(user: Any, request: Any) -> None:
     """Send account activation email to a user."""
     current_site = request.get_host()
     subject = 'Activate Your Account'
@@ -128,16 +121,23 @@ def send_activation_email(user, request):
         'uidb64': urlsafe_base64_encode(force_bytes(user.pk)),
         'token': default_token_generator.make_token(user),
     })
-    send_mail(subject, message, settings.DEFAULT_FROM_EMAIL, [user.email])
+    send_mail(
+        subject,
+        message,
+        None,  # from_email, uses DEFAULT_FROM_EMAIL if None
+        [user.email],
+        html_message=message
+    )
 
+def fail_task(user: Any) -> bool:
+    """Handle task failure for a user.
 
-def fail_task(user):
-    """Handle task failure for a user."""
-    user.award_points(-5)
-    return True
-
-
-def complete_journal_entry(user, entry):
+    The user object must implement an 'award_points' method that accepts an integer (can be negative).
+    """
+    if hasattr(user, 'award_points') and callable(getattr(user, 'award_points')):
+        user.award_points(-5)
+        return True
+def complete_journal_entry(user: Any, entry: Any) -> Any:
     """Mark a journal entry as completed and award points."""
     if not entry.completed:
         entry.completed = True
@@ -147,4 +147,5 @@ def complete_journal_entry(user, entry):
     else:
         penalty = calculate_penalty(25)
         user.award_points(penalty)
-    return False
+        # Provide feedback about the penalty
+        return f"Entry was already completed. Penalty of {penalty} points applied."

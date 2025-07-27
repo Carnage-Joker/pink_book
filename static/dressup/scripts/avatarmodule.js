@@ -1,7 +1,5 @@
-// avatarModule.js
-
-// We wrap everything in an IIFE (Immediately Invoked Function Expression)
-// and return an object with a single method: changeItem.
+// avatarModule.js patch
+// Add an init() method so avatarModule.init() works as expected
 const avatarModule = (() => {
     const items = {
         dresses: ['00.png', '01.png', '02.png'],
@@ -11,7 +9,6 @@ const avatarModule = (() => {
         accessories: ['00.png', '01.png', '02.png']
     };
 
-    // Track the current index for each category
     const currentIndex = {
         dresses: 0,
         skirts: 0,
@@ -20,20 +17,12 @@ const avatarModule = (() => {
         accessories: 0
     };
 
-    /**
-     * Changes the current item in the specified category.
-     * @param {string} category - The category of the item (e.g., 'dresses', 'skirts').
-     * @param {string} direction - The direction to change the item ('next' or 'prev').
-     */
     function changeItem(category, direction) {
-        // Ensure the category exists in our items dictionary
         const categoryItems = items[category];
         if (!categoryItems) {
             console.warn(`Invalid category: ${category}`);
             return;
         }
-
-        // Update currentIndex[category] based on 'next' or 'prev'
         if (direction === 'next') {
             currentIndex[category] = (currentIndex[category] + 1) % categoryItems.length;
         } else if (direction === 'prev') {
@@ -42,20 +31,19 @@ const avatarModule = (() => {
             console.warn(`Invalid direction: ${direction}. Use 'next' or 'prev'.`);
             return;
         }
-
-        // Update the corresponding <img> element on the page
         const element = document.getElementById(category);
         if (element) {
-            // Example path: /static/dressup/avatars/dresses/01.png
             element.src = `/static/dressup/avatars/${category}/${categoryItems[currentIndex[category]]}`;
-        } else {
-            console.warn(`Element with ID "${category}" not found in the DOM.`);
         }
     }
 
-    // Expose public methods
-    return { changeItem };
+    // No-op init for consistency; can wire up controls if needed
+    function init() {
+        // e.g. attach event listeners to buttons if you have them
+        console.log('avatarModule initialized');
+    }
+
+    return { init, changeItem };
 })();
 
-// Named export so you can import { avatarModule } from "./avatarModule.js";
-export { avatarModule };
+export { avatarModule };  

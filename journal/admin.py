@@ -102,7 +102,7 @@ class QuoteAdmin(admin.ModelAdmin):
 
 @admin.register(UserProfile)
 class UserProfileAdmin(admin.ModelAdmin):
-    list_display = ('user', 'privacy_level', 'nsfw_blur', 'insight_opt')
+    list_display = ('user', 'privacy_level', 'nsfw_blur', 'insight_opt', )
     search_fields = ('user__sissy_name',)
     list_filter = ('privacy_level',)
 

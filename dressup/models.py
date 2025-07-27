@@ -6,7 +6,8 @@ import os
 from github import Github
 from github.GithubIntegration import GithubIntegration
 
-User = get_user_model()
+from django.conf import settings
+
 
 
 class Item(models.Model):
@@ -33,6 +34,7 @@ class Item(models.Model):
     premium_only = models.BooleanField(default=False)
     is_locked = models.BooleanField(default=False)
     description = models.TextField(blank=True)
+    shop = models.ManyToManyField('Shop', related_name='items', blank=True)
 
     def _validate_image_path(self):
         if self.image_path and not self.image_path.startswith('dressup/'):
@@ -110,10 +112,14 @@ class Avatar(models.Model):
                     ('02', 'Long Straight')]
     HAIR_COLOR_CHOICES = [('black', 'Black'), ('brunette', 'Brunette'),
                           ('blonde', 'Blonde'), ('red', 'Red'), ('pink', 'Pink')]
-
     user = models.OneToOneField(
-        User, on_delete=models.CASCADE, related_name='sissy_avatar')
-    name = models.CharField(max_length=100, default="Sissy Avatar")
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='sissy_avatar',
+        null=True,
+        blank=True,
+    )
+    name = models.CharField(max_length=100, default="Avatar")
     body = models.CharField(max_length=2, choices=BODY_CHOICES, default='00')
     skin = models.CharField(max_length=2, choices=SKIN_CHOICES, default='00')
     hair = models.CharField(max_length=2, choices=HAIR_CHOICES, default='00')
@@ -122,7 +128,7 @@ class Avatar(models.Model):
     story_started = models.BooleanField(default=False)
     outfit_name = models.CharField(max_length=100, blank=True, null=True)
     equipped_item = models.ManyToManyField(
-        Item, related_name='equipped_on_avatars', blank=True)
+        Item, related_name='item', blank=True)
 
     def get_image_urls(self, layer_keys: list[str] | None = None) -> dict[str, str]:
         if layer_keys is None:
@@ -194,7 +200,13 @@ class PhotoShoot(models.Model):
         ('hot', 'Hot Photographer'),
     ]
 
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    user = models.OneToOneField(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='photo_shoots',
+        null=True,
+        blank=True,
+    )
     photographer_type = models.CharField(
         max_length=20, choices=PHOTOGRAPHER_CHOICES)
     backdrop = models.ForeignKey(Item, on_delete=models.CASCADE)
@@ -205,9 +217,14 @@ class PhotoShoot(models.Model):
     def __str__(self):
         return f"{self.user.sissy_name}'s photoshoot with {self.photographer_type} photographer"
 
-
 class LeaderboardEntry(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    user = models.OneToOneField(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name='leaderboard_entries',
+        null=True,
+        blank=True,
+    )
     points = models.IntegerField()
     updated_at = models.DateTimeField(auto_now=True)
 

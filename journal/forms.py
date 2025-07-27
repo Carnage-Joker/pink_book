@@ -1,10 +1,10 @@
-from django.contrib.auth import get_user_model
-from django.contrib.auth.forms import AuthenticationForm
-from django.contrib.auth import authenticate
+from django.contrib.auth import get_user_model, authenticate
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Layout, Submit
 from django import forms
 from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
+from django.http import HttpRequest
+from typing import Any
 
 from .models import (Answer, Comment, CustomUser, Habit, JournalEntry, Post,
                      Question, Report, ResourceComment, Tag, ToDo, UserProfile,
@@ -16,7 +16,7 @@ class HabitForm(forms.ModelForm):
         model = Habit
         fields = ['name', 'description', 'frequency', 'target_count']
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args: object, **kwargs: object) -> None:
         super(HabitForm, self).__init__(*args, **kwargs)
         self.helper = FormHelper()
         self.helper.layout = Layout(
@@ -50,8 +50,7 @@ class PostForm(forms.ModelForm):
             'title': 'Make it snappy and sweet!',
             'content': 'Feel free to express yourself. 💖',
         }
-
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
         super(PostForm, self).__init__(*args, **kwargs)
         self.helper = FormHelper()
         self.helper.layout = Layout(
@@ -123,8 +122,7 @@ class CustomUserLoginForm(AuthenticationForm):
         widget=forms.PasswordInput(attrs={'autocomplete': 'current-password'}),
     )
 
-    # Remove the default 'username' field
-    def __init__(self, request=None, *args, **kwargs):
+    def __init__(self, request: 'HttpRequest' = None, *args, **kwargs):
         super().__init__(request, *args, **kwargs)
         self.fields.pop('username')  # Remove the 'username' field
         self.error_messages['invalid_login'] = (
@@ -209,13 +207,13 @@ class ProfileSettingsForm(forms.ModelForm):
                 ('friends', 'Just for Friends 🎀'),
                 ('private', 'My Secret 🤫')
             ]),
+
             'nsfw_blur': forms.CheckboxInput(
                 attrs={'label': 'Blur it for me, please! 🌸'}
             ),
-            'insights_opt': forms.CheckboxInput(
+            'insight_opt': forms.CheckboxInput(
                 attrs={'label': 'Yes, please! 🤖'}
-            )
-        }
+            )}
 
 
 class JournalEntryForm(forms.ModelForm):
@@ -226,7 +224,7 @@ class JournalEntryForm(forms.ModelForm):
         model = JournalEntry
         fields = ['title', 'content', 'tags', 'image',
                   'video', 'audio', 'file', 'generated_prompt']
-        widgets = {
+        widgets: dict[str, Any] = {
             'tags': forms.CheckboxSelectMultiple(),
         }
 
@@ -252,7 +250,7 @@ class TagForm(forms.ModelForm):
         widgets = {
             'tags': forms.CheckboxSelectMultiple(),
         }
-        
+
         fields = ['name', 'description']
 
     def __init__(self, *args, **kwargs):
@@ -277,7 +275,7 @@ class QuestionForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         self.helper = FormHelper(self)
         self.helper.layout = Layout(
-            'content',
+            'question',
             'tags',
             Submit('submit', 'Post Question')
         )
@@ -295,7 +293,7 @@ class AnswerForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         self.helper = FormHelper(self)
         self.helper.layout = Layout(
-            'content',
+            'answer',
             'tags',
             Submit('submit', 'Post Answer')
         )

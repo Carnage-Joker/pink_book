@@ -1,8 +1,15 @@
+"""
+URL configuration for the journal app.
+
+Includes paths for user registration, profile management, journal entries, task generation,
+forum posts, habit tracking, to-do lists, blog posts, contact forms, FAQs, and more.
+"""
+
+from . import views
 from django.conf.urls.static import static
 from django.conf import settings
 from journal.consumers import PointsConsumer
-from django.urls import re_path
-from django.urls import path
+from django.urls import path, re_path
 from .views import (
     # Import your views without duplication
     ContactView, DashboardView, ForumPostDetailView, HabitCreateView,
@@ -19,7 +26,7 @@ from .views import (
     terms_of_service, ResendActivationView, RegistrationSuccessView,
     ActivateAccountView, activation_sent, FaqView, FeedbackView, BlogDetailView,
     ThreadListView, PostListView, ForumCreateView, JournalEntryWithTaskView,
-    TruthTaskGenerateView, some_error_page
+    TruthTaskGenerateView, some_error_page, share_to_forum
 )
 
 app_name = 'journal'
@@ -38,6 +45,10 @@ urlpatterns = [
     path('register/', RegisterView.as_view(), name='register'),
     path('resend_activation/', ResendActivationView.as_view(),
          name='resend_activation'),
+    path('journal/entry/<int:pk>/share/',
+         views.share_to_forum, name='share_to_forum'),
+    # patterns for a Django web application.
+    # (See module docstring above for URL pattern descriptions.)
     path('registration-success/', RegistrationSuccessView.as_view(),
          name='registration_success'),
     path('activation_sent/', activation_sent, name='activation_sent'),
@@ -45,7 +56,6 @@ urlpatterns = [
          ActivateAccountView.as_view(), name='activate'),
 
     # Dashboard & Profile
-    path('dashboard/', DashboardView.as_view(), name='dashboard'),
     path('profile/', ProfileView.as_view(), name='profile'),
     path('profile/update/', ProfileUpdateView.as_view(), name='profile_update'),
     path('profile/settings/', ProfileSettingsView.as_view(),
@@ -53,20 +63,24 @@ urlpatterns = [
     path('profile/customize/', ProfileCustomizeView.as_view(),
          name='customize_theme'),
 
-    # Journal
+    path('dashboard/', DashboardView.as_view(), name='dashboard'),
+
+    # Journal entry routes
     path('journal/entry/create/', JournalEntryCreateView.as_view(), name='new_entry'),
     path('journal/entry/new/task/<uuid:task_id>/',
          JournalEntryWithTaskView.as_view(), name='new_entry_with_task'),
-
-    path('journal/list/', JournalEntryListView.as_view(),
-         name='entry_list'),  # Fixed missing slash
+    path('journal/list/', JournalEntryListView.as_view(), name='entry_list'),
     path('journal/entry/<int:pk>/',
          JournalEntryDetailView.as_view(), name='entry_detail'),
     path('journal/entry/<int:pk>/edit/',
          JournalEntryUpdateView.as_view(), name='entry_update'),
     path('journal/entry/<int:pk>/delete/',
          JournalEntryDeleteView.as_view(), name='entry_delete'),
-
+    
+    # Task generation (optional)
+    path('generate-task/', TaskGenerateView.as_view(), name='generate_task'),
+    path('generate-task-truth/', TruthTaskGenerateView.as_view(),
+         name='generate_task_truth'),
     path('forum/', ThreadListView.as_view(), name='thread_list'),
     path('forum/posts/<int:thread_id>/',
          PostListView.as_view(), name='posts'),
@@ -87,12 +101,10 @@ urlpatterns = [
     path('todos/new/', ToDoCreateView.as_view(), name='create_todo'),
     path('todos/<int:pk>/edit/', ToDoUpdateView.as_view(), name='todo_update'),
     path('todos/<int:pk>/', ToDoDetailView.as_view(), name='todo_detail'),
-    path('generate-task/', TaskGenerateView.as_view(), name='generate_task'),
-    path('generate-task-truth/', TruthTaskGenerateView.as_view(), name='generate_task_truth'),
     path('fail-task/', FailTaskView.as_view, name='fail_task'),
     path('complete-todo/<int:todo_id>/', CompleteToDoView.as_view(), name='complete_todo'),
     path('guide/<int:pk>/', GuideDetailView.as_view(), name='guide_detail'),
-    path('resource_category_list/', ResourceCategoryListView.as_view(),
+    path('fail-task/', FailTaskView.as_view(), name='fail_task'),
          name='resource_category_list'),
     path("resources/<int:pk>/", ResourceCategoryDetailView.as_view(),
          name="resource_category_detail"),

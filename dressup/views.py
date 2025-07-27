@@ -1,3 +1,6 @@
+from django.http import HttpRequest, HttpResponse
+from .models import Item, PurchasedItem, Avatar
+from django.shortcuts import render, redirect, get_object_or_404
 from collections import defaultdict
 from django.shortcuts import get_object_or_404, redirect, render
 from django.http import HttpRequest, HttpResponse, JsonResponse
@@ -143,16 +146,20 @@ def purchase_item(request: HttpRequest, item_id: int) -> HttpResponse:
 
 # views.py
 
+
 @login_required
 @avatar_required
 def inventory_view(request: HttpRequest) -> HttpResponse:
     avatar = request.user.sissy_avatar
     purchased_qs = PurchasedItem.objects.filter(avatar=avatar)
 
-
+    # paginate purchased items
     paginator = Paginator(purchased_qs, 10)
     purchased_page = paginator.get_page(request.GET.get('page'))
-    equipped_item_ids = set(avatar.equipped_items.values_list('id', flat=True))
+
+    # equipped items
+    equipped_items = avatar.equipped_item.all()
+    equipped_item_ids = set(equipped_items.values_list('id', flat=True))
 
     if request.method == 'POST':
         item_id = request.POST.get('item_id')
@@ -168,21 +175,21 @@ def inventory_view(request: HttpRequest) -> HttpResponse:
                 sassy_success(request, f"{item.name} is now equipped!")
             return redirect('dressup:inventory')
 
-        # Save outfit with a name
+        # Save outfit
         elif 'save_outfit' in request.POST:
             from .models import SavedOutfit
             outfit_name = request.POST.get('outfit_name', 'My Fabulous Look')
-
             SavedOutfit.objects.create(
-                user=request.user,
+                avatar=avatar,
                 name=outfit_name.strip() or 'Unnamed Look',
-                top=request.POST.get('top', '00'),
-                skirt=request.POST.get('skirt', '00'),
-                shoes=request.POST.get('shoes', '00'),
-                accessory=request.POST.get('accessory', '00'),
+                top=request.POST.get('top', ''),
+                skirt=request.POST.get('skirt', ''),
+                shoes=request.POST.get('shoes', ''),
+                accessory=request.POST.get('accessory', ''),
             )
             sassy_success(request, f"Saved your outfit as “{outfit_name}”! 💖")
 
+        # Favourite placeholder
         elif 'fav_outfit' in request.POST:
             sassy_info(request, "Favoriting outfits is coming soon, darling!")
 
@@ -190,25 +197,19 @@ def inventory_view(request: HttpRequest) -> HttpResponse:
             sassy_error(request, "Nothing selected – please try again.")
         return redirect('dressup:inventory')
 
-    equipped_map = defaultdict(lambda: '00')
-    for item in avatar.equipped_items.all():
-        equipped_map[item.category] = item.name  # or a code if you store it
-
+    # build context
     context = {
         'avatar': avatar,
         'purchased_items': purchased_page,
-        'equipped_items': avatar.equipped_items.all(),
+        'equipped_items': equipped_items,
         'layer_keys': ['body', 'hair', 'skirt', 'top', 'shoes', 'accessories'],
         'image_urls': avatar.get_image_urls(),
-        'categories': ['hair', 'top', 'skirt', 'shoes', 'accessories'],
-        'equipped_map': dict(equipped_map),
+        # derive all owned categories dynamically
+        'categories': sorted({p.item.category for p in purchased_page}),
     }
-
     return render(request, 'dressup/inventory.html', context)
 
 
-@login_required
-@avatar_required
 @login_required
 @avatar_required
 def equip_item_ajax(request: HttpRequest, item_id: int) -> JsonResponse:
@@ -222,8 +223,8 @@ def equip_item_ajax(request: HttpRequest, item_id: int) -> JsonResponse:
             'message': "You don't own this item!",
         }, status=403)
 
-    # Equip or unequip
-    if avatar.equipped_items.filter(id=item.id).exists():
+    # Use the correct m2m field 'equipped_item' for equip/unequip
+    if avatar.equipped_item.filter(id=item.id).exists():
         avatar.unequip_item(item)
         status = "unequipped"
     else:

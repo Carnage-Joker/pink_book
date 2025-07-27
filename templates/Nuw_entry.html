@@ -1,0 +1,25 @@
+{% extends 'base.html' %}
+{% block title %}New Entry - The Pink Book{% endblock %}
+
+{% block content %}
+<div class="container two-column">
+    <div class="column">
+        <div class="fluffy-card">
+            <h2>Your Prompt</h2>
+            <p>{{ generated_prompt }}</p>
+
+        </div>
+    </div>
+    <div class="column">
+        <div class="fluffy-card">
+            <h2>Write Your Entry</h2>
+        <form method="post">
+            {% csrf_token %}
+            {{ form.generated_prompt }}
+            {{ form.as_p }}
+            <button type="submit" class="btn">Submit</button>
+          </form>
+                  </div>
+    </div>
+</div>
+{% endblock %}
