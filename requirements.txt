@@ -40,7 +40,7 @@ django-formtools==2.5.1
 django-gmailapi-backend==0.3.2
 django-otp==1.5.4
 django-phonenumber-field==8.1.0
-django-two-factor-auth==1.15.5
+django-two-factor-auth==1.17.0
 django_csp==3.8
 fastapi==0.115.4
 filelock==3.15.1
