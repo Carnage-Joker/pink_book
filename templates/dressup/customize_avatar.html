@@ -194,7 +194,15 @@
         const hairColorValue = document.getElementById('hair_color').value;
         const hairImg = document.getElementById('preview-hair');
         
-        hairImg.src = "{% static 'dressup/avatars/hair/' %}" + hairValue + "/" + hairColorValue + ".png";
+        // Sanitize hairValue and hairColorValue to allow only alphanumeric characters, dashes, and underscores
+        const sanitizedHairValue = /^[a-zA-Z0-9_-]+$/.test(hairValue) ? hairValue : '';
+        const sanitizedHairColorValue = /^[a-zA-Z0-9_-]+$/.test(hairColorValue) ? hairColorValue : '';
+        if (!sanitizedHairValue || !sanitizedHairColorValue) {
+            console.warn(`Invalid values for hair or hair color: hair="${hairValue}", hair_color="${hairColorValue}"`);
+            return;
+        }
+
+        hairImg.src = "{% static 'dressup/avatars/hair/' %}" + sanitizedHairValue + "/" + sanitizedHairColorValue + ".png";
     }
 
     // Generic helper for single-attribute layers: /avatars/{layer}/{value}.png
