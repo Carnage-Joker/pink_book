@@ -1,6 +1,7 @@
 import logging
 from collections import Counter
 from datetime import timedelta
+from typing import Dict, List, Union, Optional
 
 from django.db.models import Avg, Count, F, IntegerField, Sum, Value
 from django.db.models.functions import ExtractHour, Length
@@ -14,9 +15,6 @@ from nltk.tokenize import word_tokenize
 logger = logging.getLogger(__name__)
 
 NO_DATA_AVAILABLE = 'No data available'
-
-
-from typing import Dict, List, Union, Optional
 
 
 def get_dashboard_insights(entries: QuerySet['JournalEntry'], habits: QuerySet, todos: QuerySet) -> Dict[str, Union[int, str, None, List[str]]]:

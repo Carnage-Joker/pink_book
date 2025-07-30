@@ -1,4 +1,5 @@
 
+from django.core.exceptions import ValidationError
 from datetime import timedelta
 import logging
 import os
@@ -19,8 +20,7 @@ from django.db.models import F
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
-from django.db.models.encrypted import EncryptedTextField
-
+from fernet_fields import EncryptedTextField
 # Placeholder for AI analysis function
 from .generate import check_content_topic_with_openai
 from .utils.ai_utils import get_sentiment  # AI module for insights
@@ -29,13 +29,30 @@ from .utils.ai_utils import get_sentiment  # AI module for insights
 LEVEL_UP_THRESHOLD = 100
 
 
+def current_timestamp():
+    """Return the current date/time.
+
+    This helper is kept for backwards compatibility with older migrations.
+    """
+    return timezone.now()
+
+
+# If you prefer to call a more explicit helper elsewhere, you can alias it:
+get_current_timestamp = current_timestamp
+
+
+logger = logging.getLogger(__name__)
+
+
+def get_current_timestamp():
+    return timezone.now()
+
+
 def default_due_date():
     return timezone.now().date() + timedelta(days=1)
 
 
 # Removed duplicate current_timestamp function definition.
-
-
 def profile_pic_upload_path(instance, filename):
     if not hasattr(instance, '_profile_pic_uuid'):
         instance._profile_pic_uuid = uuid4()
@@ -45,8 +62,6 @@ def profile_pic_upload_path(instance, filename):
     return os.path.join('profile_pics', sissy_name, new_filename)
 
 
-def current_timestamp():
-    return timezone.now()
 
 
 class CustomUserManager(BaseUserManager):
@@ -92,7 +107,7 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
     sissy_name = models.CharField(max_length=100, unique=True)
     email = models.EmailField(unique=True)
     date_joined = models.DateTimeField(
-        default=current_timestamp, editable=False)
+        default=get_current_timestamp, editable=False)
     activate_account_token = models.CharField(
         max_length=64, blank=True, null=True)
     location = models.CharField(
@@ -148,9 +163,9 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
     subscription_tier = models.CharField(
         max_length=50, default='free', choices=SUB_TIERS)
 
-    groups = models.ManyToManyField(Group, related_name='customuser_set_groups')
+    groups = models.ManyToManyField(Group, related_name='customuser_groups')
     user_permissions = models.ManyToManyField(
-        Permission, related_name='customuser_set_permissions')
+        Permission, related_name='customuser_permissions')
     locked_content = models.JSONField(default=dict)
     points = models.IntegerField(default=0)
     badges = models.JSONField(default=dict)
@@ -422,7 +437,7 @@ class ToDo(models.Model):
         max_length=50, choices=PENALTY_CHOICES, null=True, blank=True)
     due_date = models.DateField(default=default_due_date, null=True)
     completed = models.BooleanField(default=False)
-    timestamp = models.DateTimeField(default=current_timestamp)
+    timestamp = models.DateTimeField(default=get_current_timestamp)
     processed = models.BooleanField(default=False)
     failed = models.BooleanField(default=False)
     penalty_issued = models.BooleanField(default=False)
@@ -481,11 +496,16 @@ class Question(models.Model):
 class Answer(models.Model):
     question = models.OneToOneField(Question, on_delete=models.CASCADE)
     answer = models.TextField()
-    # needs to make sure that only a user that is grouped as a professional can answer
+    # Only users in the 'professional' group can be assigned here.
     professional = models.ForeignKey(CustomUser, on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
     tags = models.ManyToManyField('Tag', blank=True)
     related_models = GenericRelation(RelatedModel)
+
+    def clean(self):
+        super().clean()
+        if not self.professional.groups.filter(name='professional').exists():
+            raise ValidationError("Assigned user must be in the 'professional' group to answer.")
 
 
 class BlogPost(models.Model):
@@ -560,12 +580,6 @@ class Task(models.Model):
         description_preview = self.description[:50] if self.description else "No description"
         return f"Task for {self.user.sissy_name}: {description_preview}"
 # Configuring logger for the module
-logger = logging.getLogger(__name__)
-User = get_user_model()
-
-
-def current_timestamp():
-    return timezone.now()
 
 
 class JournalEntry(models.Model):
@@ -635,6 +649,9 @@ class JournalEntry(models.Model):
         except Exception as e:
             logger.error(f"Error during content analysis: {e}")
             return False
+
+    def get_absolute_url(self):
+        return reverse('journal:entry_detail', kwargs={'pk': self.pk})
 
     def save(self, *args, **kwargs):
         # Analyse sentiment
@@ -826,18 +843,32 @@ class Billing(models.Model):
     subscription_tier = models.CharField(max_length=50, default='free')
     start_date = models.DateField()
     end_date = models.DateField()
-    is_active = models.BooleanField(default=False)
-
+    
+    def cancel_subscription(self):
+        """Cancels the user's subscription by setting the end date to today and marking it as inactive."""
+        self.end_date = timezone.now().date()
+        self.is_active = False
+        self.user.subscription_tier = 'free'
+        self.save()
+        self.user.save()
+    
+    def is_active(self):
+        """Checks if the subscription is currently active."""
+        return self.end_date > timezone.now().date() and self.user.subscription_tier != 'free'
+    
     def __str__(self):
-        return (
-            f"{self.user.sissy_name}'s {self.subscription_tier} subscription"
-        )
+        return f"{self.user.sissy_name} - {self.subscription_tier} Subscription"
+    
+    def activate_subscription(self):
+        """Activates the user's subscription by setting the end date to one year from today and marking it as active."""
+        self.start_date = timezone.now().date()
+        self.end_date = self.start_date + relativedelta(years=1)
+        self.is_active = True
+        self.user.subscription_tier = 'premium'
+        self.save()
+        self.user.save()
 
-            billing.is_active = False
-            billing.is_active = False
-            billing.user.subscription_tier = 'free'
-            billing.save()
-            billing.user.save()
+
 class Message(models.Model):
     sender = models.ForeignKey(
         CustomUser, related_name='sent_messages', on_delete=models.CASCADE)

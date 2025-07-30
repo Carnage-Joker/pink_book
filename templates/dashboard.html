@@ -73,8 +73,8 @@
             <p>Take a break and try on some cute outfits. You deserve it, babe!</p>
             <a href="{% url 'dressup:create_avatar' %}" class="btn btn-dressup">Play Dress-ups</a>
             <p>Or, how about a fun game of Truth or Dare? Only if you dare, Sissy! Muhahaha</p>
-            <a href="#" class="btn btn-truth" id="generate-task-truth">Play Truth</a>
-            <a href="#" class="btn btn-dare" id="generate-task-dare">Play Dare</a>
+            <a href="{% url 'journal:new_entry_with_task' %}" class="btn btn-truth" id="generate-task-truth">Play Truth</a>
+            <a href="{% url 'journal:new_entry_with_task' %}" class="btn btn-dare" id="generate-task-dare">Play Dare</a>
 
 
         </div>

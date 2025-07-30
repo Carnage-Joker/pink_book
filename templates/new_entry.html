@@ -1,21 +1,41 @@
-{% extends "base.html" %}
-{% block title %}New Entry{% endblock %}
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Create New Entry{% endblock %}
+
 {% block content %}
-<div class="container two-column">
-    <div class="column">
-        <div class="fluffy-card">
-            <h2>Your Prompt</h2>
-            <p>{{ generated_prompt }}</p>
-        </div>
-    </div>
-    <div class="column">
-        <div class="fluffy-card">
-            <form method="post" enctype="multipart/form-data">
-                {% csrf_token %}
-                {{ form.as_p }}
-                <button type="submit">Submit Entry</button>
-            </form>
-        </div>
-    </div>
+<div class="container">
+  <div class="fluffy-card">
+    <h1 class="pink-title">Create a New Journal Entry</h1>
+    <p>Use the form below to write your new journal entry. You can also use the generated prompt to inspire your writing.</p>
+
+    {% if form.errors %}
+      <div class="alert alert-danger">
+        <strong>Error:</strong> Please correct the errors below.
+      </div>
+    {% endif %}
+
+    {% if form.non_field_errors %}
+      <div class="alert alert-danger">
+        {{ form.non_field_errors }}
+      </div>
+    {% endif %}
+
+    {% if generated_prompt or form.initial.generated_prompt %}
+      <div class="alert alert-info" style="margin-bottom: 1em;">
+        <strong>Prompt:</strong> {{ generated_prompt|default:form.initial.generated_prompt }}
+      </div>
+    {% endif %}
+
+    <form method="post" enctype="multipart/form-data">
+      {% csrf_token %}
+      {{ form.as_p }}
+      <button type="submit" class="btn btn-register">Save Entry</button>
+    </form>
+
+    <p class="mt-3">
+      <a href="{% url 'journal:entry_list' %}" class="pink-link">Back to your entries</a>
+    </p>
+  </div>
 </div>
 {% endblock %}

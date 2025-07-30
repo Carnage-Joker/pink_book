@@ -1,0 +1,80 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Journal Entry{% endblock %}
+
+{% block content %}
+<div class="two-column">
+  <div class="column card decorative-border">
+    <h1>{{ entry.title }}</h1>
+
+    <p><strong>Prompt/Task:</strong>
+      {% if entry.task %}
+        {{ entry.task }}
+      {% elif entry.prompt_text %}
+        {{ entry.prompt_text }}
+      {% else %}
+        No prompt assigned
+      {% endif %}
+    </p>
+
+    <p>
+      <!-- Insight badge -->
+      <span class="badge {% if entry.insight %}badge-success{% else %}badge-warning{% endif %}">
+        {% if entry.insight %}Insight ready{% else %}Insight pending…{% endif %}
+      </span>
+
+      <!-- On‑topic badge -->
+      <span class="badge {% if entry.is_on_topic %}badge-success{% else %}badge-danger{% endif %}">
+        {% if entry.is_on_topic %}On‑topic{% else %}Off‑topic{% endif %}
+      </span>
+
+      <!-- Points badge -->
+      <span class="badge badge-info">Points: {{ entry.points }}</span>
+    </p>
+
+    {% if entry.insight %}
+      <p><strong>Insight:</strong> {{ entry.insight }}</p>
+    {% endif %}
+
+    <p><strong>Tags:</strong>
+      {% for tag in entry.tags.all %}
+        {{ tag.name }}{% if not forloop.last %}, {% endif %}
+      {% empty %}
+        None
+      {% endfor %}
+    </p>
+
+    <p><strong>Content:</strong><br>{{ entry.content }}</p>
+
+    {% if entry.image %}
+      <img src="{{ entry.image.url }}" alt="Entry Image" style="max-width:100%; height:auto;">
+    {% endif %}
+    {% if entry.video %}
+      <video controls width="600">
+        <source src="{{ entry.video.url }}" type="video/mp4">
+        Your browser does not support the video tag.
+      </video>
+    {% endif %}
+    {% if entry.audio %}
+      <audio controls>
+        <source src="{{ entry.audio.url }}" type="audio/mpeg">
+        Your browser does not support the audio element.
+      </audio>
+    {% endif %}
+
+    <div class="profile-links">
+      <a href="{% url 'journal:entry_list' %}" class="btn btn-register">Back to Entry List</a>
+      <a href="{% url 'journal:entry_update' entry.pk %}" class="btn btn-edit">Edit</a>
+      <a href="{% url 'journal:entry_delete' entry.pk %}" class="btn btn-danger">Delete</a>
+    </div>
+
+    <!-- Share to forum -->
+    <form method="post" action="{% url 'journal:share_to_forum' entry.pk %}">
+      {% csrf_token %}
+      <label><input type="checkbox" name="anonymous"> Post anonymously</label>
+      <button type="submit" class="btn btn-primary">Share to Forum</button>
+    </form>
+  </div>
+</div>
+{% endblock %}

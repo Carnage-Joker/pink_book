@@ -5,11 +5,10 @@ Includes paths for user registration, profile management, journal entries, task 
 forum posts, habit tracking, to-do lists, blog posts, contact forms, FAQs, and more.
 """
 
-from . import views
-from django.conf.urls.static import static
 from django.conf import settings
-from journal.consumers import PointsConsumer
+from django.conf.urls.static import static
 from django.urls import path, re_path
+from journal.consumers import PointsConsumer
 from .views import (
     # Import your views without duplication
     ContactView, DashboardView, ForumPostDetailView, HabitCreateView,
@@ -41,17 +40,15 @@ urlpatterns = [
     path('password_reset/done/', PasswordResetDoneView.as_view(),
          name='password_reset_done'),
     path('about/', AboutView.as_view(), name='about'),
-    path('faq/', FaqView.as_view(), name='faq'),  # Removed duplicate
+    path('faq/', FaqView.as_view(), name='faq'),
     path('register/', RegisterView.as_view(), name='register'),
     path('resend_activation/', ResendActivationView.as_view(),
          name='resend_activation'),
     path('journal/entry/<int:pk>/share/',
-         views.share_to_forum, name='share_to_forum'),
+         share_to_forum, name='share_to_forum'),
     # patterns for a Django web application.
-    # (See module docstring above for URL pattern descriptions.)
     path('registration-success/', RegistrationSuccessView.as_view(),
          name='registration_success'),
-    path('activation_sent/', activation_sent, name='activation_sent'),
     path('activate/<uidb64>/<token>/',
          ActivateAccountView.as_view(), name='activate'),
 
@@ -101,13 +98,13 @@ urlpatterns = [
     path('todos/new/', ToDoCreateView.as_view(), name='create_todo'),
     path('todos/<int:pk>/edit/', ToDoUpdateView.as_view(), name='todo_update'),
     path('todos/<int:pk>/', ToDoDetailView.as_view(), name='todo_detail'),
-    path('fail-task/', FailTaskView.as_view, name='fail_task'),
+    path('fail-task/', FailTaskView.as_view(), name='fail_task'),
     path('complete-todo/<int:todo_id>/', CompleteToDoView.as_view(), name='complete_todo'),
     path('guide/<int:pk>/', GuideDetailView.as_view(), name='guide_detail'),
-    path('fail-task/', FailTaskView.as_view(), name='fail_task'),
-         name='resource_category_list'),
+          
     path("resources/<int:pk>/", ResourceCategoryDetailView.as_view(),
          name="resource_category_detail"),
+    path('resources/', ResourceCategoryListView.as_view(), name='resource_category_list'),
     # Blog
     path('blog/', BlogListView.as_view(), name='blog_list'),
     path('blog/<int:pk>/', BlogDetailView.as_view(), name='blog_detail'),

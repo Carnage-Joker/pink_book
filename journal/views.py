@@ -1,63 +1,47 @@
-from .models import JournalEntry, Post
-from django.utils.text import Truncator
-from django.contrib.auth.decorators import login_required
-from .utils.ai_utils import (
-    get_average_sentiment, get_current_streak,
-    extract_keywords, get_average_word_count,
-    get_most_common_tags, get_peak_journaling_time,
-    analyze_habit_sentiment_correlation
-)
-from .models import JournalEntry, Task
-from .generate import generate_prompt, generate_insight
-from .forms import JournalEntryForm
-from django.views.generic import CreateView, DetailView, ListView, UpdateView, DeleteView, TemplateView
-from django.shortcuts import get_object_or_404, redirect
-from typing import Dict, Any
-
-from .generate import generate_prompt
-from .tasks import generate_insight_task, check_topic_task
-from django.utils.decorators import method_decorator
-from django.http import JsonResponse
-from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth import get_user_model, login
-from django.contrib import messages
-from django.urls import reverse_lazy
 import json
-from django.views import View
-from django.views.generic import (
-    FormView, TemplateView, CreateView, DetailView,
-    ListView, UpdateView, DeleteView
-)
+import logging
+from datetime import date
+from typing import Any, Dict
+
 from django.conf import settings
+from django.contrib import messages
+from django.contrib.auth import get_user_model, login
+from django.contrib.auth import views as auth_views
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth.mixins import LoginRequiredMixin
+from django.contrib.auth.tokens import default_token_generator
+from django.contrib.auth.views import LoginView as AuthLoginView
 from django.core.mail import send_mail
+from django.core.paginator import Paginator
+
+from django.http import HttpResponse, JsonResponse
+from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse_lazy
+from django.utils.decorators import method_decorator
 from django.utils.encoding import force_str
 from django.utils.http import urlsafe_base64_decode
-from django.contrib.auth.tokens import default_token_generator
-from django.contrib.auth import views as auth_views
-from django.contrib.auth.mixins import LoginRequiredMixin
-from django.http import HttpResponse
-from django.core.paginator import Paginator
-from datetime import date
-from django.contrib.auth.views import LoginView as AuthLoginView
-from django.urls import reverse
-from django.forms import BaseModelForm
-
-
+from django.utils.text import Truncator
+from django.views import View
 from django.views.decorators.csrf import csrf_exempt
-import logging
+from django.views.generic import (CreateView, DeleteView, DetailView, FormView,
+                                  ListView, TemplateView, UpdateView)
+
 # Local application imports
 from .forms import (CommentForm, CustomUserCreationForm, CustomUserLoginForm,
                     CustomUserUpdateForm, HabitForm, JournalEntryForm,
                     ResendActivationForm, ThemeForm, ToDoForm)
+from .generate import generate_insight, generate_prompt
 from .models import (ActivityLog, Answer, Billing, BlogPost, Comment,
                      CustomUser, Faq, Guide, Habit, JournalEntry, Message,
-                     Post, Question, Quote, Resource, ResourceCategory, Task,
+                     Post, Question, Resource, ResourceCategory, Task,
                      TaskCompletion, Thread, ToDo)
-from .utils.ai_utils import (extract_keywords, get_average_sentiment,
-                             get_current_streak, get_average_word_count,
+from .tasks import check_topic_task, generate_insight_task
+from .utils.ai_utils import (analyze_habit_sentiment_correlation,
+                             extract_keywords, get_average_sentiment,
+                             get_average_word_count, get_current_streak,
                              get_most_common_tags, get_peak_journaling_time)
-from .utils.utils import (generate_task,
-                          generate_truth_task, send_activation_email)
+from .utils.utils import (generate_task, generate_truth_task,
+                          send_activation_email)
 
 # Set up the logger to capture and log application events and errors
 logger = logging.getLogger(__name__)
@@ -424,7 +408,8 @@ class DashboardView(LoginRequiredMixin, TemplateView):
 class JournalEntryCreateView(LoginRequiredMixin, CreateView):
     model = JournalEntry
     form_class = JournalEntryForm
-    template_name = "journal/new_entry.html"
+    template_name = "new_entry.html"
+    absolute_url = reverse_lazy("journal:entry_list")
 
     def get_initial(self):
         initial = super().get_initial()
@@ -455,7 +440,7 @@ class JournalEntryCreateView(LoginRequiredMixin, CreateView):
 class JournalEntryWithTaskView(LoginRequiredMixin, CreateView):
     model = JournalEntry
     form_class = JournalEntryForm
-    template_name = "journal/new_entry_with_task.html"
+    template_name = "new_entry_with_task.html"
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
@@ -485,7 +470,7 @@ class JournalEntryWithTaskView(LoginRequiredMixin, CreateView):
 
 class JournalEntryDetailView(LoginRequiredMixin, DetailView):
     model = JournalEntry
-    template_name = "journal/entry_detail.html"
+    template_name = "entry_detail.html"
     context_object_name = "entry"
 
     def get_queryset(self):
@@ -495,7 +480,7 @@ class JournalEntryDetailView(LoginRequiredMixin, DetailView):
 class JournalEntryUpdateView(LoginRequiredMixin, UpdateView):
     model = JournalEntry
     form_class = JournalEntryForm
-    template_name = "journal/entry_update.html"
+    template_name = "entry_update.html"
     success_url = reverse_lazy("journal:entry_list")
 
     def get_queryset(self):
@@ -504,12 +489,11 @@ class JournalEntryUpdateView(LoginRequiredMixin, UpdateView):
 
 class JournalEntryDeleteView(LoginRequiredMixin, DeleteView):
     model = JournalEntry
-    template_name = "journal/entry_delete.html"
+    template_name = "entry_delete.html"
     success_url = reverse_lazy("journal:entry_list")
 
     def get_queryset(self):
         return JournalEntry.objects.filter(user=self.request.user)
-
 
 
 class JournalEntryListView(LoginRequiredMixin, ListView):

@@ -67,7 +67,7 @@ INSTALLED_APPS = [
     'allauth.account',
     'allauth.socialaccount',
     'allauth.socialaccount.providers.google',
-    
+    'fernet_fields',
     'django.contrib.humanize',
 
     'journal.apps.JournalConfig',
